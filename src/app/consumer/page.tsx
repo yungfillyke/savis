@@ -8,6 +8,7 @@ import AccountMenu from "@/components/AccountMenu";
 import LangToggle from "@/components/LangToggle";
 import { t, getLang, setLang, type Lang } from "@/lib/i18n";
 import { distanceKm, getSavedLocation, requestCurrentLocation, type UserLocation } from "@/lib/location";
+import { getBookings, syncBookings, type Booking } from "@/lib/bookings";
 
 type Profile = { full_name: string | null; role: string | null; email: string | null };
 
@@ -92,6 +93,7 @@ export default function ConsumerPage() {
   const [mapMode, setMapMode] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [radius, setRadius] = useState(10);
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
     setLangState(getLang());
@@ -130,7 +132,7 @@ export default function ConsumerPage() {
       const rpc = await supabase.rpc("search_nearby_providers", {
         p_lat: location.latitude,
         p_lng: location.longitude,
-        p_radius_km: 25,
+        p_radius_km: radius,
         p_category: categoryArg,
         p_limit: 40,
       });
@@ -171,7 +173,11 @@ export default function ConsumerPage() {
 
   useEffect(() => {
     if (!loading) void loadProviders(userLocation, activeCategory);
-  }, [loading, userLocation, activeCategory]);
+  }, [loading, userLocation, activeCategory, radius]);
+
+  useEffect(() => {
+    if (!loading) void syncBookings().then(setBookings);
+  }, [loading]);
 
   async function enableLocation() {
     setLocationBusy(true);
@@ -322,53 +328,15 @@ export default function ConsumerPage() {
         <div className="mx-auto max-w-lg px-4 pt-5">
           <div className="mb-5"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F5C451]">Tracking</p><h1 className="mt-1 text-2xl font-extrabold">Bookings & Jobs</h1><p className="mt-1 text-sm text-[#B9C3C9]">Follow active work, quotes and your service history.</p></div>
           <Link href="/bookings" className="mb-4 flex items-center justify-between rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4"><div><b className="text-sm">Open full bookings</b><p className="mt-1 text-xs text-[#B9C3C9]">Reviews, receipts and full booking details</p></div><span className="text-[#F5C451]">→</span></Link>
-          {filtered.slice(0, 3).map((p, i) => <div key={p.id} className="mb-3 rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4"><div className="flex justify-between gap-3"><div><b>{p.name}</b><p className="text-xs text-[#B9C3C9]">{p.skill} · #{String(1042+i)}</p></div><span className="rounded-full bg-[#F5C451]/10 px-2.5 py-1 text-[0.62rem] font-bold text-[#F5C451]">Quote ready</span></div><div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-[#E22227] to-[#F5C451]" style={{ width: `${progress(i === 0 ? "accepted" : "requested")}%` }} /></div><div className="mt-2 flex justify-between text-[0.62rem] text-[#7F8C93]"><span>Requested</span><span>Quote accepted</span><span>En route</span><span>Done</span></div></div>)}
-          <div className="rounded-[20px] border border-dashed border-white/10 p-6 text-center"><p className="text-2xl">🧾</p><p className="mt-2 text-sm font-bold">Pending quotes</p><p className="mt-1 text-xs text-[#B9C3C9]">Provider quotes will appear here with approve, decline and milestone-payment actions.</p></div>
-        </div>
-      )}
-
-      {activeTab === "messages" && (
-        <div className="mx-auto max-w-lg px-4 pt-5">
-          <div className="mb-5"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#F5C451]">Inbox</p><h1 className="mt-1 text-2xl font-extrabold">Messages & Payments</h1><p className="mt-1 text-sm text-[#B9C3C9]">Keep provider conversations and transaction updates together.</p></div>
-          <div className="mb-3 flex rounded-full bg-white/5 p-1"><button className="flex-1 rounded-full bg-white/10 py-2 text-xs font-bold">Service enquiries</button><button className="flex-1 py-2 text-xs font-bold text-[#7F8C93]">Product orders</button></div>
-          <div className="space-y-3"><div className="rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4"><div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E22227]/15">🔧</span><div className="flex-1"><b className="text-sm">Provider conversations</b><p className="mt-1 text-xs text-[#B9C3C9]">Quote requests, job updates and photos will appear here.</p></div><span className="text-[#F5C451]">›</span></div></div><div className="rounded-[20px] border border-[rgba(245,196,81,0.25)] bg-[rgba(245,196,81,0.06)] p-4"><div className="flex justify-between"><div><p className="text-xs text-[#B9C3C9]">SAVIS Wallet</p><p className="mt-1 text-xl font-extrabold">KSh 0</p></div><span className="text-2xl">💳</span></div><p className="mt-2 text-[0.68rem] text-[#7F8C93]">M-Pesa, saved cards and escrow milestones will connect here.</p></div><Link href="/messages" className="block text-center text-xs font-bold text-[#F5C451]">Open messaging hub →</Link></div>
-        </div>
-      )}
-
-      {activeTab === "profile" && (
-        <div className="mx-auto max-w-lg px-4 pt-5">
-          <div className="mb-5 flex items-center gap-4 rounded-[22px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4"><div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] text-2xl font-black">{firstName.charAt(0).toUpperCase()}</div><div className="min-w-0 flex-1"><h1 className="text-xl font-extrabold truncate">{profile?.full_name || "Account"}</h1><p className="truncate text-xs text-[#B9C3C9]">{profile?.email}</p><span className="mt-1 inline-block rounded-full bg-[#F5C451]/10 px-2 py-1 text-[0.6rem] font-bold text-[#F5C451] capitalize">{profile?.role || "consumer"}</span></div></div>
-          <div className="space-y-2"><Link href="/profile" className="flex items-center justify-between rounded-[18px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4 text-sm font-bold">Account & Security <span>→</span></Link><Link href="/settings" className="flex items-center justify-between rounded-[18px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4 text-sm font-bold">Settings & notifications <span>→</span></Link><button type="button" onClick={() => setShowTutorial(true)} className="flex w-full items-center justify-between rounded-[18px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4 text-sm font-bold">App tutorial <span>?</span></button><button type="button" onClick={() => setTab("for-you")} className="flex w-full items-center justify-between rounded-[18px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4 text-sm font-bold">Saved & favorites <span>♡</span></button></div>
-        </div>
-      )}
-
-      <nav className="fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(10px,env(safe-area-inset-bottom))] pt-2">
-        <div className="mx-auto grid max-w-lg grid-cols-5 items-center rounded-full border border-white/10 bg-[rgba(34,43,49,0.94)] px-1 py-2 shadow-2xl backdrop-blur-lg">
-          {tabItems.map((tab) => <button key={tab.id} type="button" onClick={() => setTab(tab.id)} className={`flex flex-col items-center gap-0.5 rounded-full px-2 py-1.5 text-[0.58rem] font-bold transition ${activeTab === tab.id ? "bg-gradient-to-br from-[#E22227] to-[#C7080C] text-white" : "text-[#B9C3C9]"}`}><span className="text-base">{tab.icon}</span>{tab.label}</button>)}
-        </div>
-      </nav>
-
-      {mapMode && (
-        <div className="fixed inset-0 z-50 bg-[#0b1116]">
-          <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[#11171c]/90 px-4 py-3 backdrop-blur-xl"><div><b className="text-sm">Live SAVIS map</b><p className="text-[0.62rem] text-[#B9C3C9]">Within {radius} km · {filtered.length} results</p></div><button type="button" onClick={() => setMapMode(false)} className="rounded-full bg-white/10 px-4 py-2 text-xs font-bold">Close</button></div>
-          <iframe title="SAVIS full-screen map" src={mapUrl} className="h-full w-full border-0" />
-          <div className="absolute bottom-6 left-4 right-4 z-20 flex gap-2 overflow-x-auto pb-1">{filtered.slice(0, 5).map((p) => <Link key={p.id} href={`/consumer/provider/${p.id}`} className="min-w-[210px] rounded-[18px] border border-white/10 bg-[#11171c]/90 p-3 backdrop-blur-xl"><div className="flex items-center gap-2"><span className="text-2xl">{p.icon}</span><div className="min-w-0"><b className="block truncate text-sm">{p.name}</b><span className="text-[0.62rem] text-[#B9C3C9]">{p.skill} · {p.km.toFixed(1)} km</span></div></div><div className="mt-2 text-xs font-bold text-[#F5C451]">★ {p.rating || "New"} · View profile →</div></Link>)}</div>
-        </div>
-      )}
-
-      {showTutorial && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-3 sm:items-center">
-          <div className="w-full max-w-md rounded-[26px] border border-white/10 bg-[#182127] p-5 shadow-2xl">
-            <div className="flex items-center justify-between"><div><span className="text-xs font-bold uppercase tracking-[0.18em] text-[#F5C451]">SAVIS guide</span><h2 className="mt-1 text-xl font-extrabold">Everything in five tabs</h2></div><button onClick={() => setShowTutorial(false)} className="text-xl text-[#B9C3C9]">×</button></div>
-            <div className="mt-5 space-y-3">
-              <p className="rounded-2xl bg-white/5 p-3 text-sm"><b>Home</b> — search, categories, nearby providers and map.</p>
-              <p className="rounded-2xl bg-white/5 p-3 text-sm"><b>For You</b> — discover local products, work and future short videos.</p>
-              <p className="rounded-2xl bg-white/5 p-3 text-sm"><b>Jobs</b> — track requests, quotes and service progress.</p>
-              <p className="rounded-2xl bg-white/5 p-3 text-sm"><b>Messages</b> — provider conversations and future payment controls.</p>
-              <p className="rounded-2xl bg-white/5 p-3 text-sm"><b>Profile</b> — security, settings, notifications and saved providers.</p>
+          {bookings.slice(0, 3).map((booking) => (
+            <div key={booking.id} className="mb-3 rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4">
+              <div className="flex justify-between gap-3"><div><b>{booking.providerName}</b><p className="text-xs text-[#B9C3C9]">{booking.skill} · #SV-{booking.id.slice(-4)}</p></div><span className="rounded-full bg-[#F5C451]/10 px-2.5 py-1 text-[0.62rem] font-bold text-[#F5C451] capitalize">{booking.status}</span></div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-[#E22227] to-[#F5C451]" style={{ width: `${progress(booking.status)}%` }} /></div>
+              <div className="mt-2 flex justify-between text-[0.62rem] text-[#7F8C93]"><span>Requested</span><span>Accepted</span><span>En route</span><span>Done</span></div>
             </div>
-            <button type="button" onClick={() => setShowTutorial(false)} className="mt-5 w-full rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-3 text-sm font-bold">Got it</button>
-          </div>
+          ))}
+          {bookings.length === 0 && <div className="rounded-[20px] border border-dashed border-white/10 p-6 text-center"><p className="text-2xl">🧾</p><p className="mt-2 text-sm font-bold">No active jobs yet</p><p className="mt-1 text-xs text-[#B9C3C9]">When you request a provider, live job progress will appear here.</p></div>}
+                  </div>
         </div>
       )}
     </main>
