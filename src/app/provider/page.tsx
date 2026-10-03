@@ -157,8 +157,15 @@ export default function ProviderPage() {
   ];
 
   return (
-    <main className="min-h-screen pb-24">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[rgba(34,43,49,0.92)] backdrop-blur-xl">
+    <main className="relative min-h-screen overflow-x-hidden pb-24 bg-[#07111f] text-white">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#07111f]">
+        <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-[#3156c9]/20 blur-[110px]" />
+        <div className="absolute right-[-10rem] top-24 h-[34rem] w-[34rem] rounded-full bg-[#36a9ff]/15 blur-[130px]" />
+        <div className="absolute left-1/3 bottom-[-18rem] h-[38rem] w-[38rem] rounded-full bg-[#6d5dfc]/10 blur-[150px]" />
+        <div className="absolute inset-0 opacity-45" style={{backgroundImage:"radial-gradient(circle at 20% 20%, rgba(255,255,255,.7) 0 1px, transparent 1.5px), radial-gradient(circle at 75% 35%, rgba(145,198,255,.7) 0 1px, transparent 1.5px), radial-gradient(circle at 45% 80%, rgba(255,255,255,.5) 0 1px, transparent 1.5px)", backgroundSize:"150px 150px, 190px 190px, 230px 230px"}} />
+        <div className="absolute left-1/2 top-16 h-48 w-48 -translate-x-1/2 rounded-full bg-[#dcecff]/10 blur-3xl" />
+      </div>
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[rgba(7,17,31,0.78)] backdrop-blur-xl">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <Logo size="sm" />
           <div className="flex items-center gap-2">
@@ -171,7 +178,7 @@ export default function ProviderPage() {
 
       <div className="max-w-5xl mx-auto px-4 pt-5">
         {/* Sticky provider identity / quick stats */}
-        <section className="sticky top-[61px] z-30 -mx-4 px-4 py-4 bg-[rgba(20,27,31,0.96)] border-b border-white/10 backdrop-blur-xl">
+        <section className="sticky top-[61px] z-30 -mx-4 px-4 py-4 bg-[rgba(7,17,31,0.78)] border-b border-white/10 backdrop-blur-xl">
           <div className="flex gap-3 items-center">
             <div className="w-14 h-14 rounded-full bg-[#2D3940] border border-white/10 flex items-center justify-center text-xl font-black text-[#F5C451]">
               {firstName[0]?.toUpperCase()}
@@ -204,7 +211,7 @@ export default function ProviderPage() {
 
         {/* Tab navigation */}
         <nav className="mt-4 overflow-x-auto -mx-4 px-4 scrollbar-hide">
-          <div className="flex min-w-max gap-1 p-1 rounded-2xl bg-[rgba(34,43,49,0.72)] border border-white/10">
+          <div className="flex min-w-max gap-1 p-1 rounded-2xl bg-[rgba(13,29,48,0.72)] border border-white/10">
             {tabs.filter(x => x.visible).map(item => (
               <button key={item.id} onClick={() => setTab(item.id)} className={`px-3 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${tab === item.id ? "bg-[#F5C451] text-[#141B1F]" : "text-[#B9C3C9] hover:text-white"}`}>
                 <span className="mr-1.5">{item.icon}</span>{item.label}
@@ -216,7 +223,7 @@ export default function ProviderPage() {
         {tab === "jobs" && (
           <div className="mt-5 space-y-4">
             <div className="grid lg:grid-cols-[1.35fr_1fr] gap-4">
-              <section className="p-4 rounded-[22px] border border-white/10 bg-[rgba(34,43,49,0.72)]">
+              <section className="p-4 rounded-[22px] border border-white/10 bg-[rgba(13,29,48,0.72)]">
                 <div className="flex items-center justify-between mb-4">
                   <div><h2 className="font-extrabold">Jobs & Schedule</h2><p className="text-xs text-[#7F8C93]">Your work calendar and job IDs</p></div>
                   <button onClick={() => showToast("Calendar editor coming next")} className="text-xs font-bold text-[#F5C451]">Edit schedule</button>
