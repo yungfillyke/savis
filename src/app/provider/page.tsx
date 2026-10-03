@@ -35,12 +35,43 @@ const URGENCY: Record<string, { en: string; sw: string }> = {
   week: { en: "This week", sw: "Wiki hii" },
 };
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const CALENDAR = [
-  { day: 6, label: "Plumbing · #SV-1042" },
-  { day: 8, label: "Inspection · #SV-1047" },
-  { day: 12, label: "Repair · #SV-1051" },
-];
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+type AvailabilityDay = {
+  weekday: number;
+  enabled: boolean;
+  start_time: string;
+  end_time: string;
+  travel_radius_km: number;
+};
+
+const DEFAULT_AVAILABILITY: AvailabilityDay[] = DAYS.map((_, weekday) => ({
+  weekday,
+  enabled: weekday >= 1 && weekday <= 5,
+  start_time: "08:00",
+  end_time: "17:00",
+  travel_radius_km: 25,
+}));
+
+function monthLabel(date: Date) {
+  return date.toLocaleDateString("en-KE", { month: "long", year: "numeric" });
+}
+
+function calendarCells(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const first = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const leading = first.getDay();
+  return Array.from({ length: Math.ceil((leading + daysInMonth) / 7) * 7 }, (_, index) => {
+    const day = index - leading + 1;
+    return day >= 1 && day <= daysInMonth ? day : null;
+  });
+}
+
+function dateKey(year: number, month: number, day: number) {
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
 
 function jobId(id: string) {
   return `#SV-${id.slice(-4).toUpperCase()}`;
@@ -56,6 +87,9 @@ export default function ProviderPage() {
   const [tab, setTab] = useState<Tab>("jobs");
   const [toast, setToast] = useState<string | null>(null);
   const [lang, setLangState] = useState<Lang>("en");
+  const [availability, setAvailability] = useState<AvailabilityDay[]>(DEFAULT_AVAILABILITY);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
 
   useEffect(() => setLangState(getLang()), []);
   function switchLang(l: Lang) {
@@ -87,6 +121,24 @@ export default function ProviderPage() {
         full_name: user.user_metadata?.full_name || "Friend",
         role: user.user_metadata?.role || "provider",
       });
+      setAvailable((data?.availability || "Available").toLowerCase() !== "offline");
+
+      const { data: savedAvailability } = await supabase
+        .from("provider_availability")
+        .select("weekday, enabled, start_time, end_time, travel_radius_km")
+        .eq("provider_id", user.id)
+        .order("weekday");
+
+      if (savedAvailability && savedAvailability.length > 0) {
+        setAvailability(savedAvailability.map((row) => ({
+          weekday: Number(row.weekday),
+          enabled: Boolean(row.enabled),
+          start_time: String(row.start_time || "08:00").slice(0, 5),
+          end_time: String(row.end_time || "17:00").slice(0, 5),
+          travel_radius_km: Number(row.travel_radius_km) || 25,
+        })));
+      }
+
       await syncBookings();
       refreshJobs();
       setLoading(false);
@@ -112,6 +164,41 @@ export default function ProviderPage() {
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 2200);
+  }
+
+  async function persistAvailable(next: boolean) {
+    setAvailable(next);
+    setProfile((p) => p ? { ...p, availability: next ? "Available" : "Offline" } : p);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("profiles").update({ availability: next ? "Available" : "Offline" }).eq("id", user.id);
+      }
+    } catch {
+      showToast("Status saved locally");
+    }
+  }
+
+  async function saveAvailabilityDay(day: AvailabilityDay) {
+    setAvailability((current) => current.map((item) => item.weekday === day.weekday ? day : item));
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { error } = await supabase.from("provider_availability").upsert({
+        provider_id: user.id,
+        weekday: day.weekday,
+        enabled: day.enabled,
+        start_time: day.start_time,
+        end_time: day.end_time,
+        travel_radius_km: day.travel_radius_km,
+      }, { onConflict: "provider_id,weekday" });
+      if (error) throw error;
+      showToast("Schedule saved");
+    } catch {
+      showToast("Saved on this device · run the latest Supabase schema to sync");
+    }
   }
 
   async function acceptJob(id: string) {
@@ -190,7 +277,7 @@ export default function ProviderPage() {
               </div>
               <p className="text-xs text-[#B9C3C9]">{profile?.service_category || "Service Provider"} · {profile?.role || "provider"}</p>
             </div>
-            <button onClick={() => setAvailable(v => !v)} className="shrink-0 flex items-center gap-2 text-xs font-bold">
+            <button onClick={() => persistAvailable(!available)} className="shrink-0 flex items-center gap-2 text-xs font-bold">
               <span className={`w-2.5 h-2.5 rounded-full ${available ? "bg-[#34D399]" : "bg-[#6B7280]"}`} />
               <span className="hidden sm:inline">{available ? "Available" : "Offline"}</span>
             </button>
@@ -224,23 +311,87 @@ export default function ProviderPage() {
           <div className="mt-5 space-y-4">
             <div className="grid lg:grid-cols-[1.35fr_1fr] gap-4">
               <section className="p-4 rounded-[22px] border border-white/10 bg-[rgba(13,29,48,0.72)]">
-                <div className="flex items-center justify-between mb-4">
-                  <div><h2 className="font-extrabold">Jobs & Schedule</h2><p className="text-xs text-[#7F8C93]">Your work calendar and job IDs</p></div>
-                  <button onClick={() => showToast("Calendar editor coming next")} className="text-xs font-bold text-[#F5C451]">Edit schedule</button>
-                </div>
-                <div className="grid grid-cols-7 gap-1.5 mb-3">
-                  {DAYS.map(d => <span key={d} className="text-center text-[0.62rem] font-bold text-[#7F8C93] py-1">{d}</span>)}
-                  {Array.from({length: 28}, (_, i) => {
-                    const n = i + 1;
-                    const item = CALENDAR.find(x => x.day === n);
-                    return <div key={n} className={`min-h-12 rounded-lg border p-1.5 text-[0.58rem] ${item ? "border-[#F5C451]/50 bg-[#F5C451]/10" : "border-white/6 bg-black/10"}`}>
-                      <span className="font-bold">{n}</span>{item && <span className="block mt-1 text-[#F5C451] leading-tight">{item.label}</span>}
-                    </div>;
-                  })}
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="text-[0.65rem] px-2 py-1 rounded-full bg-white/5 text-[#B9C3C9]">Mon–Fri · 8 AM–5 PM</span>
-                  <span className="text-[0.65rem] px-2 py-1 rounded-full bg-white/5 text-[#B9C3C9]">Travel radius · 25 km</span>
+                {(() => {
+                  const year = calendarMonth.getFullYear();
+                  const month = calendarMonth.getMonth();
+                  const cells = calendarCells(calendarMonth);
+                  const today = new Date();
+                  const scheduledJobs = getBookings().filter((job) => job.scheduledFor && new Date(job.scheduledFor).getFullYear() === year && new Date(job.scheduledFor).getMonth() === month);
+                  const scheduledValue = scheduledJobs.reduce((sum, job) => sum + job.rate, 0);
+                  const selected = selectedDate ? new Date(`${selectedDate}T12:00:00`) : null;
+                  const selectedWeekday = selected ? selected.getDay() : null;
+                  const selectedAvailability = selectedWeekday == null ? null : availability.find((day) => day.weekday === selectedWeekday) || DEFAULT_AVAILABILITY[selectedWeekday];
+
+                  return <>
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div>
+                        <h2 className="font-extrabold">Jobs & Schedule</h2>
+                        <p className="text-xs text-[#7F8C93]">Plan working days, hours and scheduled work</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button aria-label="Previous month" onClick={() => setCalendarMonth(new Date(year, month - 1, 1))} className="w-8 h-8 rounded-full border border-white/10">‹</button>
+                        <button onClick={() => setCalendarMonth(new Date())} className="px-3 h-8 rounded-full border border-white/10 text-[0.65rem] font-bold">Today</button>
+                        <button aria-label="Next month" onClick={() => setCalendarMonth(new Date(year, month + 1, 1))} className="w-8 h-8 rounded-full border border-white/10">›</button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                      <div className="rounded-xl bg-white/[0.04] border border-white/8 p-2"><span className="text-[0.6rem] text-[#7F8C93]">Scheduled jobs</span><b className="block text-sm mt-1">{scheduledJobs.length}</b></div>
+                      <div className="rounded-xl bg-white/[0.04] border border-white/8 p-2"><span className="text-[0.6rem] text-[#7F8C93]">Month value</span><b className="block text-sm mt-1 text-[#F5C451]">KSh {scheduledValue.toLocaleString()}</b></div>
+                      <div className="rounded-xl bg-white/[0.04] border border-white/8 p-2"><span className="text-[0.6rem] text-[#7F8C93]">Working days</span><b className="block text-sm mt-1">{availability.filter((day) => day.enabled).length}/7</b></div>
+                    </div>
+
+                    <div className="rounded-2xl bg-black/15 border border-white/8 p-2 sm:p-3">
+                      <div className="flex items-center justify-between px-1 mb-2">
+                        <h3 className="font-extrabold text-sm">{monthLabel(calendarMonth)}</h3>
+                        <span className="text-[0.62rem] text-[#7F8C93]">Moonlit schedule</span>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1">
+                        {DAYS.map((day) => <span key={day} className="text-center text-[0.6rem] font-bold text-[#7F8C93] py-1">{day[0]}</span>)}
+                        {cells.map((day, index) => {
+                          if (!day) return <div key={`empty-${index}`} className="min-h-16 sm:min-h-20 rounded-xl bg-transparent" />;
+                          const key = dateKey(year, month, day);
+                          const weekday = new Date(year, month, day).getDay();
+                          const dayAvailability = availability.find((item) => item.weekday === weekday) || DEFAULT_AVAILABILITY[weekday];
+                          const jobs = scheduledJobs.filter((job) => job.scheduledFor && new Date(job.scheduledFor).getDate() === day);
+                          const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+                          const isSelected = selectedDate === key;
+                          return <button key={key} onClick={() => setSelectedDate(key)} className={`min-h-16 sm:min-h-20 rounded-xl border p-1.5 text-left transition ${isSelected ? "border-[#F5C451] bg-[#F5C451]/10" : dayAvailability.enabled ? "border-white/8 bg-white/[0.025] hover:border-[#F5C451]/40" : "border-white/5 bg-black/20 opacity-55"}`}>
+                            <div className="flex items-center justify-between gap-1"><span className={`text-xs font-bold ${isToday ? "text-[#F5C451]" : ""}`}>{day}</span>{dayAvailability.enabled && <span className="w-1.5 h-1.5 rounded-full bg-[#34D399]" />}</div>
+                            {jobs.slice(0, 2).map((job) => <span key={job.id} className="block mt-1 rounded-md bg-[#E22227]/15 border border-[#E22227]/25 px-1 py-0.5 text-[0.52rem] text-[#ffd4d4] truncate">{jobId(job.id)} · KSh {job.rate.toLocaleString()}</span>)}
+                            {jobs.length > 2 && <span className="block text-[0.5rem] text-[#7F8C93] mt-1">+{jobs.length - 2} more</span>}
+                          </button>;
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid sm:grid-cols-2 gap-2">
+                      <div className="flex items-center gap-2 text-[0.62rem] text-[#7F8C93]"><span className="w-2 h-2 rounded-full bg-[#34D399]" /> Working day <span className="w-2 h-2 rounded-full bg-[#6B7280] ml-2" /> Off day <span className="w-2 h-2 rounded-full bg-[#E22227] ml-2" /> Scheduled job</div>
+                      <button onClick={() => setSelectedDate(dateKey(year, month, today.getDate()))} className="text-right text-[0.65rem] font-bold text-[#F5C451]">Jump to today →</button>
+                    </div>
+
+                    {selectedAvailability && selectedDate && (
+                      <div className="mt-4 p-3 rounded-2xl bg-[#0b1a2b] border border-white/10">
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div><h3 className="font-extrabold text-sm">{selected.toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "short" })}</h3><p className="text-[0.62rem] text-[#7F8C93]">Edit the recurring schedule for {DAYS[selectedWeekday ?? 0]}</p></div>
+                          <button onClick={() => setSelectedDate(null)} className="text-xs text-[#7F8C93]">Close</button>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl bg-black/20 p-3">
+                          <div><b className="text-sm">Working day</b><p className="text-[0.62rem] text-[#7F8C93]">Requests can be planned for this weekday</p></div>
+                          <button onClick={() => selectedAvailability && saveAvailabilityDay({ ...selectedAvailability, enabled: !selectedAvailability.enabled })} className={`w-12 h-7 rounded-full p-1 transition ${selectedAvailability.enabled ? "bg-[#34D399]" : "bg-[#374151]"}`}><span className={`block w-5 h-5 rounded-full bg-white transition ${selectedAvailability.enabled ? "translate-x-5" : ""}`} /></button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <label className="rounded-xl bg-black/20 p-2"><span className="block text-[0.6rem] text-[#7F8C93] mb-1">Start</span><input type="time" value={selectedAvailability.start_time} onChange={(event) => saveAvailabilityDay({ ...selectedAvailability, start_time: event.target.value })} className="w-full bg-transparent text-sm font-bold outline-none" /></label>
+                          <label className="rounded-xl bg-black/20 p-2"><span className="block text-[0.6rem] text-[#7F8C93] mb-1">End</span><input type="time" value={selectedAvailability.end_time} onChange={(event) => saveAvailabilityDay({ ...selectedAvailability, end_time: event.target.value })} className="w-full bg-transparent text-sm font-bold outline-none" /></label>
+                        </div>
+                        <label className="block rounded-xl bg-black/20 p-2 mt-2"><span className="block text-[0.6rem] text-[#7F8C93] mb-1">Travel radius (km)</span><input type="number" min={1} max={200} value={selectedAvailability.travel_radius_km} onChange={(event) => saveAvailabilityDay({ ...selectedAvailability, travel_radius_km: Number(event.target.value) || 25 })} className="w-full bg-transparent text-sm font-bold outline-none" /></label>
+                      </div>
+                    )}
+                  </>;
+                })()}
+                <div className="flex gap-2 flex-wrap mt-3">
+                  <span className="text-[0.65rem] px-2 py-1 rounded-full bg-white/5 text-[#B9C3C9]">{availability.filter((day) => day.enabled).length} working days / week</span>
+                  <span className="text-[0.65rem] px-2 py-1 rounded-full bg-white/5 text-[#B9C3C9]">Travel radius · {Math.max(...availability.map((day) => day.travel_radius_km))} km</span>
                 </div>
               </section>
 
@@ -273,7 +424,7 @@ export default function ProviderPage() {
                 <div className="p-3 rounded-2xl bg-black/20"><span className="text-xs text-[#7F8C93]">Working hours</span><b className="block mt-1">Mon–Fri · 8:00 AM – 5:00 PM</b></div>
                 <div className="p-3 rounded-2xl bg-black/20"><span className="text-xs text-[#7F8C93]">Travel radius</span><b className="block mt-1">Up to 25 km</b></div>
               </div>
-              <button onClick={() => showToast("Availability editor coming next")} className="mt-3 text-xs font-bold text-[#F5C451]">Manage availability →</button>
+              <button onClick={() => { setTab("jobs"); setSelectedDate(dateKey(calendarMonth.getFullYear(), calendarMonth.getMonth(), Math.min(new Date().getDate(), new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate()))); }} className="mt-3 text-xs font-bold text-[#F5C451]">Manage availability →</button>
             </section>
           </div>
         )}
