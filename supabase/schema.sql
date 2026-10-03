@@ -107,3 +107,14 @@ create policy "Anyone authenticated can read reviews"
 drop policy if exists "Authenticated users can insert reviews" on public.reviews;
 create policy "Authenticated users can insert reviews"
   on public.reviews for insert to authenticated with check (true);
+
+
+-- Location foundation for nearby discovery
+alter table public.profiles add column if not exists latitude double precision;
+alter table public.profiles add column if not exists longitude double precision;
+alter table public.profiles add column if not exists location_name text;
+create index if not exists profiles_location_idx on public.profiles (latitude, longitude) where latitude is not null and longitude is not null;
+alter table public.jobs add column if not exists latitude double precision;
+alter table public.jobs add column if not exists longitude double precision;
+alter table public.jobs add column if not exists location_accuracy double precision;
+create index if not exists jobs_location_idx on public.jobs (latitude, longitude) where latitude is not null and longitude is not null;
