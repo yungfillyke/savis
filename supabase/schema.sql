@@ -215,3 +215,58 @@ grant execute on function public.search_nearby_providers(
   text,
   integer
 ) to authenticated;
+
+
+-- Provider availability calendar
+create table if not exists public.provider_availability (
+  id uuid primary key default gen_random_uuid(),
+  provider_id uuid not null references public.profiles (id) on delete cascade,
+  weekday integer not null check (weekday between 0 and 6),
+  enabled boolean not null default true,
+  start_time time not null default '08:00',
+  end_time time not null default '17:00',
+  travel_radius_km integer not null default 25 check (travel_radius_km between 1 and 200),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique(provider_id, weekday)
+);
+
+create index if not exists provider_availability_provider_idx
+  on public.provider_availability (provider_id, weekday);
+
+alter table public.provider_availability enable row level security;
+
+drop policy if exists "Providers can view own availability" on public.provider_availability;
+create policy "Providers can view own availability"
+  on public.provider_availability for select
+  to authenticated
+  using (auth.uid() = provider_id);
+
+drop policy if exists "Providers can insert own availability" on public.provider_availability;
+create policy "Providers can insert own availability"
+  on public.provider_availability for insert
+  to authenticated
+  with check (auth.uid() = provider_id);
+
+drop policy if exists "Providers can update own availability" on public.provider_availability;
+create policy "Providers can update own availability"
+  on public.provider_availability for update
+  to authenticated
+  using (auth.uid() = provider_id)
+  with check (auth.uid() = provider_id);
+
+drop policy if exists "Providers can delete own availability" on public.provider_availability;
+create policy "Providers can delete own availability"
+  on public.provider_availability for delete
+  to authenticated
+  using (auth.uid() = provider_id);
+
+drop trigger if exists provider_availability_updated_at on public.provider_availability;
+create trigger provider_availability_updated_at
+  before update on public.provider_availability
+  for each row execute function public.set_updated_at();
+
+-- Optional scheduled job date so provider calendars can show real booked dates.
+alter table public.jobs add column if not exists scheduled_for timestamptz;
+create index if not exists jobs_scheduled_for_idx on public.jobs (provider_id, scheduled_for)
+  where scheduled_for is not null;
