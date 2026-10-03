@@ -71,6 +71,15 @@ export default function ConsumerPage() {
     try {
       const location = await requestCurrentLocation();
       setUserLocation(location);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("profiles").update({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          location_name: "Current location",
+        }).eq("id", user.id);
+      }
       setLocationMessage("Using your current location for nearby results.");
     } catch (error) {
       setLocationMessage(error instanceof Error ? error.message : "We could not get your location.");
