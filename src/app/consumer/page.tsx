@@ -98,4 +98,17 @@ export default function ConsumerPage() {
       const searchMatch = !q || [p.name, p.skill, p.area].some((value) => value.toLowerCase().includes(q));
       return categoryMatch && searchMatch;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [search, activeCategory, userLocation]);
+  }, [search, activeCategory, userLocation]);        <section className="mb-6 overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)]">
+          <div className="flex items-center justify-between gap-3 px-4 pt-4">
+            <div>
+              <h2 className="font-extrabold text-lg">Nearby map</h2>
+              <p className="mt-0.5 text-xs text-[#B9C3C9]">{userLocation ? "Centered on your current location" : "Showing Nairobi until you enable location"}</p>
+            </div>
+            <a href={"https://www.openstreetmap.org/?mlat=" + mapCenter.latitude + "&mlon=" + mapCenter.longitude + "#map=13/" + mapCenter.latitude + "/" + mapCenter.longitude} target="_blank" rel="noreferrer" className="text-xs font-bold text-[#F5C451]">Open map ↗</a>
+          </div>
+          <div className="mt-4 overflow-hidden border-y border-white/10">
+            <iframe title="SAVIS nearby map" src={mapUrl} className="h-64 w-full border-0" loading="lazy" />
+          </div>
+          <p className="px-4 py-3 text-[0.65rem] text-[#55666E]">Map data © OpenStreetMap contributors.</p>
+        </section>
+
