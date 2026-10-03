@@ -118,3 +118,100 @@ alter table public.jobs add column if not exists latitude double precision;
 alter table public.jobs add column if not exists longitude double precision;
 alter table public.jobs add column if not exists location_accuracy double precision;
 create index if not exists jobs_location_idx on public.jobs (latitude, longitude) where latitude is not null and longitude is not null;
+
+
+-- Provider discovery metadata
+alter table public.profiles add column if not exists service_category text;
+alter table public.profiles add column if not exists hourly_rate integer default 0;
+alter table public.profiles add column if not exists rating numeric(3,2) default 0;
+alter table public.profiles add column if not exists review_count integer default 0;
+alter table public.profiles add column if not exists availability text default 'Available';
+alter table public.profiles add column if not exists verified boolean default false;
+alter table public.profiles add column if not exists bio text;
+
+create index if not exists profiles_provider_discovery_idx
+  on public.profiles (role, service_category, latitude, longitude)
+  where role in ('provider', 'professional')
+    and latitude is not null
+    and longitude is not null;
+
+-- Nearby provider search without requiring PostGIS.
+-- Run this migration before expecting the Consumer home to return real providers.
+create or replace function public.search_nearby_providers(
+  p_lat double precision,
+  p_lng double precision,
+  p_radius_km double precision default 25,
+  p_category text default null,
+  p_limit integer default 40
+)
+returns table (
+  id uuid,
+  full_name text,
+  email text,
+  role text,
+  latitude double precision,
+  longitude double precision,
+  location_name text,
+  service_category text,
+  hourly_rate integer,
+  rating numeric,
+  review_count integer,
+  availability text,
+  verified boolean,
+  bio text,
+  distance_km double precision
+)
+language sql
+stable
+security invoker
+as $$
+  with candidates as (
+    select
+      p.id,
+      p.full_name,
+      p.email,
+      p.role,
+      p.latitude,
+      p.longitude,
+      p.location_name,
+      p.service_category,
+      p.hourly_rate,
+      p.rating,
+      p.review_count,
+      p.availability,
+      p.verified,
+      p.bio,
+      6371 * acos(
+        least(
+          1,
+          greatest(
+            -1,
+            sin(radians(p_lat)) * sin(radians(p.latitude))
+            + cos(radians(p_lat)) * cos(radians(p.latitude))
+            * cos(radians(p.longitude) - radians(p_lng))
+          )
+        )
+      ) as distance_km
+    from public.profiles p
+    where p.role in ('provider', 'professional')
+      and p.latitude is not null
+      and p.longitude is not null
+      and (
+        p_category is null
+        or lower(coalesce(p.service_category, '')) = lower(p_category)
+      )
+  )
+  select *
+  from candidates
+  where distance_km <= greatest(1, p_radius_km)
+  order by distance_km asc
+  limit greatest(1, least(p_limit, 100));
+$$;
+
+grant execute on function public.search_nearby_providers(
+  double precision,
+  double precision,
+  double precision,
+  text,
+  integer
+) to authenticated;
