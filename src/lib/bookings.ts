@@ -24,6 +24,7 @@ export type Booking = {
   latitude?: number;
   longitude?: number;
   locationAccuracy?: number;
+  scheduledFor?: string;
 };
 
 const LOCAL_KEY = "savis_bookings";
@@ -59,6 +60,7 @@ function rowToBooking(row: Record<string, unknown>): Booking {
     latitude: row.latitude == null ? undefined : Number(row.latitude),
     longitude: row.longitude == null ? undefined : Number(row.longitude),
     locationAccuracy: row.location_accuracy == null ? undefined : Number(row.location_accuracy),
+    scheduledFor: row.scheduled_for ? String(row.scheduled_for) : undefined,
   };
 }
 
@@ -110,6 +112,7 @@ export async function addBooking(
       urgency: booking.urgency,
       rate: booking.rate,
       status: "requested",
+      scheduled_for: booking.scheduledFor ?? null,
     };
 
     let { data, error } = await supabase
