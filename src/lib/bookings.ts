@@ -21,6 +21,9 @@ export type Booking = {
   createdAt: string;
   consumerName?: string;
   consumerId?: string;
+  latitude?: number;
+  longitude?: number;
+  locationAccuracy?: number;
 };
 
 const LOCAL_KEY = "savis_bookings";
@@ -53,6 +56,9 @@ function rowToBooking(row: Record<string, unknown>): Booking {
     status: (row.status as BookingStatus) || "requested",
     createdAt: String(row.created_at || new Date().toISOString()),
     consumerId: row.consumer_id ? String(row.consumer_id) : undefined,
+    latitude: row.latitude == null ? undefined : Number(row.latitude),
+    longitude: row.longitude == null ? undefined : Number(row.longitude),
+    locationAccuracy: row.location_accuracy == null ? undefined : Number(row.location_accuracy),
   };
 }
 
@@ -105,6 +111,9 @@ export async function addBooking(
         location: booking.location,
         urgency: booking.urgency,
         rate: booking.rate,
+        latitude: booking.latitude ?? null,
+        longitude: booking.longitude ?? null,
+        location_accuracy: booking.locationAccuracy ?? null,
         status: "requested",
       })
       .select("*")
