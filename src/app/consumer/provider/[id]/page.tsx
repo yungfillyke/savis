@@ -8,6 +8,7 @@ import Logo from "@/components/Logo";
 import Button from "@/components/Button";
 import { addBooking } from "@/lib/bookings";
 import { getBalance, holdForJob } from "@/lib/wallet";
+import { getSavedLocation } from "@/lib/location";
 
 const PROVIDERS: Record<
   string,
@@ -175,6 +176,7 @@ export default function ProviderDetailPage() {
     }
     setBalance(getBalance());
     try {
+      const currentLocation = getSavedLocation();
       await addBooking({
         providerId: id,
         providerName: provider.name,
@@ -183,6 +185,9 @@ export default function ProviderDetailPage() {
         location: location.trim(),
         urgency,
         rate: provider.rate,
+        latitude: currentLocation?.latitude,
+        longitude: currentLocation?.longitude,
+        locationAccuracy: currentLocation?.accuracy,
       });
       setSent(true);
     } catch {
