@@ -100,28 +100,37 @@ export async function addBooking(
 
   // Try Supabase insert
   try {
-    const { data, error } = await supabase
+    const baseInsert = {
+      consumer_id: consumerId || null,
+      provider_id: booking.providerId,
+      provider_name: booking.providerName,
+      skill: booking.skill,
+      description: booking.description,
+      location: booking.location,
+      urgency: booking.urgency,
+      rate: booking.rate,
+      status: "requested",
+    };
+
+    let { data, error } = await supabase
       .from("jobs")
       .insert({
-        consumer_id: consumerId || null,
-        provider_id: booking.providerId,
-        provider_name: booking.providerName,
-        skill: booking.skill,
-        description: booking.description,
-        location: booking.location,
-        urgency: booking.urgency,
-        rate: booking.rate,
+        ...baseInsert,
         latitude: booking.latitude ?? null,
         longitude: booking.longitude ?? null,
         location_accuracy: booking.locationAccuracy ?? null,
-        status: "requested",
       })
       .select("*")
       .single();
 
+    if (error) {
+      const retry = await supabase.from("jobs").insert(baseInsert).select("*").single();
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (!error && data) {
       const b = rowToBooking(data);
-      // Keep local copy in sync for this browser
       const list = fromLocal();
       list.unshift(b);
       saveLocal(list);
