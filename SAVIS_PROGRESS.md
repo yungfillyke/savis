@@ -128,6 +128,19 @@ Latest commits:
 - The Supabase repair for `transition_job(...)` was confirmed successful in the SQL Editor.
 - Corrected the same delimiter in `supabase/final-dream.sql` so the repository migration is now aligned with the repaired database function.
 
+
+## Provider KYC gate — October 2026
+- Provider verification is now a mandatory go-live gate, not merely a badge.
+- Provider Hub asks: “Ready to provide a service?” and sends the provider to the KYC flow.
+- Required KYC: ID/passport front, ID/passport back, selfie and consent; professional certificate is optional where relevant.
+- KYC documents use a private Supabase Storage bucket and provider-scoped Storage RLS.
+- KYC submission moves the profile to `verification_status = pending` and keeps `verified = false`.
+- A provider cannot switch Online until `verification_status = verified` and `verified = true`.
+- Consumer-facing nearby search, public search, public provider profiles and public provider services now require both verified flags.
+- Added `supabase/provider-kyc.sql`.
+- Added `src/app/provider/verification/page.tsx`.
+- Rebuilt `README.md` as the current beginning-to-end product, architecture, setup, security and roadmap reference.
+
 ## Continuation instruction
 When continuing this project, do NOT rebuild SAVIS from the old uploaded `index.html`. Use the current GitHub main/active branch and the live Alpha as the source of truth. The old HTML is only a historical design/feature reference.
 
