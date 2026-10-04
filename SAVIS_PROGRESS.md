@@ -232,3 +232,13 @@ When continuing this project, do NOT rebuild SAVIS from the old uploaded `index.
 - Nuclear controls are presented as a separately locked area and are not enabled by ordinary developer access alone.
 - Developer-assisted sessions are the intended model for business support; business-owner passwords are never required or shared.
 - Before first use, the app owner must run `supabase/developer-console.sql` in Supabase SQL Editor and add the developer's Auth UUID to `public.developer_admins`.
+
+
+## Developer Operational Control Center — October 2026
+- Added `supabase/operational-control.sql` with developer-only audited operational RPCs.
+- Added `/dev-console-9f3k/operations` for bookings/jobs, payment-ledger recovery controls, messaging support actions and marketplace visibility.
+- Developer job actions respect the existing SAVIS job transition graph and create job-status audit events.
+- Payment status changes are explicitly recovery controls and do not activate live Safaricom configuration.
+- Support messages are sent from the authenticated developer account and are audit logged; owner passwords are never requested.
+- Marketplace demo/moderation actions remain intentionally separate for the next operational slice.
+- Wired Bookings & Payments, Messaging and Marketplace cards from the main Developer Control Plane.
