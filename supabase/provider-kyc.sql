@@ -1,4 +1,38 @@
 -- SAVIS provider KYC gate
+-- Prerequisites are created here too so this migration can be safely run
+-- even if the earlier final-dream migration was not fully applied.
+create table if not exists public.provider_verifications (
+  provider_id uuid primary key references auth.users(id) on delete cascade,
+  id_front_path text,
+  id_back_path text,
+  selfie_path text,
+  certificate_path text,
+  consent_at timestamptz,
+  status text not null default 'not_started'
+    check(status in ('not_started','submitted','under_review','verified','rejected')),
+  rejection_reason text,
+  reviewed_at timestamptz,
+  updated_at timestamptz default now()
+);
+
+alter table public.provider_verifications enable row level security;
+
+drop policy if exists "provider reads verification" on public.provider_verifications;
+create policy "provider reads verification"
+on public.provider_verifications for select to authenticated
+using(provider_id=auth.uid());
+
+drop policy if exists "provider submits verification" on public.provider_verifications;
+create policy "provider submits verification"
+on public.provider_verifications for insert to authenticated
+with check(provider_id=auth.uid());
+
+drop policy if exists "provider updates verification" on public.provider_verifications;
+create policy "provider updates verification"
+on public.provider_verifications for update to authenticated
+using(provider_id=auth.uid())
+with check(provider_id=auth.uid());
+
 -- Run after final-dream.sql, dynamic-marketplace.sql and public-discovery.sql.
 -- Providers must be verified before appearing to consumers or switching themselves online.
 
