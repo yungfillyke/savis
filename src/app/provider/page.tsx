@@ -212,9 +212,13 @@ export default function ProviderPage() {
   }
 
   async function acceptJob(id: string) {
-    await updateBookingStatus(id, "accepted");
-    refreshJobs();
-    showToast(lang === "sw" ? "Kazi imekubaliwa" : "Job accepted");
+    try {
+      await updateBookingStatus(id, "accepted");
+      refreshJobs();
+      showToast(lang === "sw" ? "Kazi imekubaliwa" : "Job accepted");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Job could not be accepted.");
+    }
   }
 
   async function submitQuote() {
@@ -222,11 +226,15 @@ export default function ProviderPage() {
     setQuoteBusy(true);
     const quote = await createQuote(quoteJob.id, quoteAmount, quoteMessage, new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
     if (quote) {
-      await updateBookingStatus(quoteJob.id, "quote_pending", "Provider sent a SAVIS quote.");
-      refreshJobs();
-      setQuoteJob(null);
-      setQuoteMessage("");
-      showToast("Quote sent · customer can accept and lock the job");
+      try {
+        await updateBookingStatus(quoteJob.id, "quote_pending", "Provider sent a SAVIS quote.");
+        refreshJobs();
+        setQuoteJob(null);
+        setQuoteMessage("");
+        showToast("Quote sent · customer can accept and lock the job");
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "Quote status could not be updated.");
+      }
     } else {
       showToast("Quote could not be sent. Run the latest Supabase migration.");
     }
@@ -235,18 +243,26 @@ export default function ProviderPage() {
 
   async function declineJob(id: string) {
     const job = getBookings().find((b) => b.id === id);
-    await updateBookingStatus(id, "declined");
-    if (job) refundForJob(job.rate, id, `Refund: ${job.description.slice(0, 40)}`);
-    refreshJobs();
-    showToast(lang === "sw" ? "Kazi imekataliwa · Pesa imerejeshwa" : "Declined · Funds refunded to wallet");
+    try {
+      await updateBookingStatus(id, "declined");
+      if (job) refundForJob(job.rate, id, `Refund: ${job.description.slice(0, 40)}`);
+      refreshJobs();
+      showToast(lang === "sw" ? "Kazi imekataliwa · Pesa imerejeshwa" : "Declined · Funds refunded to wallet");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Job could not be declined.");
+    }
   }
 
   async function completeJob(id: string) {
     const job = getBookings().find((b) => b.id === id);
-    await updateBookingStatus(id, "completed");
-    if (job) releaseForJob(job.rate, id, `Paid: ${job.description.slice(0, 40)}`);
-    refreshJobs();
-    showToast(lang === "sw" ? "Kazi imekamilika · Malipo yametolewa" : "Completed · Escrow released");
+    try {
+      await updateBookingStatus(id, "completed");
+      if (job) releaseForJob(job.rate, id, `Paid: ${job.description.slice(0, 40)}`);
+      refreshJobs();
+      showToast(lang === "sw" ? "Kazi imekamilika · Malipo yametolewa" : "Completed · Escrow released");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Job could not be completed.");
+    }
   }
 
   if (loading) {
