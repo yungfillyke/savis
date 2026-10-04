@@ -1,6 +1,6 @@
 # SAVIS — Project Progress Snapshot
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Current state
 
@@ -129,3 +129,19 @@ Consumer Home → For You → Jobs → Messages & Payments → Profile → Provi
 ## Source of truth
 
 Use current GitHub `main`, current Supabase migrations and current Vercel production. Do not rebuild from the historical uploaded HTML or edit the nested historical `savis/` directory.
+
+
+## Visual refinement pass — light premium internal dashboards
+
+Implemented on branch `savis-light-dashboard-refinement`:
+- Internal consumer/provider/profile/messages surfaces now use a light, soft-neutral dashboard foundation.
+- Cards use white surfaces, larger rounded corners, lighter borders and softer shadows.
+- SAVIS red remains the primary action/accent color instead of dominating the whole page.
+- Consumer home gains a compact four-metric overview row.
+- Consumer provider/contact results are alphabetically ordered by provider name while retaining distance as metadata.
+- Provider Hub content width is expanded for a more dashboard-like desktop composition.
+- Existing public landing remains dark/red; the light system is scoped to authenticated/internal surfaces.
+- Reference direction: spacious fintech/marketplace dashboard layouts supplied for this refinement pass.
+
+Next visual focus:
+Consumer Jobs → Messages & Payments → Profile polish → Provider Hub cards/analytics → Seller/Professional surfaces → final responsive/accessibility pass.
