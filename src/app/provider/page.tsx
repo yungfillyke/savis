@@ -25,6 +25,7 @@ type Profile = {
   rating?: number | null;
   review_count?: number | null;
   verified?: boolean | null;
+  verification_status?: "unverified" | "pending" | "verified" | "rejected" | null;
   availability?: string | null;
 };
 
@@ -118,7 +119,7 @@ export default function ProviderPage() {
 
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, role, service_category, rating, review_count, verified, availability")
+        .select("full_name, role, service_category, rating, review_count, verified, verification_status, availability")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -126,7 +127,7 @@ export default function ProviderPage() {
         full_name: user.user_metadata?.full_name || "Friend",
         role: user.user_metadata?.role || "provider",
       });
-      setAvailable((data?.availability || "Available").toLowerCase() !== "offline");
+      setAvailable(data?.verification_status === "verified" && data?.verified === true && (data?.availability || "Available").toLowerCase() !== "offline");
 
       const { data: savedAvailability } = await supabase
         .from("provider_availability")
@@ -172,6 +173,10 @@ export default function ProviderPage() {
   }
 
   async function persistAvailable(next: boolean) {
+    if (next && !(profile?.verification_status === "verified" && profile?.verified === true)) {
+      router.push("/provider/verification");
+      return;
+    }
     setAvailable(next);
     setProfile((p) => p ? { ...p, availability: next ? "Available" : "Offline" } : p);
     try {
@@ -316,6 +321,25 @@ export default function ProviderPage() {
             ))}
           </div>
         </section>
+
+        {/* Mandatory KYC gate before a provider can go live */}
+        {profile?.verification_status !== "verified" || profile?.verified !== true ? (
+          <section className="mt-5 rounded-[24px] border border-[#F5C451]/30 bg-[rgba(245,196,81,.07)] p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="w-12 h-12 shrink-0 rounded-2xl bg-[#F5C451] text-[#141B1F] flex items-center justify-center text-xl font-black">✓</div>
+              <div className="flex-1">
+                <p className="text-xs font-black uppercase tracking-[.14em] text-[#F5C451]">Required before going live</p>
+                <h2 className="mt-1 text-lg font-black">Ready to provide a service?</h2>
+                <p className="mt-1 text-sm text-[#B9C3C9]">Click here to complete KYC. Consumers will only see your provider profile after SAVIS verifies you.</p>
+                {profile?.verification_status === "pending" && <p className="mt-2 text-xs font-bold text-[#F5C451]">KYC submitted · awaiting review.</p>}
+                {profile?.verification_status === "rejected" && <p className="mt-2 text-xs font-bold text-[#FB7185]">Your previous KYC submission was rejected. Please resubmit your documents.</p>}
+              </div>
+              <button onClick={() => router.push("/provider/verification")} className="rounded-2xl bg-[#F5C451] px-5 py-3 text-sm font-black text-[#141B1F] whitespace-nowrap">
+                {profile?.verification_status === "pending" ? "View KYC status" : "Start KYC"}
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         {/* Tab navigation */}
         <nav className="mt-4 overflow-x-auto -mx-4 px-4 scrollbar-hide">
