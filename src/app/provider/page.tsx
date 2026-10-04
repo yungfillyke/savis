@@ -270,7 +270,7 @@ export default function ProviderPage() {
   ];
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden pb-24 bg-[#07111f] text-white">
+    <main className="savis-internal relative min-h-screen overflow-x-hidden pb-24 bg-[#07111f] text-white">
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#07111f]">
         <div className="absolute -left-24 -top-24 h-96 w-96 rounded-full bg-[#3156c9]/20 blur-[110px]" />
         <div className="absolute right-[-10rem] top-24 h-[34rem] w-[34rem] rounded-full bg-[#36a9ff]/15 blur-[130px]" />
@@ -289,7 +289,7 @@ export default function ProviderPage() {
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-4 pt-5">
+      <div className="max-w-6xl mx-auto px-4 pt-5">
         {/* Sticky provider identity / quick stats */}
         <section className="sticky top-[61px] z-30 -mx-4 px-4 py-4 bg-[rgba(7,17,31,0.78)] border-b border-white/10 backdrop-blur-xl">
           <div className="flex gap-3 items-center">
