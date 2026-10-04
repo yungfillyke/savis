@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function MessagesPage() {
   return (
-    <main className="min-h-screen pb-24">
+    <main className="savis-internal min-h-screen pb-24">
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[rgba(34,43,49,0.86)] px-4 py-3 backdrop-blur-md">
         <Link href="/consumer" className="text-sm font-bold text-[#B9C3C9]">← Home</Link>
         <h1 className="font-extrabold">Messages</h1>
