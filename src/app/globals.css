@@ -61,3 +61,6 @@ textarea {
 .savis-provider-core.is-selected{transform:scale(1.28);box-shadow:0 0 0 4px rgba(245,196,81,.78),0 0 24px rgba(245,196,81,.55)!important}
 .savis-provider-pulse{border-color:color-mix(in srgb,var(--savis-pin,#e22227) 72%,transparent)!important}
 @keyframes savis-radar{0%{transform:scale(.45);opacity:.9}75%{transform:scale(1.3);opacity:0}100%{transform:scale(1.3);opacity:0}}
+
+@keyframes savis-pop{0%,100%{transform:scale(.92);filter:brightness(.95)}50%{transform:scale(1.08);filter:brightness(1.18)}}
+@keyframes savis-load{0%{transform:translateX(-120%)}50%{transform:translateX(90%)}100%{transform:translateX(220%)}}
