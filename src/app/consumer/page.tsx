@@ -229,7 +229,7 @@ export default function ConsumerPage() {
       const categoryMatch = activeCategory === "all" || p.skill === activeCategory;
       const searchMatch = !q || [p.name, p.skill, p.area].some((value) => value.toLowerCase().includes(q));
       return categoryMatch && searchMatch;
-    }).sort((a, b) => a.km - b.km);
+    }).sort((a, b) => a.name.localeCompare(b.name));
   }, [providers, search, activeCategory]);
 
   const firstName = profile?.full_name?.split(" ")[0] || "Friend";
@@ -258,7 +258,7 @@ export default function ConsumerPage() {
   }[status] ?? 18);
 
   return (
-    <main className="min-h-screen pb-28">
+    <main className="savis-internal min-h-screen pb-28">
       <header className="sticky top-0 z-40 border-b border-white/10 savis-platinum px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto flex max-w-lg items-center justify-between gap-2">
           <button type="button" onClick={() => setTab("profile")} aria-label="Open account menu" className="text-xl font-black tracking-tight">SAVIS</button>
@@ -278,6 +278,21 @@ export default function ConsumerPage() {
               <div><h1 className="text-2xl font-extrabold tracking-tight">Hi, {firstName} 👋</h1><p className="mt-1 text-sm text-[#B9C3C9]">What do you need help with today?</p></div>
               <button type="button" onClick={() => setTab("profile")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] text-sm font-extrabold">{firstName.charAt(0).toUpperCase()}</button>
             </div>
+          </section>
+
+          <section className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="SAVIS overview">
+            {[
+              ["⌂", String(filtered.length), "Nearby providers"],
+              ["★", "4.8", "Average rating"],
+              ["✓", String(filtered.filter((p) => p.verified).length), "Verified nearby"],
+              ["KSh", filtered.length ? Math.min(...filtered.map((p) => p.rate || 0)).toLocaleString() : "—", "Lowest starting rate"],
+            ].map(([icon, value, label]) => (
+              <article key={label} className="savis-stat-card">
+                <div className="savis-stat-icon">{icon}</div>
+                <p className="mt-3 text-xl font-black tracking-tight">{value}</p>
+                <p className="mt-1 text-[0.68rem] font-semibold text-[#66717D]">{label}</p>
+              </article>
+            ))}
           </section>
 
           <section className="mb-4">
