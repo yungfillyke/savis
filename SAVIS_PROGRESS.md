@@ -141,6 +141,14 @@ Latest commits:
 - Added `src/app/provider/verification/page.tsx`.
 - Rebuilt `README.md` as the current beginning-to-end product, architecture, setup, security and roadmap reference.
 
+## Trust & safety / realtime follow-up — October 2026
+- Added an explicit `provider_reviewers` allowlist and reviewer-only KYC queue.
+- Added secure `review_provider_kyc(...)` and `list_provider_kyc_queue(...)` RPCs.
+- Added reviewer-only signed access to private KYC documents.
+- Added `/admin/provider-review` for human approval/rejection with required rejection reasons.
+- Added Supabase Realtime subscriptions for conversations/messages and a safe in-app quick-start onboarding flow.
+- Live M-Pesa, production escrow release/refunds, moderation, routing and provider live-location remain dependent on external credentials/production hardening.
+
 ## Continuation instruction
 When continuing this project, do NOT rebuild SAVIS from the old uploaded `index.html`. Use the current GitHub main/active branch and the live Alpha as the source of truth. The old HTML is only a historical design/feature reference.
 
