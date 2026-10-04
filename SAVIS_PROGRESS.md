@@ -222,3 +222,13 @@ When continuing this project, do NOT rebuild SAVIS from the old uploaded `index.
 - Added `/api/payments/mpesa/callback` for Safaricom asynchronous results.
 - Added consumer payment center at `/consumer/payments`.
 - Payment ledger remains **not live** until real Daraja credentials, shortcode/passkey and a public HTTPS callback are configured.
+
+
+## Developer Control Plane — October 2026
+- Replaced the temporary reviewer-gated developer page with a dedicated `/dev-console-9f3k` control-plane UI.
+- Added Safe / Operational / Nuclear control levels with distinct visual treatment and an always-visible exit path.
+- Added server-side `developer_admins` allowlist, audited developer actions, and server-side feature flags in `supabase/developer-console.sql`.
+- Business operations are intentionally separated from consumer-account administration: Providers, Shops & Sellers, Professionals and Developer-only Agents are the supported business-management areas.
+- Nuclear controls are presented as a separately locked area and are not enabled by ordinary developer access alone.
+- Developer-assisted sessions are the intended model for business support; business-owner passwords are never required or shared.
+- Before first use, the app owner must run `supabase/developer-console.sql` in Supabase SQL Editor and add the developer's Auth UUID to `public.developer_admins`.
