@@ -1,6 +1,6 @@
 # SAVIS — Project Progress Snapshot
 
-Last updated: 2026-10-03
+Last updated: 2026-10-04
 
 Final-dream hardening pass: security/RLS follow-up committed after the main consumer deployment.
 
@@ -123,6 +123,10 @@ Latest commits:
 - Marketplace media uploads/moderation/publishing are not finished.
 - Search/recommendations/ads still have prototype elements.
 - Full local TypeScript/test run has not been performed in this environment.
+
+## Database hardening checkpoint
+- The Supabase repair for `transition_job(...)` was confirmed successful in the SQL Editor.
+- Corrected the same delimiter in `supabase/final-dream.sql` so the repository migration is now aligned with the repaired database function.
 
 ## Continuation instruction
 When continuing this project, do NOT rebuild SAVIS from the old uploaded `index.html`. Use the current GitHub main/active branch and the live Alpha as the source of truth. The old HTML is only a historical design/feature reference.
