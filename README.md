@@ -1,565 +1,305 @@
 # SAVIS
 
-**SAVIS** is a Kenya-focused marketplace connecting consumers with trusted local service providers, professionals, sellers and agents.
+SAVIS is a Kenya-focused marketplace connecting consumers with trusted local helpers, providers, professionals, sellers and developer-managed agents.
 
-Production Alpha: https://savis-alpha.vercel.app/  
-Repository: https://github.com/yungfillyke/savis
+## Current source of truth
 
-## Product promise
+- GitHub: `yungfillyke/savis`
+- Production project: Vercel `savis`
+- App root: repository root. Do not point Vercel at the historical nested `savis/` folder.
+- Current work is developed from `main`.
+- The old uploaded `index.html` is historical only.
 
-SAVIS is designed around one rule: **consumers should discover real local providers, understand what they offer, communicate safely, receive a structured quote, and get job/payment protection.**
+## Product roles
 
-Providers can build a profile and manage jobs, schedules, services, products, portfolio content, messages and earnings. A provider is **not allowed to put themselves in front of consumers until KYC verification is approved**.
+- Consumer
+- Provider
+- Professional
+- Seller
+- Agent
 
----
+Consumers discover services, providers and products, request jobs, receive structured quotes, accept protected jobs, message providers and reach the payment center.
 
-# 1. Roles
+Providers use the Provider Hub for jobs, schedule/availability, shop, portfolio/social, messages and earnings.
 
-SAVIS supports:
+Professionals and sellers share the business-management foundation but can receive role-specific dashboard modules.
 
-- **Consumer** — discovers providers, requests services, receives quotes, accepts protected jobs, communicates and tracks work.
-- **Provider** — offers local services and manages availability, jobs, quotes and earnings.
-- **Professional** — a provider with professional/trade credentials and the same KYC gate.
-- **Seller** — can publish products through the marketplace.
-- **Agent** — future marketplace/commission role.
+Agents are separate from consumers and are managed by the Developer Control Plane.
 
----
+## Consumer experience
 
-# 2. Consumer experience
+The consumer shell has five funnel stages:
 
-The consumer product is organized around five stages:
+1. Home
+2. For You
+3. Jobs
+4. Messages & Payments
+5. Profile & Security
 
-1. **Home**
-   - Search
-   - Location and radius
-   - Categories
-   - Nearby verified providers
-   - Interactive local-services map
-   - Provider quick cards
+The header provides the SAVIS identity, map toggle, help, location/radius controls and account menu.
 
-2. **For You**
-   - Product/discovery feed foundation
-   - Saved/liked discovery direction
-   - Future short-video/social discovery
+Location is opt-in. SAVIS does not request browser geolocation immediately; the consumer can explicitly ask for nearest recommendations.
 
-3. **Jobs**
-   - Requested
-   - Quote Pending
-   - Accepted / Protected
-   - En Route
-   - In Progress
-   - Completed
-   - Cancelled / Rescheduled
+The Alpha map uses Leaflet/OpenStreetMap with provider pins, category markers, user radar, radius boundary and synchronized provider quick cards.
 
-4. **Messages & Payments**
-   - Conversations
-   - Job communication
-   - Structured quotes
-   - Payment/escrow ledger foundation
-   - Notifications foundation
+## Trust and provider verification
 
-5. **Profile & Security**
-   - Account
-   - Settings
-   - Favorites
-   - Security
-   - Tutorial/onboarding foundation
+Provider verification is a marketplace gate.
 
----
+Required KYC:
+- ID/passport front
+- ID/passport back
+- selfie
+- consent
+- optional professional certificate
 
-# 3. Provider experience
+KYC files are private in Supabase Storage. Provider-scoped Storage RLS protects documents.
 
-The Provider Hub includes:
+A provider cannot become consumer-visible/Online unless the provider is verified. Human review is available at:
 
-- Jobs & Schedule
-- Products & Shop
-- Social & Portfolio
-- Messages
-- Analytics & Earnings
-- Availability
-- Online/offline status
-- Structured quote creation
-- Provider profile/services
+`/admin/provider-review`
 
-## Mandatory provider go-live rule
+Reviewer access is allowlisted by `provider_reviewers`.
 
-A provider may create and work on their profile before verification, but **they cannot put themselves out to consumers until KYC is approved**.
+## Jobs, quotes and protection
 
-The Provider Hub displays:
+Jobs use an auditable lifecycle and database transition function.
 
-> **Ready to provide a service?**  
-> Complete KYC before you go live.
+Providers can create structured quotes with:
+- amount
+- inclusions
+- expiry
 
-The provider is sent to:
+Consumers receive a quote card and can select **Accept & Lock Job**.
 
-**Provider Hub → Start KYC → KYC submission → SAVIS review → Verified → provider becomes eligible for consumer discovery**
+Quote acceptance atomically moves the job to Accepted, closes competing pending quotes and creates the protected payment-ledger entry.
 
-Until verification is approved:
+## Messaging
 
-- The provider cannot switch themselves Online.
-- The provider is excluded from nearby consumer discovery.
-- The provider is excluded from public provider search.
-- The provider public profile is not exposed through the public provider RPC.
-- Active provider services are not exposed publicly.
+Conversations and messages have participant-scoped access and Supabase Realtime subscriptions.
 
-This gate is enforced in both the UI **and database discovery functions**.
+The app includes safe onboarding and quick-start guidance.
 
----
+## Payments
 
-# 4. KYC / provider verification
+The payment center is prepared for M-Pesa/Daraja:
 
-Provider verification uses:
+- authenticated STK Push initiation
+- asynchronous callback endpoint
+- callback ledger reconciliation foundation
+- payment status history
+- large M-PESA branded consumer payment UI
 
-- National ID or passport — front
-- National ID or passport — back
-- Live selfie
-- Professional certificate where relevant
-- Explicit verification consent
+Live Safaricom credentials are intentionally not configured yet.
 
-KYC documents are stored in the private Supabase Storage bucket:
+Cash and bank-card/Visa support are future payment methods.
 
-`kyc-documents`
+## Marketplace
 
-Files are stored under the authenticated provider's user ID and are not public.
+The marketplace foundation supports providers, products, orders, sponsored content and recommendations.
 
-Provider verification states:
+Image uploads can be compressed client-side to a target of 200 KB or less.
 
-- `not_started`
-- `submitted`
-- `under_review`
-- `verified`
-- `rejected`
+A seed script can create 50 simulated provider accounts. Running the script is separate from having the script in the repository.
 
-Marketplace profile verification states:
+## Developer Control Plane
 
-- `unverified`
-- `pending`
-- `verified`
-- `rejected`
+Developer tools live at:
 
-The KYC submission RPC updates the provider to `pending`. A future admin/reviewer workflow changes the record to `verified` only after human review.
+`/dev-console-9f3k`
 
-### Important
+The control plane has three levels:
 
-The current Alpha does **not** pretend that automated identity verification has happened. KYC is a real document-submission workflow, while the final reviewer/admin approval process remains a product milestone.
+### SAFE
+- system health
+- analytics counts
+- provider review navigation
+- search/location diagnostics
+- feature flags
+- audit log
 
----
+### OPERATIONAL
+- Business Control Center
+- assisted sessions
+- Agent Management
+- marketplace operations
+- bookings/payments operations
+- messaging operations
 
-# 5. Job lifecycle
+### NUCLEAR / EMERGENCY
+Emergency controls require:
+- authenticated developer session
+- server-only 12-digit developer credential
+- typed confirmation
+- audited server-side action
 
-The production data model supports:
+The web console currently exposes reversible emergency controls for maintenance, signup and payment entry points. Irreversible data destruction is intentionally not exposed from ordinary developer access.
 
-`requested → quote_pending → accepted → en_route → in_progress → completed`
+### First developer bootstrap
 
-Additional states:
+The console is allowlist protected. The first owner/developer account can be provisioned without sharing credentials with ChatGPT:
 
-- declined
-- cancelled
-- rescheduled
+1. In Vercel project settings, add server-only environment variable `SAVIS_DEVELOPER_EMAIL` containing the exact owner/developer login email.
+2. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only.
+3. Log into SAVIS with that exact email.
+4. Open `/dev-console-9f3k`.
+5. Use **Provision this developer account** once.
+6. Refresh. The account is inserted into `public.developer_admins`.
+7. First-run bootstrap closes once any developer admin exists.
 
-Every important transition can be recorded in `job_status_events`.
+Do not put the 12-digit emergency credential in source control or chat. Store it as server-only `SAVIS_NUCLEAR_CODE` in Vercel.
 
-The `transition_job(...)` security-definer RPC validates allowed transitions and records an audit event.
+If the server bootstrap variables are not available, the SQL fallback is:
 
----
+```sql
+insert into public.developer_admins (user_id)
+values ('YOUR-SUPABASE-USER-UUID')
+on conflict (user_id) do nothing;
+```
 
-# 6. Structured quotes
+### Business Control Center
 
-Providers can send a structured quote containing:
+Business management intentionally excludes consumer accounts.
 
-- Amount
-- Message/inclusions
-- Expiry
+Supported:
+- providers
+- sellers
+- professionals
 
-Consumers see:
+Developer-assisted sessions are time-boxed and audited. They do not request or expose business-owner passwords and are implemented as app-level delegated sessions rather than fake Supabase `auth.uid()` identities.
 
-**Accept & Lock Job**
+### Agent Management
 
-The `accept_quote(...)` RPC:
+Agents are developer-only. The Developer Control Plane can list developer-managed agents and enable/disable them.
 
-1. Checks that the consumer owns the job.
-2. Checks that the quote is still pending.
-3. Checks quote expiry.
-4. Accepts the selected quote.
-5. Declines competing pending quotes.
-6. Moves the job to `accepted`.
-7. Stores the quoted amount.
-8. Creates a protected/held payment-ledger record.
-9. Records the acceptance in the job timeline.
+## Database migrations
 
-The current ledger is the foundation for production escrow. It is **not yet a live M-Pesa charge**.
+Run from Supabase SQL Editor → New query in this order when setting up a new database:
 
----
+1. `supabase/schema.sql`
+2. `supabase/final-dream.sql`
+3. `supabase/dynamic-marketplace.sql`
+4. `supabase/public-discovery.sql`
+5. `supabase/provider-kyc.sql`
+6. `supabase/provider-review.sql`
+7. `supabase/realtime-messaging.sql`
+8. `supabase/mpesa-daraja.sql`
+9. `supabase/developer-console.sql`
+10. `supabase/developer-security.sql`
+11. `supabase/business-control.sql`
+12. `supabase/developer-agents.sql`
+13. `supabase/operational-control.sql`
+14. `supabase/assisted-session.sql`
 
-# 7. Maps and discovery
+The migrations are written to be re-runnable where practical. Some earlier migrations may have already been applied in the Alpha database.
 
-The Alpha uses:
+## Environment variables
 
-- Leaflet
-- OpenStreetMap
-- Multi-provider markers
-- Category-aware markers
-- User-location radar
-- Radius boundary
-- Selected-provider highlighting
-- Provider quick cards
-- Touch/scroll zoom
-- Search/category/radius synchronization
-
-Provider discovery uses geographic distance calculations and is privacy-safe.
-
-Only **verified providers** are eligible for consumer-facing discovery.
-
----
-
-# 8. Marketplace foundation
-
-Products support:
-
-- Seller ownership
-- Title
-- Description
-- Category
-- Price
-- Currency
-- Stock
-- Image
-- Draft/published/paused/sold-out state
-
-Orders and order items have relational tables and participant RLS policies.
-
-Client-side image compression is provided by `compressorjs` with a target of approximately 200 KB.
-
-Marketplace publishing/moderation still needs final production hardening.
-
----
-
-# 9. Messaging
-
-The backend supports:
-
-- Conversations
-- Consumer/provider participants
-- Job-linked conversations
-- Messages
-- Read state
-- Attachment URL foundation
-
-The next production stage is real-time messaging, attachment moderation and cleanup.
-
----
-
-# 10. Payments
-
-The backend contains:
-
-- Payment records
-- Job/order linkage
-- Payer/payee
-- Amount
-- Platform fee
-- Payment method
-- Checkout request ID
-- Provider reference
-- Pending/authorized/held/released/refunded/failed/cancelled states
-
-Current quote acceptance creates a **held ledger record** for protection.
-
-### M-Pesa Daraja foundation
-
-The repository now contains a server-side STK Push flow and callback endpoint. The callback updates the payment ledger only after Safaricom reports the transaction result. The consumer payment page is `/consumer/payments`.
-
-Required server variables are listed above. Start in `sandbox`; switch to `production` only after Safaricom Go Live credentials and a public HTTPS callback are configured.
-
-### M-Pesa is not yet live
-
-Production M-Pesa requires:
-
-- Safaricom Daraja credentials
-- Server-side secrets
-- STK Push initiation
-- Callback endpoint
-- Callback signature/security handling
-- Transaction reconciliation
-- Idempotency
-- Refund handling
-- Escrow release rules
-
-Do not describe the current Alpha ledger as a completed M-Pesa integration.
-
----
-
-# 11. Supabase database setup
-
-Run migrations in this order from the repository's `supabase/` directory:
-
-1. `schema.sql`
-2. `final-dream.sql`
-3. `dynamic-marketplace.sql`
-4. `public-discovery.sql`
-5. `provider-kyc.sql`
-6. `realtime-messaging.sql`
-7. `provider-review.sql`
-8. `mpesa-daraja.sql`
-
-Use:
-
-**Supabase → Project → SQL Editor → New query → paste migration → Run**
-
-The `final-dream.sql` migration contains the corrected `transition_job()` dollar-quote syntax.
-
-The `provider-kyc.sql` migration adds:
-
-- Private KYC Storage bucket
-- KYC Storage RLS
-- KYC submission RPC
-- Verified-only provider discovery
-- Verified-only public provider search
-- Verified-only public provider profile
-- Verified-only provider services
-
-### If a migration has already been run
-
-Do not blindly rebuild the database. Check the exact migration and apply the missing/fixed migration only.
-
----
-
-# 12. Environment variables
-
-Create `.env.local` in the repository root:
+Browser-safe:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# Server-only Daraja variables (never expose to the browser)
-MPESA_ENVIRONMENT=sandbox
-MPESA_CONSUMER_KEY=your-daraja-consumer-key
-MPESA_CONSUMER_SECRET=your-daraja-consumer-secret
-MPESA_SHORTCODE=your-shortcode
-MPESA_PASSKEY=your-stk-passkey
-MPESA_CALLBACK_URL=https://your-domain.example/api/payments/mpesa/callback
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-For the provider seed script, server-only variables are required:
+Server-only:
 
 ```env
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SAVIS_SEED_PASSWORD=your-test-password
+SUPABASE_SERVICE_ROLE_KEY=...
+SAVIS_DEVELOPER_EMAIL=...
+SAVIS_NUCLEAR_CODE=...
 ```
 
-**Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser or commit it to Git.**
+Daraja variables are required only when live M-Pesa is intentionally activated.
 
----
+Never expose a service-role key or developer emergency credential to the browser, Git, logs or chat.
 
-# 13. Provider test data
-
-A seed script exists:
-
-```bash
-npm run seed:providers
-```
-
-It can create/upsert 50 simulated provider accounts with:
-
-- Kenyan names
-- Roles
-- Categories
-- Coordinates
-- Avatars
-- Service records
-- Ratings
-
-The seed requires the server-only Supabase service-role key and a test password.
-
-The existence of the script does **not** mean the 50 accounts have already been created.
-
-For a realistic production-like test, seed accounts should only be considered consumer-visible after their verification state is intentionally set to an approved test state.
-
----
-
-# 14. Local development
-
-Install dependencies:
+## Provider seed
 
 ```bash
 npm install
-```
-
-Run the development server:
-
-```bash
-npm run dev
-```
-
-Build:
-
-```bash
-npm run build
-```
-
-Lint:
-
-```bash
-npm run lint
-```
-
-Provider seed:
-
-```bash
 npm run seed:providers
 ```
 
----
+Required server-only variables:
 
-# 15. Deployment
+```env
+SUPABASE_SERVICE_ROLE_KEY=...
+SAVIS_SEED_PASSWORD=...
+NEXT_PUBLIC_SUPABASE_URL=...
+```
 
-SAVIS deploys through Vercel from the GitHub `main` branch.
+The seed creates simulated accounts; it does not by itself make them trusted/verified.
 
-Production project:
+## Google and Apple login
 
-- Project: `savis`
-- Production URL: https://savis-alpha.vercel.app/
+The code supports Google and Apple OAuth callback handling.
 
-### Critical Vercel setting
+They are not considered operational until the providers are configured in Supabase Auth and their provider consoles with the production callback URL.
 
-The repository root is the application root.
+## Deployment
 
-**Do not set Vercel Root Directory to the old nested `savis/` directory.**
+Vercel deploys the repository root from `main`.
 
-The nested `savis/` folder is historical and must not be used as the production source.
+Critical setting:
+- Root Directory must remain the repository root.
 
----
+After a merge:
+1. confirm the new main commit
+2. confirm the corresponding Vercel production deployment
+3. wait for READY
+4. check build logs
+5. smoke-test the affected route
 
-# 16. Security principles
+Do not call a deployment live/READY until its deployment state has been verified.
 
-SAVIS follows these principles:
+## Security model
 
-- Consumer job data is participant-scoped.
-- Provider/customer conversations are participant-scoped.
-- Quotes are participant-scoped.
-- Payment records are participant-scoped.
+- RLS is enabled on sensitive tables.
+- Security-definer RPCs enforce developer authorization for developer tools.
+- Consumer accounts are excluded from the Business Control Center.
 - KYC documents are private.
-- KYC files are stored under the provider's authenticated user ID.
-- Provider discovery excludes unverified providers.
-- Public provider RPCs exclude unverified providers.
-- Provider verification is separate from ordinary profile completion.
-- Service-provider availability cannot bypass KYC.
-- Security-sensitive state transitions use database functions where appropriate.
+- Provider discovery is verification-gated.
+- Developer actions are audited.
+- Assisted sessions are target-scoped and time-boxed.
+- Owner passwords are never requested for developer assistance.
+- Nuclear/emergency controls require a second server-side credential and typed confirmation.
+- Irreversible destructive actions are deliberately isolated from ordinary developer workflows.
 
----
+## Current limitations
 
-# 17. Current Alpha limitations
+- Live Safaricom production activation is not configured.
+- Full production escrow release/refund automation remains to be hardened.
+- Provider live-location tracking and turn-by-turn routing are future work.
+- Marketplace media moderation/publishing hardening remains.
+- Agent commission settlement remains.
+- Full automated E2E/security test suite remains.
+- Emergency session invalidation is represented in developer security state but should be integrated with every authenticated application surface before being treated as a complete global logout mechanism.
+- Google/Apple OAuth still needs external provider configuration.
 
-The following are still incomplete:
+## Refinement order after Developer Control Plane
 
-- Human/admin KYC review dashboard
-- Automated identity verification
-- Live M-Pesa Daraja integration
-- Payment reconciliation/webhooks
-- Full production escrow release/refund automation
-- Real-time messaging
-- Provider live-location tracking
-- Turn-by-turn routing
-- Marketplace media moderation
-- Product publishing hardening
-- Agent commission settlement
-- Full production test suite
-- Complete production security audit
-- Final onboarding/tutorial system
+The next product pass should be page-by-page only after developer tooling is operational:
 
----
+1. Consumer Home
+2. For You
+3. Jobs
+4. Messages & Payments
+5. Profile & Security
+6. Provider Hub
+7. Provider verification/review
+8. Seller/shop surfaces
+9. Professional surfaces
+10. Agent surfaces
+11. Public browse/search/provider profiles
+12. Checkout/payment UX
+13. Final mobile/accessibility/polish pass
 
-# 18. Development history
+## Source-of-truth rules
 
-Major completed milestones include:
-
-- Consumer Home and account foundation
-- Settings and profile foundation
-- Browser location foundation
-- Provider discovery RPC
-- Provider Hub
-- Provider calendar and persistent availability
-- Consumer five-tab funnel
-- Public browse/search conversion
-- Leaflet live local-services map
-- Dynamic provider/service data foundation
-- 50-provider seed tooling
-- Image compression
-- Structured quotes
-- Quote acceptance/protected job foundation
-- Job lifecycle/status events
-- Messaging backend foundation
-- Payments ledger foundation
-- Provider verification/KYC gate
-
-The latest KYC milestone makes verification a **true marketplace gate**, rather than a cosmetic badge.
-
----
-
-# 19. Product roadmap
-
-### Phase 1 — Dynamic marketplace
-- Relational providers/services/products
-- 50-account test tier
-- Image compression
-
-### Phase 2 — Live local-services map
-- Multi-provider map
-- Radius filtering
-- Category markers
-- Radar/location UI
-- Quick cards
-
-### Phase 3 — Consumer funnel
-- Home
-- For You
-- Jobs
-- Messages & Payments
-- Profile & Security
-
-### Phase 4 — Protected jobs
-- Structured quotes
-- Accept & Lock Job
-- Payment protection
-- Job lifecycle
-- Status timeline
-
-### Phase 5 — Trust & safety
-- Mandatory provider KYC
-- Admin review
-- Verification badge
-- Document security
-- Moderation
-- Reporting
-
-### Phase 6 — Real payments
-- Daraja STK Push
-- Webhooks
-- Reconciliation
-- Escrow release
-- Refunds
-
-### Phase 7 — Marketplace scale
-- Products
-- Media
-- Social/portfolio
-- Recommendations
-- Ads
-- Agent commissions
-
----
-
-# 20. Source of truth
-
-When continuing development:
-
-1. Use the current GitHub `main` branch.
-2. Use the current Supabase schema/migrations.
-3. Use the live Alpha for visual QA.
-4. Do not rebuild SAVIS from the old uploaded `index.html`.
-5. Do not edit the historical nested `savis/` project.
-6. Record significant milestones in `SAVIS_PROGRESS.md`.
-
-SAVIS is being built incrementally so each milestone remains deployable and recoverable.
+- Use GitHub `main`.
+- Use current Supabase migrations.
+- Use current Vercel production for visual QA.
+- Never rebuild from the old uploaded HTML.
+- Never edit the historical nested `savis/` directory.
+- Record significant milestones in `SAVIS_PROGRESS.md`.
