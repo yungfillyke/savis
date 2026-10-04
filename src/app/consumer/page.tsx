@@ -10,7 +10,8 @@ import { t, getLang, setLang, type Lang } from "@/lib/i18n";
 import { distanceKm, getSavedLocation, requestCurrentLocation, type UserLocation } from "@/lib/location";
 import { syncConsumerBookings, type Booking } from "@/lib/bookings";
 import SavisMap, { type SavisMapProvider } from "@/components/SavisMap";
-import { getOrCreateConversation, listConversations, sendMessage, type Conversation } from "@/lib/messaging";
+import { getOrCreateConversation, listConversations, sendMessage, subscribeToConversations, type Conversation } from "@/lib/messaging";
+import SavisOnboarding from "@/components/SavisOnboarding";
 
 type Profile = { full_name: string | null; role: string | null; email: string | null };
 
@@ -191,6 +192,12 @@ export default function ConsumerPage() {
   useEffect(() => {
     if (loading || activeTab !== "messages") return;
     void listConversations().then(setConversations);
+    return subscribeToConversations((conversation) => {
+      setConversations((current) => {
+        const next = current.filter((item) => item.id !== conversation.id);
+        return [conversation, ...next].sort((a,b) => b.lastMessageAt.localeCompare(a.lastMessageAt));
+      });
+    });
   }, [loading, activeTab]);
 
   async function enableLocation() {
@@ -275,7 +282,7 @@ export default function ConsumerPage() {
 
           <section className="mb-4">
             <div className="flex gap-2 rounded-full bg-white p-1.5 shadow-xl">
-              <input value={search} onChange={(e) => setSearch(e.target.value)} className="min-w-0 flex-1 rounded-full px-4 py-3 text-[0.95rem] text-[#222B31] outline-none" placeholder="Search services, providers or shops…" />
+              <div id="savis-search"><input value={search} onChange={(e) => setSearch(e.target.value)} className="min-w-0 flex-1 rounded-full px-4 py-3 text-[0.95rem] text-[#222B31] outline-none" placeholder="Search services, providers or shops…" /></div>
               <button type="button" onClick={() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" })} className="rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] px-5 py-3 text-sm font-bold text-white">Search</button>
             </div>
             <div className="mt-3 flex items-center gap-2 px-1">
@@ -299,7 +306,7 @@ export default function ConsumerPage() {
             <button type="button" onClick={() => setShowTutorial(true)} className="mt-3 text-xs font-bold text-[#F5C451]">How SAVIS works →</button>
           </section>
 
-          <section className="mb-6 overflow-hidden rounded-[22px] border border-white/10 bg-[rgba(34,43,49,0.72)]">
+          <section id="savis-map" className="mb-6 overflow-hidden rounded-[22px] border border-white/10 bg-[rgba(34,43,49,0.72)]">
             <div className="flex items-center justify-between gap-3 px-4 pt-4"><div><h2 className="font-extrabold text-lg">Live nearby</h2><p className="mt-0.5 text-xs text-[#B9C3C9]">{realProviders ? `Providers within ${radius} km` : "Alpha sample providers"}</p></div><button type="button" onClick={() => setMapMode(true)} className="text-xs font-bold text-[#F5C451]">Open live map →</button></div>
             <div className="relative mt-4 overflow-hidden border-y border-white/10">
               <SavisMap center={mapCenter} providers={filtered} radiusKm={radius} selectedProviderId={selectedMapProvider?.id || null} onSelect={setSelectedMapProvider} />
@@ -382,6 +389,7 @@ export default function ConsumerPage() {
           {bookings.length === 0 && <div className="rounded-[20px] border border-dashed border-white/10 p-6 text-center"><p className="text-2xl">🧾</p><p className="mt-2 text-sm font-bold">No active jobs yet</p><p className="mt-1 text-xs text-[#B9C3C9]">When you request a provider, live job progress will appear here.</p></div>}
         </div>
       )}
+      <SavisOnboarding open={showTutorial} onClose={() => setShowTutorial(false)} />
       {mapMode && (
         <div className="fixed inset-0 z-[70] bg-[#11171c]">
           <SavisMap center={mapCenter} providers={filtered} fullScreen radiusKm={radius} selectedProviderId={selectedMapProvider?.id || null} onSelect={setSelectedMapProvider} />
