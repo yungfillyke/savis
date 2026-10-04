@@ -232,3 +232,11 @@ When continuing this project, do NOT rebuild SAVIS from the old uploaded `index.
 - Nuclear controls are presented as a separately locked area and are not enabled by ordinary developer access alone.
 - Developer-assisted sessions are the intended model for business support; business-owner passwords are never required or shared.
 - Before first use, the app owner must run `supabase/developer-console.sql` in Supabase SQL Editor and add the developer's Auth UUID to `public.developer_admins`.
+
+
+## Developer Assisted Sessions — October 2026
+- Added secure activation for developer-assisted sessions with explicit target account, role restriction and expiry.
+- Added signed, HttpOnly delegated-session cookie; no business-owner password is requested or exposed.
+- Added explicit activation/exit audit events and automatic expiry handling.
+- Business Control Center now activates and exits the delegated session instead of merely preparing a database record.
+- This is an app-level delegated session, not a fake Supabase auth identity; destructive/nuclear controls remain separate.
