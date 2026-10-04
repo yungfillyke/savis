@@ -13,7 +13,9 @@ type Profile = {
   full_name: string | null;
   role: string | null;
   email: string | null;
-  avatar_url?: string | null;\n  avatar_url?: string | null;\n  bio?: string | null;\n  location_name?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  location_name?: string | null;
 };
 
 export default function ProfilePage() {
