@@ -120,3 +120,128 @@ textarea {
   .savis-inbox-tabs { grid-template-columns: 1fr; }
   .savis-inbox-tabs > button { min-height: 64px; }
 }
+
+
+/* Light internal dashboard system — inspired by premium marketplace/fintech dashboards */
+.savis-internal {
+  min-height: 100vh;
+  color: #17202a !important;
+  background:
+    radial-gradient(55% 35% at 0% 0%, rgba(226,34,39,.055), transparent 70%),
+    radial-gradient(45% 30% at 100% 8%, rgba(245,196,81,.055), transparent 70%),
+    #f5f6f8 !important;
+}
+.savis-internal .savis-platinum {
+  color: #17202a !important;
+  background: #ffffff !important;
+  border-color: #e6e9ee !important;
+  box-shadow: 0 12px 30px rgba(25,35,45,.07), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+.savis-internal .savis-contact-row {
+  color: #17202a !important;
+  background: #ffffff !important;
+  border-color: #e7eaef !important;
+  box-shadow: 0 8px 22px rgba(25,35,45,.055);
+}
+.savis-internal .savis-contact-row:hover {
+  border-color: rgba(226,34,39,.28) !important;
+  box-shadow: 0 12px 28px rgba(25,35,45,.08);
+}
+.savis-internal header {
+  color: #17202a !important;
+  background: rgba(255,255,255,.88) !important;
+  border-color: #e5e8ed !important;
+  box-shadow: 0 1px 0 rgba(20,30,40,.04);
+}
+.savis-internal [class*="bg-[rgba(13,29,48"] ,
+.savis-internal [class*="bg-[rgba(34,43,49"] ,
+.savis-internal [class*="bg-[#07111f"] ,
+.savis-internal [class*="bg-black/20"] ,
+.savis-internal [class*="bg-white/[0.04]"] ,
+.savis-internal [class*="bg-white/5"] ,
+.savis-internal [class*="bg-white/10"] {
+  background: #ffffff !important;
+  color: #17202a !important;
+  border-color: #e7eaef !important;
+}
+.savis-internal [class*="border-white"] {
+  border-color: #e4e8ed !important;
+}
+.savis-internal [class*="text-[#B9C3C9"],
+.savis-internal [class*="text-[#7F8C93"],
+.savis-internal [class*="text-[#55666E"] {
+  color: #66717d !important;
+}
+.savis-internal [class*="text-white"] {
+  color: #17202a !important;
+}
+.savis-internal [class*="bg-gradient-to-br"][class*="text-white"],
+.savis-internal [class*="bg-[#E22227"][class*="text-white"],
+.savis-internal [class*="bg-[#C7080C"][class*="text-white"] {
+  color: #ffffff !important;
+}
+.savis-internal .savis-profile-hero,
+.savis-internal .savis-inbox-panel,
+.savis-internal .savis-job-card,
+.savis-internal .savis-job-link,
+.savis-internal .savis-discovery-grid > button,
+.savis-internal .savis-inbox-tabs > button,
+.savis-internal .savis-profile-menu > a {
+  background: #ffffff !important;
+  color: #17202a !important;
+  border-color: #e5e8ed !important;
+  box-shadow: 0 10px 26px rgba(25,35,45,.065), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+.savis-internal .savis-profile-menu > a:hover,
+.savis-internal .savis-job-link:hover,
+.savis-internal .savis-discovery-grid > button:hover {
+  border-color: rgba(226,34,39,.25) !important;
+  transform: translateY(-1px);
+}
+.savis-internal .savis-stat-card {
+  border: 1px solid #e5e8ed;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 1rem;
+  box-shadow: 0 10px 26px rgba(25,35,45,.06);
+}
+.savis-internal .savis-stat-card .savis-stat-icon {
+  display: flex;
+  width: 2.35rem;
+  height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: .8rem;
+  background: rgba(226,34,39,.08);
+  color: #c7080c;
+}
+.savis-internal .savis-soft-section {
+  border: 1px solid #e5e8ed;
+  background: rgba(255,255,255,.82);
+  border-radius: 26px;
+  box-shadow: 0 12px 30px rgba(25,35,45,.05);
+}
+.savis-internal input,
+.savis-internal textarea,
+.savis-internal select {
+  color: #17202a !important;
+  background: #ffffff !important;
+  border-color: #dfe4ea !important;
+}
+.savis-internal input::placeholder,
+.savis-internal textarea::placeholder {
+  color: #8a949e !important;
+}
+.savis-internal > div[aria-hidden="true"] {
+  background: #f5f6f8 !important;
+}
+.savis-internal > div[aria-hidden="true"] > div {
+  opacity: 0 !important;
+}
+@media (min-width: 900px) {
+  .savis-internal .savis-desktop-rail {
+    position: sticky;
+    top: 88px;
+    align-self: flex-start;
+  }
+}
