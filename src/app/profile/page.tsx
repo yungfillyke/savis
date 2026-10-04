@@ -81,7 +81,7 @@ export default function ProfilePage() {
   const homeHref = homeMap[role] || "/consumer";
 
   return (
-    <main className="min-h-screen pb-28">
+    <main className="savis-internal min-h-screen pb-28">
       <header className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 border-b border-white/10 savis-platinum backdrop-blur-md">
         <Link href={homeHref} className="font-black tracking-tight">SAVIS</Link>
         <AccountMenu name={profile?.full_name || "Account"} role={profile?.role || "consumer"} homeHref={homeHref} />
