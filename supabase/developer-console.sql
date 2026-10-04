@@ -60,3 +60,15 @@ begin
   return r;
 end $$;
 grant execute on function public.set_developer_feature_flag(text,boolean,text) to authenticated;
+
+
+create or replace function public.list_developer_audit(p_limit integer default 50)
+returns setof public.developer_audit_log
+language sql stable security definer set search_path=public
+as $$
+  select * from public.developer_audit_log
+  where public.is_developer_admin()
+  order by created_at desc
+  limit greatest(1, least(coalesce(p_limit,50),200))
+$$;
+grant execute on function public.list_developer_audit(integer) to authenticated;
