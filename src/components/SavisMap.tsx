@@ -540,8 +540,13 @@ export default function SavisMap({
         },
       });
 
-      const bounds = new mapboxgl.LngLatBounds();
-      for (const coordinate of route.geometry.coordinates) bounds.extend(coordinate);
+      const coordinates = route.geometry.coordinates as [number, number][];
+      const lngs = coordinates.map((coordinate) => coordinate[0]);
+      const lats = coordinates.map((coordinate) => coordinate[1]);
+      const bounds: [[number, number], [number, number]] = [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)],
+      ];
       map.fitBounds(bounds, { padding: fullScreen ? 90 : 50, duration: 800, maxZoom: 16 });
 
       const firstStep = route.legs?.[0]?.steps?.[0];
