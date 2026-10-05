@@ -161,3 +161,4 @@ Consumer Jobs → Messages & Payments → Profile polish → Provider Hub cards/
 - Map provider verification marks now use custom SVG trust badges rather than emoji/check characters.
 - Badge silhouette follows the Instagram-style verification visual language while retaining SAVIS blue, gold, and black trust tiers.
 - Badge labels remain accessible through title/aria-label text.
+- Vercel Mapbox environment variable verified on 5 Oct 2026 for production, preview, and development; production redeploy triggered after environment configuration.
