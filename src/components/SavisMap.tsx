@@ -110,9 +110,7 @@ export default function SavisMap({
       if (!hostRef.current || mapRef.current) return;
 
       const buildStaticMapUrl = (token: string) => {
-        const styleUrl = styleRef.current === "dark" ? DARK_STYLE : LIGHT_STYLE;
-        const match = styleUrl.match(/^mapbox:\/\/styles\/([^/]+)\/([^/]+)$/);
-        const stylePath = match ? `styles/v1/${match[1]}/${match[2]}` : "styles/v1/mapbox/dark-v11";
+        const stylePath = "styles/v1/mapbox/dark-v11";
         const features = mappedProviders.map((provider) => ({
           type: "Feature",
           properties: {
@@ -149,6 +147,16 @@ export default function SavisMap({
         const message = String(event?.error?.message || "Mapbox could not load the map.");
         console.error("SAVIS Mapbox error:", message);
         setMapError(message);
+        if (!staticMapUrl && process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN && /token|auth|forbidden|style|tiles|source|webgl|worker/i.test(message)) {
+          const fallbackToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+          const fallbackFeatures = mappedProviders.map((provider) => ({
+            type: "Feature",
+            properties: { "marker-color": provider.verificationLevel === "gold" ? "#d4a72c" : provider.verificationLevel === "black" ? "#111111" : "#2f80ed", "marker-size": "small" },
+            geometry: { type: "Point", coordinates: [provider.longitude, provider.latitude] },
+          }));
+          const fallbackOverlay = encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features: fallbackFeatures }));
+          setStaticMapUrl(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/geojson(${fallbackOverlay})/${center.longitude},${center.latitude},13/1200x720@2x?access_token=${encodeURIComponent(fallbackToken)}`);
+        }
         if (!fallbackStyleRef.current && (message.toLowerCase().includes("style") || message.toLowerCase().includes("tiles") || message.toLowerCase().includes("source"))) {
           fallbackStyleRef.current = true;
           map.setStyle("mapbox://styles/mapbox/dark-v11");
