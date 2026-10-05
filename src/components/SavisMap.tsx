@@ -88,6 +88,7 @@ export default function SavisMap({
   const [routeInfo, setRouteInfo] = useState<{ providerName: string; distance: string; duration: string; instruction?: string } | null>(null);
   const [routeBusy, setRouteBusy] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null);
   const fallbackStyleRef = useRef(false);
 
   const mappedProviders = useMemo(
@@ -108,14 +109,27 @@ export default function SavisMap({
     async function mount() {
       if (!hostRef.current || mapRef.current) return;
 
-      const mapboxgl = await import("mapbox-gl");
+      const buildStaticMapUrl = (token: string) => {
+        const stylePath = "styles/v1/mapbox/dark-v11";
+        const features = mappedProviders.map((provider) => ({
+          type: "Feature",
+          properties: {
+            "marker-color": provider.verificationLevel === "gold" ? "#d4a72c" : provider.verificationLevel === "black" ? "#111111" : "#2f80ed",
+            "marker-size": "small",
+          },
+          geometry: { type: "Point", coordinates: [provider.longitude, provider.latitude] },
+        }));
+        const overlay = encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features }));
+        return `https://api.mapbox.com/${stylePath}/static/geojson(${overlay})/${center.longitude},${center.latitude},13/1200x720@2x?access_token=${encodeURIComponent(token)}`;
+      };
+
+      try {
+      const mapboxgl = await import("mapbox-gl/esm");
       if (disposed || !hostRef.current) return;
 
       const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-      if (!token) {
-        console.error("SAVIS: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN is missing.");
-        return;
-      }
+      if (!token) throw new Error("Mapbox access token is missing from this deployment.");
+      if (!mapboxgl.supported()) throw new Error("This browser/device does not support WebGL2, which Mapbox GL JS requires.");
 
       const map = new mapboxgl.Map({
         accessToken: token,
@@ -133,6 +147,16 @@ export default function SavisMap({
         const message = String(event?.error?.message || "Mapbox could not load the map.");
         console.error("SAVIS Mapbox error:", message);
         setMapError(message);
+        if (!staticMapUrl && process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN && /token|auth|forbidden|style|tiles|source|webgl|worker/i.test(message)) {
+          const fallbackToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+          const fallbackFeatures = mappedProviders.map((provider) => ({
+            type: "Feature",
+            properties: { "marker-color": provider.verificationLevel === "gold" ? "#d4a72c" : provider.verificationLevel === "black" ? "#111111" : "#2f80ed", "marker-size": "small" },
+            geometry: { type: "Point", coordinates: [provider.longitude, provider.latitude] },
+          }));
+          const fallbackOverlay = encodeURIComponent(JSON.stringify({ type: "FeatureCollection", features: fallbackFeatures }));
+          setStaticMapUrl(`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/geojson(${fallbackOverlay})/${center.longitude},${center.latitude},13/1200x720@2x?access_token=${encodeURIComponent(fallbackToken)}`);
+        }
         if (!fallbackStyleRef.current && (message.toLowerCase().includes("style") || message.toLowerCase().includes("tiles") || message.toLowerCase().includes("source"))) {
           fallbackStyleRef.current = true;
           map.setStyle("mapbox://styles/mapbox/dark-v11");
@@ -447,6 +471,13 @@ export default function SavisMap({
         resizeObserver?.disconnect();
         map.remove();
       };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Mapbox could not start on this device.";
+        console.error("SAVIS Mapbox startup failure:", error);
+        setMapError(message);
+        const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+        if (token) setStaticMapUrl(buildStaticMapUrl(token));
+      }
     }
 
     void mount();
@@ -592,6 +623,13 @@ export default function SavisMap({
 
   return (
     <div className={`savis-map-shell ${fullScreen ? "relative h-screen w-screen overflow-hidden" : "relative h-72 w-full overflow-hidden"}`}>
+      {staticMapUrl ? (
+        <img
+          src={staticMapUrl}
+          alt="SAVIS service discovery map"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : null}
       <div
         ref={hostRef}
         className="absolute inset-0 min-h-0"
@@ -601,7 +639,7 @@ export default function SavisMap({
       {mapError && (
         <div className="absolute inset-x-4 top-20 z-20 mx-auto max-w-md rounded-2xl border border-[#E22227]/30 bg-[#11171c]/95 p-4 text-white shadow-2xl backdrop-blur-xl">
           <p className="text-sm font-extrabold">SAVIS map is having trouble loading</p>
-          <p className="mt-1 text-xs text-white/65">We are retrying the map connection. If the problem continues, refresh this page.</p>
+          <p className="mt-1 text-xs text-white/65">{staticMapUrl ? "Interactive map is unavailable on this device, so SAVIS is showing a map image instead." : "We are retrying the map connection. Refresh this page if the problem continues."}</p>
         </div>
       )}
 
