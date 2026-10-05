@@ -30,6 +30,7 @@ type Provider = {
   latitude?: number;
   longitude?: number;
   verified?: boolean;
+  verificationLevel?: "blue" | "gold" | "black";
   bio?: string;
   avatarUrl?: string;
 };
@@ -76,6 +77,7 @@ function providerFromRow(row: Record<string, unknown>): Provider {
     latitude: row.latitude == null ? undefined : Number(row.latitude),
     longitude: row.longitude == null ? undefined : Number(row.longitude),
     verified: Boolean(row.verified),
+    verificationLevel: String(row.role || "").toLowerCase() === "professional" || String(row.service_category || "").toLowerCase() === "legal" || String(row.service_category || "").toLowerCase() === "architecture" || String(row.service_category || "").toLowerCase() === "engineering" ? "black" : "blue",
     bio: String(row.bio || "A local SAVIS provider ready to help."),
     avatarUrl: row.avatar_url ? String(row.avatar_url) : undefined,
   };
