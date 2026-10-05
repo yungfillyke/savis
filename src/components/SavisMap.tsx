@@ -591,7 +591,7 @@ export default function SavisMap({
   }
 
   return (
-    <div className={fullScreen ? "relative h-screen w-screen overflow-hidden" : "relative h-72 w-full overflow-hidden"}>
+    <div className={`savis-map-shell ${fullScreen ? "relative h-screen w-screen overflow-hidden" : "relative h-72 w-full overflow-hidden"}`}>
       <div
         ref={hostRef}
         className="absolute inset-0 min-h-0"
