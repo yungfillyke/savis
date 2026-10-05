@@ -276,3 +276,9 @@ textarea {
 .mapboxgl-ctrl-attrib{background:rgba(16,19,23,.72)!important;color:rgba(255,255,255,.62)!important}
 .mapboxgl-ctrl-attrib a{color:#f5c451!important}
 .mapboxgl-popup{z-index:20}
+
+
+/* SAVIS full-screen map controls: keep controls clear of the header/close overlay. */
+.savis-map-shell .mapboxgl-ctrl-top-right{top:88px;right:14px}
+.savis-map-shell .mapboxgl-ctrl-group{margin-bottom:10px;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.savis-map-shell .mapboxgl-ctrl-group button{width:42px;height:42px}
