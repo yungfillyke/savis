@@ -87,6 +87,8 @@ export default function SavisMap({
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [routeInfo, setRouteInfo] = useState<{ providerName: string; distance: string; duration: string; instruction?: string } | null>(null);
   const [routeBusy, setRouteBusy] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const fallbackStyleRef = useRef(false);
 
   const mappedProviders = useMemo(
     () =>
@@ -126,6 +128,16 @@ export default function SavisMap({
       });
 
       mapRef.current = map;
+
+      map.on("error", (event: any) => {
+        const message = String(event?.error?.message || "Mapbox could not load the map.");
+        console.error("SAVIS Mapbox error:", message);
+        setMapError(message);
+        if (!fallbackStyleRef.current && (message.toLowerCase().includes("style") || message.toLowerCase().includes("tiles") || message.toLowerCase().includes("source"))) {
+          fallbackStyleRef.current = true;
+          map.setStyle("mapbox://styles/mapbox/dark-v11");
+        }
+      });
 
       const createUserMarker = () => {
         const element = document.createElement("div");
@@ -377,6 +389,8 @@ export default function SavisMap({
       };
 
       map.on("load", () => {
+        setMapError(null);
+        map.resize();
         createUserMarker();
         renderProviders();
         map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: false }), "top-right");
@@ -409,11 +423,16 @@ export default function SavisMap({
       });
 
       map.on("style.load", () => {
+        map.resize();
         if (!userMarkerRef.current) createUserMarker();
         renderProviders();
       });
 
+      const resizeObserver = new ResizeObserver(() => map.resize());
+      resizeObserver.observe(hostRef.current);
       window.setTimeout(() => map.resize(), 100);
+      window.setTimeout(() => map.resize(), 500);
+      window.setTimeout(() => map.resize(), 1200);
 
       return () => {
         map.off("click", "savis-clusters", handleClusterClick);
@@ -423,6 +442,7 @@ export default function SavisMap({
         map.off("mouseenter", "savis-providers", handleEnter);
         map.off("mouseleave", "savis-providers", handleLeave);
         popupRef.current?.remove();
+        resizeObserver.disconnect();
         map.remove();
       };
     }
@@ -572,10 +592,16 @@ export default function SavisMap({
     <div className={fullScreen ? "relative h-screen w-screen overflow-hidden" : "relative h-72 w-full overflow-hidden"}>
       <div
         ref={hostRef}
-        className="absolute inset-0"
+        className="absolute inset-0 min-h-0"
         aria-label="Interactive SAVIS service discovery map"
         role="application"
       />
+      {mapError && (
+        <div className="absolute inset-x-4 top-20 z-20 mx-auto max-w-md rounded-2xl border border-[#E22227]/30 bg-[#11171c]/95 p-4 text-white shadow-2xl backdrop-blur-xl">
+          <p className="text-sm font-extrabold">SAVIS map is having trouble loading</p>
+          <p className="mt-1 text-xs text-white/65">We are retrying the map connection. If the problem continues, refresh this page.</p>
+        </div>
+      )}
 
       <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-2">
         <div className="rounded-full border border-white/15 bg-black/65 px-3 py-1.5 text-[0.65rem] font-extrabold text-white shadow-lg backdrop-blur-xl">
