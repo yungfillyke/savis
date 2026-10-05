@@ -324,7 +324,7 @@ export default function SavisMap({
                 <div class="savis-map-popup-head">
                   <div class="savis-map-popup-avatar">${provider.avatarUrl ? `<img src="${escapeHtml(provider.avatarUrl)}" alt="" />` : escapeHtml(provider.name.charAt(0).toUpperCase())}</div>
                   <div class="savis-map-popup-main">
-                    <div class="savis-map-popup-name">${escapeHtml(provider.name)} <span class="savis-map-popup-badge" style="background:${badgeColor}">✓</span></div>
+                    <div class="savis-map-popup-name">${escapeHtml(provider.name)} <span class="savis-map-popup-badge" aria-label="${verificationLabel(level)}" title="${verificationLabel(level)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7l2.15 1.16 2.43-.1 1.16 2.15 2.15 1.16-.1 2.43L21 12l-1.16 2.15.1 2.43-2.15 1.16-1.16 2.15-2.43-.1L12 21.3l-2.15-1.16-2.43.1-1.16-2.15-2.15-1.16.1-2.43L3 12l1.16-2.15-.1-2.43 2.15-1.16 1.16-2.15 2.43.1L12 2.7z" fill="${badgeColor}"/><path d="m8.2 12.2 2.25 2.25 5.35-5.35" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
                     <div class="savis-map-popup-sub">${escapeHtml(provider.skill)} · ${provider.km.toFixed(1)} km</div>
                   </div>
                 </div>
