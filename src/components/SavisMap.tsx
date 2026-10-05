@@ -120,7 +120,7 @@ export default function SavisMap({
       const map = new mapboxgl.Map({
         accessToken: token,
         container: hostRef.current,
-        style: DARK_STYLE,
+        style: "mapbox://styles/mapbox/dark-v11",
         center: [center.longitude, center.latitude],
         zoom: 13,
         attributionControl: true,
@@ -428,8 +428,10 @@ export default function SavisMap({
         renderProviders();
       });
 
-      const resizeObserver = new ResizeObserver(() => map.resize());
-      resizeObserver.observe(hostRef.current);
+      const resizeObserver = typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => map.resize())
+        : null;
+      resizeObserver?.observe(hostRef.current);
       window.setTimeout(() => map.resize(), 100);
       window.setTimeout(() => map.resize(), 500);
       window.setTimeout(() => map.resize(), 1200);
@@ -442,7 +444,7 @@ export default function SavisMap({
         map.off("mouseenter", "savis-providers", handleEnter);
         map.off("mouseleave", "savis-providers", handleLeave);
         popupRef.current?.remove();
-        resizeObserver.disconnect();
+        resizeObserver?.disconnect();
         map.remove();
       };
     }
