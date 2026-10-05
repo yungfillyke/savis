@@ -156,3 +156,8 @@ Consumer Jobs → Messages & Payments → Profile polish → Provider Hub cards/
 - Added light/dark style switching, provider GeoJSON clustering, blue/gold/black verification marker system, provider popups, SAVIS user radar/heading marker, geolocate control, and initial Mapbox Directions route rendering.
 - Mapbox public token remains environment-only via NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN; never commit token values.
 - Next: rotate the token shared in chat, add the replacement public token to Vercel, run production/preview build verification, then refine provider badge data and navigation UI.
+
+### Verification badge refinement — October 2026
+- Map provider verification marks now use custom SVG trust badges rather than emoji/check characters.
+- Badge silhouette follows the Instagram-style verification visual language while retaining SAVIS blue, gold, and black trust tiers.
+- Badge labels remain accessible through title/aria-label text.
