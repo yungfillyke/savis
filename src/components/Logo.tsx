@@ -10,16 +10,27 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
       <svg width={mark} height={mark} viewBox="0 0 64 64" aria-hidden="true" className="savis-brand-mark">
         <defs>
           <linearGradient id="savis-logo-red" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#ff3138" />
-            <stop offset="1" stopColor="#d40810" />
+            <stop offset="0" stopColor="#ff2a32" />
+            <stop offset="1" stopColor="#c7080c" />
           </linearGradient>
         </defs>
-        <path fill="url(#savis-logo-red)" d="M14 11h35l-8.4 8.7H25.5l-5.1 5.1h18.8L50 35.2 39.8 45.5H16l8.5-8.7h11.8l4.4-4.3H22L11 21.5z" />
-        <path fill="url(#savis-logo-red)" d="M50 53H15l8.3-8.6h15.2l5.1-5.1H25.1L14 28.9 24.3 18.6h23.4l-8.4 8.6H27.5l-4.5 4.4h18.9L53 42.5z" opacity=".92" />
+        {/* Bold angular S mark matching the SAVIS brand lockup */}
+        <path
+          fill="url(#savis-logo-red)"
+          d="M46.8 11.2H22.4c-6.6 0-11.2 3.4-11.2 9.2 0 4.6 2.8 7.4 8.2 8.6l16.4 3.6c2.4.6 3.6 1.6 3.6 3.4 0 2.4-2.2 3.8-5.8 3.8H17.2v7.6h25.2c6.8 0 11.6-3.6 11.6-9.6 0-4.8-2.8-7.6-8.4-8.8l-16.2-3.4c-2.4-.6-3.6-1.6-3.6-3.4 0-2.2 2-3.6 5.4-3.6h24.6v-7.4z"
+        />
       </svg>
       <div className="min-w-0">
         <div className={`savis-brand-name ${word}`}>SAVIS</div>
-        {showTagline && <div className={`savis-brand-tagline ${tagline}`}><span>Services</span><i /> <span>Goods</span><i /> <span>People</span></div>}
+        {showTagline && (
+          <div className={`savis-brand-tagline ${tagline}`}>
+            <span>Services</span>
+            <i />
+            <span>Goods</span>
+            <i />
+            <span>People</span>
+          </div>
+        )}
       </div>
     </div>
   );
