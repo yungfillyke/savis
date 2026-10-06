@@ -1,0 +1,121 @@
+/* SAVIS modern bottom nav — expanding active pill (keeps Home / For You / Jobs / Messages / Profile) */
+.savis-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, rgba(3, 5, 7, 0.72) 36%);
+  pointer-events: none;
+}
+
+.savis-bottom-nav > div {
+  width: min(420px, 100%);
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(12, 14, 18, 0.92);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  pointer-events: auto;
+}
+
+.savis-bottom-nav button {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  padding: 10px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-width: 44px;
+  min-height: 44px;
+  transition: background 0.2s ease, color 0.2s ease, padding 0.2s ease, gap 0.2s ease, box-shadow 0.2s ease;
+}
+
+.savis-bottom-nav button span {
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hide label when inactive — icon only */
+.savis-bottom-nav button b {
+  display: none;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* Active: white expanding pill with icon + label */
+.savis-bottom-nav button.is-active {
+  background: #ffffff;
+  color: #14171a;
+  padding: 10px 16px;
+  gap: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+.savis-bottom-nav button.is-active b {
+  display: inline;
+}
+
+/* Notification / cart badge dot */
+.savis-bottom-nav button i {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e22227;
+  box-shadow: 0 0 0 2px rgba(12, 14, 18, 0.9);
+}
+
+.savis-bottom-nav button.is-active i {
+  right: 6px;
+  top: 6px;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* Optional cart button — only shown when cart has items (via .is-visible) */
+.savis-bottom-nav button.savis-nav-cart {
+  display: none;
+}
+
+.savis-bottom-nav button.savis-nav-cart.is-visible {
+  display: flex;
+}
+
+@media (max-width: 380px) {
+  .savis-bottom-nav > div {
+    padding: 5px 6px;
+    gap: 2px;
+  }
+  .savis-bottom-nav button {
+    min-width: 40px;
+    padding: 9px 10px;
+  }
+  .savis-bottom-nav button.is-active {
+    padding: 9px 12px;
+    gap: 6px;
+  }
+  .savis-bottom-nav button.is-active b {
+    font-size: 0.65rem;
+  }
+}
