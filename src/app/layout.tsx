@@ -3,6 +3,7 @@ import "./globals.css";
 import "./savis-nav.css";
 import "./savis-categories.css";
 import "./savis-provider-list.css";
+import "./savis-actions.css";
 import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
