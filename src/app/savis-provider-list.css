@@ -1,0 +1,123 @@
+/* SAVIS homepage — vertical provider list (WhatsApp-style rows) */
+.savis-provider-list{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;
+  overflow:hidden;
+  background:rgba(12,14,18,.72);
+  box-shadow:0 14px 36px rgba(0,0,0,.28);
+}
+
+.savis-provider-row{
+  display:grid;
+  grid-template-columns:52px 1fr auto;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  text-decoration:none;
+  color:#fff;
+  transition:background .15s ease;
+}
+.savis-provider-row:last-child{border-bottom:0}
+.savis-provider-row:hover{background:rgba(255,255,255,.04)}
+
+.savis-provider-row-avatar{
+  position:relative;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  overflow:hidden;
+  background:linear-gradient(135deg,#2a3238,#121518);
+  border:2px solid rgba(255,255,255,.14);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:1rem;
+  flex-shrink:0;
+}
+.savis-provider-row-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.savis-provider-row-avatar i{
+  position:absolute;
+  right:0;
+  bottom:0;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:#55666e;
+  border:2px solid #0c0e12;
+}
+.savis-provider-row-avatar i.is-online{
+  background:#34d399;
+  box-shadow:0 0 0 2px rgba(52,211,153,.25);
+}
+
+.savis-provider-row-main{min-width:0}
+.savis-provider-row-line1{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.savis-provider-row-line1 b{
+  font-size:.92rem;
+  font-weight:900;
+  letter-spacing:-.02em;
+}
+.savis-provider-row-rating{
+  font-size:.72rem;
+  font-weight:800;
+  color:#f5c451;
+}
+.savis-provider-row-line2{
+  margin-top:2px;
+  font-size:.78rem;
+  color:rgba(255,255,255,.62);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.savis-provider-row-line3{
+  margin-top:3px;
+  font-size:.68rem;
+  color:rgba(255,255,255,.48);
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.savis-provider-row-line3 em{
+  font-style:normal;
+  font-weight:700;
+  color:rgba(52,211,153,.95);
+}
+
+.savis-provider-row-action{
+  flex-shrink:0;
+  padding:8px 14px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#e22227,#c7080c);
+  color:#fff;
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.03em;
+  text-decoration:none;
+  box-shadow:0 6px 16px rgba(226,34,39,.32);
+}
+
+@media (max-width:390px){
+  .savis-provider-row{
+    grid-template-columns:46px 1fr auto;
+    gap:10px;
+    padding:10px 12px;
+  }
+  .savis-provider-row-avatar{width:42px;height:42px}
+  .savis-provider-row-line1 b{font-size:.84rem}
+  .savis-provider-row-action{padding:7px 11px;font-size:.62rem}
+}
