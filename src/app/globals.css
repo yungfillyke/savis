@@ -282,3 +282,121 @@ textarea {
 .savis-map-shell .mapboxgl-ctrl-top-right{top:88px;right:14px}
 .savis-map-shell .mapboxgl-ctrl-group{margin-bottom:10px;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.28)}
 .savis-map-shell .mapboxgl-ctrl-group button{width:42px;height:42px}
+
+
+/* SAVIS v2 consumer visual system — premium red / black marketplace */
+.savis-brand-lockup{display:flex;align-items:center;gap:.42rem;color:#fff;white-space:nowrap}
+.savis-brand-mark{display:block;filter:drop-shadow(0 5px 14px rgba(226,34,39,.32))}
+.savis-brand-name{font-weight:900;letter-spacing:-.055em;line-height:.9}
+.savis-brand-tagline{display:flex;align-items:center;gap:.25rem;margin-top:.24rem;color:rgba(255,255,255,.82);font-weight:600;line-height:1}
+.savis-brand-tagline i{width:3px;height:3px;border-radius:999px;background:#e22227;display:block}
+.savis-app-shell{position:relative;isolation:isolate;color:#fff!important;background:#050709!important;overflow-x:hidden}
+.savis-app-shell:before{content:"";position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(45% 28% at 0% 6%,rgba(226,34,39,.78),transparent 72%),
+  radial-gradient(36% 28% at 92% 12%,rgba(38,48,55,.72),transparent 70%),
+  radial-gradient(45% 35% at 4% 56%,rgba(205,9,16,.66),transparent 70%),
+  radial-gradient(38% 30% at 98% 75%,rgba(30,37,42,.8),transparent 72%),
+  linear-gradient(135deg,#150708 0%,#07090b 46%,#120708 100%)}
+.savis-app-shell:after{content:"";position:fixed;inset:-10%;z-index:-1;opacity:.35;background:
+  repeating-radial-gradient(ellipse at 20% 20%,transparent 0 38px,rgba(255,255,255,.045) 39px 41px,transparent 42px 84px),
+  linear-gradient(115deg,transparent 0 42%,rgba(226,34,39,.15) 43% 45%,transparent 46% 100%);
+  transform:rotate(-8deg);pointer-events:none}
+.savis-app-header{position:sticky;top:0;z-index:40;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(5,8,10,.74);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.savis-app-header-inner{max-width:1120px;margin:auto;display:grid;grid-template-columns:auto minmax(150px,1fr) auto auto;align-items:center;gap:10px}
+.savis-logo-button{background:none;border:0;padding:0;cursor:pointer}
+.savis-app-search{height:46px;display:flex;align-items:center;gap:10px;min-width:0;padding:0 16px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:linear-gradient(180deg,rgba(47,57,66,.82),rgba(24,30,35,.88));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 30px rgba(0,0,0,.25)}
+.savis-app-search>span{font-size:25px;line-height:1;color:#fff;transform:rotate(-20deg)}
+.savis-app-search input{width:100%;min-width:0;background:transparent!important;border:0!important;outline:0!important;color:#fff!important;font-size:.86rem}
+.savis-app-search input::placeholder{color:rgba(221,229,234,.62)!important}
+.savis-icon-button,.savis-avatar-button{position:relative;border:0;cursor:pointer;color:#fff}
+.savis-icon-button{width:42px;height:42px;background:transparent;font-size:25px}
+.savis-icon-button b{position:absolute;right:5px;top:4px;width:8px;height:8px;border-radius:50%;background:#e22227;box-shadow:0 0 0 3px rgba(226,34,39,.16)}
+.savis-avatar-button{width:42px;height:42px;border-radius:50%;font-weight:900;background:linear-gradient(135deg,#252c31,#080a0c);border:2px solid rgba(255,255,255,.28);box-shadow:0 0 0 2px rgba(226,34,39,.22);overflow:hidden}
+.savis-app-content{width:min(1120px,100%);margin:auto;padding:20px 14px 28px}
+.savis-hero-card{position:relative;min-height:320px;overflow:hidden;border-radius:28px;border:1px solid rgba(255,255,255,.19);background:linear-gradient(110deg,rgba(16,20,24,.97),rgba(20,25,29,.78));box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.1);display:flex;align-items:center}
+.savis-hero-card:before{content:"";position:absolute;inset:auto -10% -58% 34%;height:85%;background:radial-gradient(circle,rgba(226,34,39,.82),rgba(226,34,39,.08) 42%,transparent 70%);filter:blur(6px)}
+.savis-hero-copy{position:relative;z-index:2;width:52%;padding:28px 22px 28px 28px}
+.savis-red-pill{display:inline-flex;padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#f12b32,#b8070d);font-size:.76rem;font-weight:900;box-shadow:0 8px 20px rgba(226,34,39,.32)}
+.savis-hero-copy h1{margin:12px 0 0;font-size:clamp(2rem,4vw,3.4rem);line-height:1.02;letter-spacing:-.045em}
+.savis-hero-copy h1 strong{color:#ff2a32}
+.savis-hero-copy p{max-width:420px;margin:14px 0 20px;color:rgba(239,243,246,.82);font-size:.93rem;line-height:1.5}
+.savis-primary-button,.savis-view-button{border:0;cursor:pointer;color:#fff;background:linear-gradient(135deg,#ff2d35,#c90910);box-shadow:0 9px 22px rgba(226,34,39,.32);font-weight:900}
+.savis-primary-button{padding:13px 18px;border-radius:999px;font-size:.8rem}
+.savis-primary-button span{margin-left:16px;font-size:1.15rem}
+.savis-hero-art{position:absolute;right:2%;bottom:-5%;width:52%;height:100%;filter:drop-shadow(0 20px 35px rgba(0,0,0,.4))}
+.savis-hero-art:before{content:"";position:absolute;right:8%;bottom:15%;width:72%;height:48%;border-radius:45% 55% 35% 65%;background:linear-gradient(145deg,#4a0b0d,#121619 48%,#050608);border:1px solid rgba(255,52,59,.52);box-shadow:0 0 40px rgba(226,34,39,.5),inset 0 0 30px rgba(226,34,39,.14);transform:rotate(-7deg)}
+.savis-hero-art span{position:absolute;z-index:2;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);background:linear-gradient(145deg,#30383f,#111417);box-shadow:0 14px 25px rgba(0,0,0,.45);color:#fff}
+.savis-art-phone{right:40%;top:20%;width:70px;height:116px;border-radius:15px;font-size:30px;transform:rotate(-12deg)}
+.savis-art-tools{right:53%;bottom:26%;font-size:50px;background:transparent;border:0;box-shadow:none;filter:drop-shadow(0 7px 8px #000)}
+.savis-art-camera{right:27%;bottom:29%;width:88px;height:62px;border-radius:13px;font-size:28px}
+.savis-art-headphones{right:5%;bottom:22%;width:94px;height:94px;border-radius:50%;font-size:50px}
+.savis-art-bricks{right:30%;top:28%;width:90px;height:54px;border-radius:8px;font-size:38px;color:#e33}
+.savis-art-ring{right:3%;bottom:10%;width:74%;height:24%;border-radius:50%;background:transparent!important;border:3px solid #ef252d!important;box-shadow:0 0 28px rgba(239,37,45,.7)!important;transform:rotate(-5deg)}
+.savis-category-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 12px}
+.savis-category-strip button{border:0;background:transparent;color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.savis-category-strip button>span{width:66px;height:66px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:29px;background:radial-gradient(circle at 35% 25%,rgba(255,110,115,.45),rgba(87,19,22,.72) 52%,rgba(8,10,12,.95));border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 12px 25px rgba(0,0,0,.3)}
+.savis-category-strip button.is-active>span{border-color:#ff3b42;box-shadow:0 0 0 4px rgba(226,34,39,.13),0 0 28px rgba(226,34,39,.35)}
+.savis-category-strip b{font-size:.68rem;text-align:center;color:rgba(239,243,246,.9);font-weight:700}
+.savis-load-more,.savis-wide-action{width:100%;border:1px solid rgba(255,255,255,.2);background:linear-gradient(180deg,rgba(226,34,39,.68),rgba(85,7,10,.74));color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.28);cursor:pointer;border-radius:999px;padding:11px;font-size:.74rem;font-weight:900;letter-spacing:.12em}
+.savis-load-more span,.savis-wide-action span{float:right;margin-right:10px;font-size:1rem}
+.savis-sponsored-strip{margin-top:20px;padding:18px;border-radius:24px;border:1px solid rgba(255,255,255,.13);background:linear-gradient(145deg,rgba(74,3,5,.72),rgba(8,10,12,.88));overflow:hidden}
+.savis-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}
+.savis-section-heading>div>span,.savis-page-title>span,.savis-profile-modern>div>span{font-size:.62rem;font-weight:900;letter-spacing:.16em;color:#ffb6b9}
+.savis-section-heading h2,.savis-page-title h1{margin:2px 0 0;font-weight:900;letter-spacing:-.035em}
+.savis-section-heading p{margin:3px 0 0;color:rgba(219,226,231,.58);font-size:.72rem}
+.savis-section-heading>button{border:0;background:none;color:#ffb6b9;font-size:.72rem;font-weight:800;cursor:pointer}
+.savis-section-heading small{font-size:.62rem;color:rgba(255,255,255,.52)}
+.savis-sponsored-track{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none}
+.savis-sponsored-track::-webkit-scrollbar{display:none}
+.savis-sponsored-card{flex:0 0 220px;padding:12px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(17,21,25,.86)}
+.savis-sponsored-card b{display:block;margin-top:9px;font-size:.78rem}
+.savis-sponsored-card p{margin:4px 0 0;color:rgba(219,226,231,.62);font-size:.64rem;line-height:1.35}
+.savis-sponsored-image{height:86px;border-radius:13px;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.12)}
+.sponsored-1{background:linear-gradient(135deg,#4a2412,#c77a37 45%,#25100a)}
+.sponsored-2{background:linear-gradient(135deg,#342416,#b56b32 55%,#15100b)}
+.sponsored-3{background:linear-gradient(135deg,#151c22,#6f7c86 50%,#1b0507)}
+.sponsored-4{background:linear-gradient(135deg,#4b0912,#db3e56 48%,#160b12)}
+.sponsored-5{background:linear-gradient(135deg,#123e19,#79a83b 52%,#1a2412)}
+.sponsored-6{background:linear-gradient(135deg,#111820,#6f7e8c 48%,#261113)}
+.savis-provider-section{margin-top:22px}
+.savis-provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.savis-provider-card{overflow:hidden;border-radius:22px;border:1px solid rgba(255,255,255,.17);background:linear-gradient(145deg,rgba(38,44,49,.92),rgba(10,13,16,.96));box-shadow:0 14px 34px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.07)}
+.savis-business-image{height:118px;display:flex;align-items:center;justify-content:center;font-size:54px;position:relative;overflow:hidden}
+.savis-business-image:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.38))}
+.business-1{background:linear-gradient(135deg,#9b775f,#f0ddd1 48%,#50423c)}
+.business-2{background:linear-gradient(135deg,#7c5734,#d2b486 50%,#57402d)}
+.business-3{background:linear-gradient(135deg,#182127,#7d8c92 50%,#181b1e)}
+.business-4{background:linear-gradient(135deg,#553a13,#f1a92d 45%,#180f07)}
+.business-5{background:linear-gradient(135deg,#1b4318,#a4bf3f 50%,#5e7222)}
+.business-6{background:linear-gradient(135deg,#161a20,#8d9299 45%,#20232a)}
+.savis-business-image>span{position:relative;z-index:1;filter:drop-shadow(0 8px 8px rgba(0,0,0,.5))}
+.savis-provider-card-body{padding:11px}
+.savis-provider-title{display:flex;justify-content:space-between;gap:7px}
+.savis-provider-title h3{margin:0;font-size:.86rem;line-height:1.15;font-weight:900}
+.savis-rating{margin-top:6px;font-size:.68rem;color:#ff3840;font-weight:800}.savis-rating i{color:rgba(255,255,255,.35);font-style:normal;margin:0 4px}
+.savis-verified-dot{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#e22227;color:#fff;font-size:.65rem;flex:none}
+.savis-provider-description{height:35px;overflow:hidden;margin:9px 0;color:rgba(219,226,231,.62);font-size:.66rem;line-height:1.35}
+.savis-provider-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.savis-provider-person{display:flex;align-items:center;gap:7px;min-width:0}
+.savis-person-avatar{width:30px;height:30px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e22227,#611015);font-size:.65rem;font-weight:900;border:1px solid rgba(255,255,255,.22)}
+.savis-person-avatar img{width:100%;height:100%;object-fit:cover}
+.savis-provider-person b,.savis-provider-person small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.savis-provider-person b{font-size:.64rem}.savis-provider-person small{font-size:.53rem;color:rgba(255,255,255,.5);margin-top:2px}
+.savis-view-button{padding:8px 13px;border-radius:999px;font-size:.62rem;white-space:nowrap}
+.savis-empty-state,.savis-modern-panel,.savis-job-modern,.savis-profile-action,.savis-feature-grid button,.savis-message-cards button{border:1px solid rgba(255,255,255,.14);background:rgba(20,24,28,.8);border-radius:20px}
+.savis-live-map-preview{margin-top:24px}
+.savis-map-preview-frame{position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(255,255,255,.14);min-height:280px}
+.savis-map-preview-frame .savis-map-shell{min-height:280px}
+.savis-map-preview-badge{position:absolute;left:12px;bottom:12px;padding:8px 12px;border-radius:999px;background:rgba(7,9,11,.82);border:1px solid rgba(255,255,255,.15);font-size:.64rem;font-weight:800}
+.savis-page-title{margin:4px 0 18px}.savis-page-title h1{font-size:2rem}.savis-page-title p{margin-top:5px;color:rgba(219,226,231,.62);font-size:.78rem;line-height:1.45}
+.savis-feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.savis-feature-grid button{text-align:left;padding:16px;color:#fff;cursor:pointer}.savis-feature-grid button>span{font-size:34px}.savis-feature-grid b{display:block;margin-top:9px}.savis-feature-grid small{display:block;margin-top:4px;color:#ffb6b9}
+.savis-red-panel{margin-top:16px;padding:20px;border-radius:22px;background:linear-gradient(135deg,#5d0509,#1a0a0d);border:1px solid rgba(255,255,255,.14)}.savis-red-panel>b{font-size:.62rem;color:#ffb6b9;letter-spacing:.15em}.savis-red-panel h2{margin-top:6px;font-size:1.2rem}.savis-red-panel p{margin-top:7px;color:rgba(255,255,255,.65);font-size:.75rem}
+.savis-wide-action{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.savis-job-modern{position:relative;padding:15px;margin-bottom:10px}.savis-job-modern p,.savis-message-row p{margin-top:4px;color:rgba(255,255,255,.55);font-size:.68rem}.savis-job-modern>span{position:absolute;right:14px;top:14px;color:#ffb6b9;font-size:.62rem;font-weight:800;text-transform:capitalize}.savis-job-progress{height:6px;margin-top:15px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.savis-job-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#e22227,#f5c451)}
+.savis-message-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}.savis-message-cards button{padding:12px;text-align:left;color:#fff}.savis-message-cards span{font-size:22px}.savis-message-cards b,.savis-message-cards small{display:block}.savis-message-cards b{font-size:.68rem;margin-top:6px}.savis-message-cards small{font-size:.57rem;color:rgba(255,255,255,.48);margin-top:3px}.savis-modern-panel{padding:15px}.savis-panel-heading{display:flex;justify-content:space-between}.savis-panel-heading span{color:#61e5ac;font-size:.6rem;font-weight:900}.savis-message-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}.savis-message-row:last-child{border-bottom:0}.savis-message-row>span{font-size:.6rem;color:#ffb6b9;text-transform:capitalize}
+.savis-profile-modern{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:18px;border:1px solid rgba(255,255,255,.15);border-radius:24px;background:linear-gradient(145deg,rgba(35,41,46,.94),rgba(11,14,17,.94));box-shadow:0 18px 45px rgba(0,0,0,.3)}.savis-profile-avatar-large{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#e22227,#63080c);border:2px solid rgba(255,255,255,.22)}.savis-profile-modern h1{margin-top:3px;font-size:1.1rem}.savis-profile-modern p{margin-top:3px;color:rgba(255,255,255,.5);font-size:.65rem}.savis-outline-button{padding:8px 11px;border:1px solid rgba(255,255,255,.2);border-radius:999px;font-size:.62rem;font-weight:900}.savis-profile-grid{display:grid;gap:9px;margin-top:12px}.savis-profile-action{display:flex;align-items:center;gap:12px;padding:14px;color:#fff}.savis-profile-action>span{font-size:22px}.savis-profile-action div{min-width:0;flex:1}.savis-profile-action b,.savis-profile-action small{display:block}.savis-profile-action small{margin-top:3px;color:rgba(255,255,255,.5);font-size:.62rem}.savis-profile-action strong{color:#ffb6b9}.savis-wallet-modern{margin-top:14px;padding:17px;border-radius:22px;border:1px solid rgba(245,196,81,.24);background:linear-gradient(135deg,rgba(94,55,5,.28),rgba(25,17,7,.55))}.savis-wallet-modern span{font-size:.6rem;color:#f5c451;font-weight:900;letter-spacing:.15em}.savis-wallet-modern strong{display:block;margin-top:5px}.savis-wallet-modern p{margin-top:5px;color:rgba(255,255,255,.55);font-size:.65rem;line-height:1.4}
+.savis-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,rgba(3,5,7,.88) 30%);pointer-events:none}
+.savis-bottom-nav>div{width:min(620px,100%);margin:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px;border:1px solid rgba(255,255,255,.18);border-radius:30px;background:rgba(24,29,34,.88);backdrop-filter:blur(20px);box-shadow:0 18px 45px rgba(0,0,0,.4);pointer-events:auto}
+.savis-bottom-nav button{position:relative;border:0;background:transparent;color:rgba(255,255,255,.6);padding:8px 4px;border-radius:24px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}.savis-bottom-nav button span{font-size:1.15rem;line-height:1}.savis-bottom-nav button b{font-size:.6rem}.savis-bottom-nav button.is-active{background:#fff;color:#14171a;box-shadow:0 5px 16px rgba(0,0,0,.22)}.savis-bottom-nav button i{position:absolute;right:27%;top:7px;width:6px;height:6px;border-radius:50%;background:#e22227}
+.savis-map-overlay-head{position:absolute;left:14px;right:14px;top:14px;z-index:90;display:flex;align-items:center;justify-content:space-between}.savis-map-overlay-head button,.savis-map-overlay-foot{border:1px solid rgba(255,255,255,.16);background:rgba(10,13,16,.86);color:#fff;backdrop-filter:blur(16px);border-radius:999px}.savis-map-overlay-head button{padding:9px 13px;font-size:.7rem;font-weight:800}.savis-map-overlay-foot{position:absolute;left:14px;right:14px;bottom:20px;z-index:90;padding:10px 13px;display:flex;align-items:center;justify-content:space-between}.savis-map-overlay-foot button{border:0;border-radius:999px;padding:8px 12px;background:#f5c451;color:#14171a;font-size:.65rem;font-weight:900}
+@media (max-width:720px){.savis-app-header-inner{grid-template-columns:auto minmax(0,1fr) auto auto}.savis-app-search{height:42px}.savis-app-search input{font-size:.72rem}.savis-brand-tagline{font-size:.43rem}.savis-brand-mark{width:38px;height:38px}.savis-brand-name{font-size:1.28rem}.savis-hero-card{min-height:285px}.savis-hero-copy{width:63%;padding:22px 12px 22px 20px}.savis-hero-copy h1{font-size:1.7rem}.savis-hero-copy p{font-size:.7rem}.savis-hero-art{right:-15%;width:58%;opacity:.95}.savis-category-strip{gap:5px}.savis-category-strip button>span{width:56px;height:56px;font-size:24px}.savis-category-strip b{font-size:.56rem}.savis-provider-grid{gap:9px}.savis-business-image{height:105px}.savis-provider-card-body{padding:9px}.savis-provider-title h3{font-size:.76rem}.savis-provider-description{font-size:.58rem;height:31px}.savis-person-avatar{width:27px;height:27px}.savis-provider-person b{font-size:.57rem}.savis-provider-person small{font-size:.48rem}.savis-view-button{padding:7px 10px;font-size:.56rem}}
+@media (max-width:390px){.savis-app-header-inner{gap:5px}.savis-app-search{padding:0 10px}.savis-icon-button{width:32px}.savis-avatar-button{width:36px;height:36px}.savis-brand-tagline{display:none}.savis-brand-name{font-size:1.2rem}.savis-hero-card{min-height:270px}.savis-hero-copy{width:67%;padding-left:16px}.savis-hero-copy h1{font-size:1.5rem}.savis-category-strip button>span{width:50px;height:50px;font-size:21px}.savis-category-strip b{font-size:.5rem}.savis-provider-title h3{font-size:.7rem}.savis-rating{font-size:.58rem}.savis-provider-description{font-size:.54rem}.savis-view-button{padding:6px 8px}}
