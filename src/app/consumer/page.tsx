@@ -145,14 +145,9 @@ export default function ConsumerPage() {
   async function loadProviders(location: UserLocation | null, category: string) {
     const supabase = createClient();
     const categoryArg = category === "all" ? null : category;
-
     if (location) {
       const rpc = await supabase.rpc("search_nearby_providers", {
-        p_lat: location.latitude,
-        p_lng: location.longitude,
-        p_radius_km: radius,
-        p_category: categoryArg,
-        p_limit: 40,
+        p_lat: location.latitude, p_lng: location.longitude, p_radius_km: radius, p_category: categoryArg, p_limit: 40,
       });
       if (!rpc.error && rpc.data?.length) {
         setProviders(rpc.data.map(providerFromRow));
@@ -161,42 +156,24 @@ export default function ConsumerPage() {
         return;
       }
     }
-
-    const result = await supabase
-      .from("profiles")
-      .select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio")
-      .in("role", ["provider", "professional"])
-      .not("latitude", "is", null)
-      .not("longitude", "is", null)
-      .limit(40);
-
+    const result = await supabase.from("profiles").select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio").in("role", ["provider", "professional"]).not("latitude", "is", null).not("longitude", "is", null).limit(40);
     if (!result.error && result.data?.length) {
       const rows = result.data.map((row) => ({
         ...row,
-        distance_km: location && row.latitude != null && row.longitude != null
-          ? distanceKm(location, { latitude: Number(row.latitude), longitude: Number(row.longitude) })
-          : 0,
+        distance_km: location && row.latitude != null && row.longitude != null ? distanceKm(location, { latitude: Number(row.latitude), longitude: Number(row.longitude) }) : 0,
       })).filter((row) => (!categoryArg || String(row.service_category || "").toLowerCase() === categoryArg.toLowerCase()) && (!location || Number(row.distance_km) <= radius));
-
       setProviders(rows.map(providerFromRow).sort((a, b) => a.km - b.km));
       setRealProviders(true);
       setProviderMessage("Live provider profiles from SAVIS.");
       return;
     }
-
     setProviders(SAMPLE_PROVIDERS);
     setRealProviders(false);
     setProviderMessage("Showing Alpha sample providers until provider profiles are published.");
   }
 
-  useEffect(() => {
-    if (!loading) void loadProviders(userLocation, activeCategory);
-  }, [loading, userLocation, activeCategory, radius]);
-
-  useEffect(() => {
-    if (!loading) void syncConsumerBookings().then(setBookings);
-  }, [loading]);
-
+  useEffect(() => { if (!loading) void loadProviders(userLocation, activeCategory); }, [loading, userLocation, activeCategory, radius]);
+  useEffect(() => { if (!loading) void syncConsumerBookings().then(setBookings); }, [loading]);
   useEffect(() => {
     if (loading || activeTab !== "messages") return;
     void listConversations().then(setConversations);
@@ -209,26 +186,17 @@ export default function ConsumerPage() {
   }, [loading, activeTab]);
 
   async function enableLocation() {
-    setLocationBusy(true);
-    setLocationMessage("");
+    setLocationBusy(true); setLocationMessage("");
     try {
       const location = await requestCurrentLocation();
       setUserLocation(location);
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("profiles").update({
-          latitude: location.latitude,
-          longitude: location.longitude,
-          location_name: "Current location",
-        }).eq("id", user.id);
-      }
+      if (user) await supabase.from("profiles").update({ latitude: location.latitude, longitude: location.longitude, location_name: "Current location" }).eq("id", user.id);
       setLocationMessage("Using your current location for nearby results.");
     } catch (error) {
       setLocationMessage(error instanceof Error ? error.message : "We could not get your location.");
-    } finally {
-      setLocationBusy(false);
-    }
+    } finally { setLocationBusy(false); }
   }
 
   const filtered = useMemo(() => {
@@ -237,26 +205,15 @@ export default function ConsumerPage() {
     return providers.filter((p) => {
       const skill = (p.skill || "").toLowerCase();
       const tags = (p.tags || []).map((t) => t.toLowerCase());
-      const categoryMatch =
-        cat === "all" ||
-        skill === cat ||
-        skill.includes(cat) ||
-        cat.includes(skill) ||
-        tags.some((t) => t === cat || t.includes(cat) || cat.includes(t));
-      const searchMatch =
-        !q ||
-        [p.name, p.skill, p.area, p.bio || "", ...(p.tags || [])].some((value) =>
-          String(value).toLowerCase().includes(q)
-        );
+      const categoryMatch = cat === "all" || skill === cat || skill.includes(cat) || cat.includes(skill) || tags.some((t) => t === cat || t.includes(cat) || cat.includes(t));
+      const searchMatch = !q || [p.name, p.skill, p.area, p.bio || "", ...(p.tags || [])].some((value) => String(value).toLowerCase().includes(q));
       return categoryMatch && searchMatch;
     }).sort((a, b) => a.km - b.km || a.name.localeCompare(b.name));
   }, [providers, search, activeCategory]);
 
   const mapCenter = userLocation || { latitude: -1.2864, longitude: 36.8172 };
 
-  if (loading) {
-    return <main className="min-h-screen flex items-center justify-center"><p className="text-[#B9C3C9]">Loading…</p></main>;
-  }
+  if (loading) return <main className="min-h-screen flex items-center justify-center"><p className="text-[#B9C3C9]">Loading…</p></main>;
 
   const tabItems = [
     { id: "home" as const, label: "Home", icon: "⌂" },
@@ -269,15 +226,17 @@ export default function ConsumerPage() {
   const setTab = (tab: typeof activeTab) => {
     setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (tab === "for-you" && !hasCompletedForYouOnboarding()) {
-      setShowForYouOnboard(true);
-    }
+    if (tab === "for-you" && !hasCompletedForYouOnboarding()) setShowForYouOnboard(true);
   };
 
-  const progress = (status: string) => ({
-    requested: 18, quote_pending: 30, accepted: 48, en_route: 68,
-    in_progress: 84, completed: 100, declined: 0, cancelled: 0, rescheduled: 32,
-  }[status] ?? 18);
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.replace("/login");
+    router.refresh();
+  }
+
+  const progress = (status: string) => ({ requested: 18, quote_pending: 30, accepted: 48, en_route: 68, in_progress: 84, completed: 100, declined: 0, cancelled: 0, rescheduled: 32 }[status] ?? 18);
 
   return (
     <main className="savis-app-shell min-h-screen pb-28">
@@ -296,43 +255,14 @@ export default function ConsumerPage() {
 
       {activeTab === "home" && <div className="savis-app-content">
         <section className="savis-hero-card"><div className="savis-hero-copy"><span className="savis-red-pill">SAVIS</span><h1>Discover Local<br /><strong>Services & Products</strong></h1><p>Find trusted professionals, quality products and everything you need — all in one place.</p><button type="button" onClick={() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" })} className="savis-primary-button">SHOP NOW <span>→</span></button></div><div className="savis-hero-art" aria-hidden="true"><span className="savis-art-phone">▣</span><span className="savis-art-tools">🔧</span><span className="savis-art-camera">▣</span><span className="savis-art-headphones">◉</span><span className="savis-art-bricks">▦</span><span className="savis-art-ring" /></div></section>
-
-        <CategoryStrip
-          activeSubId={activeCategory !== "all" ? activeCategory.toLowerCase().replace(/\s+/g, "-") : undefined}
-          onSelectSub={(sub) => {
-            const primary = sub.tags[0] || sub.label;
-            setActiveCategory(primary);
-            setSearch("");
-            setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 80);
-          }}
-        />
-
+        <CategoryStrip activeSubId={activeCategory !== "all" ? activeCategory.toLowerCase().replace(/\s+/g, "-") : undefined} onSelectSub={(sub) => { const primary = sub.tags[0] || sub.label; setActiveCategory(primary); setSearch(""); setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 80); }} />
         <section id="nearby-results" className="savis-provider-section">
-          <div className="savis-section-heading">
-            <div>
-              <span>DISCOVER</span>
-              <h2>{search || activeCategory !== "all" ? "Results (" + filtered.length + ")" : "People near you"}</h2>
-              <p>{providerMessage || "Trusted local providers"}</p>
-            </div>
-            <Link href="/consumer/nearby" style={{ fontSize: ".75rem", fontWeight: 900, color: "#fff", textDecoration: "none" }}>View All</Link>
-          </div>
+          <div className="savis-section-heading"><div><span>DISCOVER</span><h2>{search || activeCategory !== "all" ? "Results (" + filtered.length + ")" : "People near you"}</h2><p>{providerMessage || "Trusted local providers"}</p></div>
+            <Link href="/consumer/nearby" style={{ fontSize: ".75rem", fontWeight: 900, color: "#fff", textDecoration: "none" }}>View All</Link></div>
           <div className="savis-provider-list">{filtered.slice(0, 12).map((p) => (
             <Link key={p.id} href={"/consumer/provider/" + p.id} className="savis-provider-row">
-              <div className="savis-provider-row-avatar">
-                {p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}
-                <i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} />
-              </div>
-              <div className="savis-provider-row-main">
-                <div className="savis-provider-row-line1">
-                  <b>{p.name}</b>
-                  <span className="savis-provider-row-rating">★ {p.rating ? p.rating.toFixed(1) : "New"}{p.reviews ? ` (${p.reviews})` : ""}</span>
-                </div>
-                <div className="savis-provider-row-line2">{p.skill} · {p.km.toFixed(1)} km away</div>
-                <div className="savis-provider-row-line3">
-                  {p.verified !== false ? <em>Verified Fundi</em> : <em>SAVIS Provider</em>}
-                  <span>· {p.area}</span>
-                </div>
-              </div>
+              <div className="savis-provider-row-avatar">{p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}<i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} /></div>
+              <div className="savis-provider-row-main"><div className="savis-provider-row-line1"><b>{p.name}</b><span className="savis-provider-row-rating">★ {p.rating ? p.rating.toFixed(1) : "New"}{p.reviews ? ` (${p.reviews})` : ""}</span></div><div className="savis-provider-row-line2">{p.skill} · {p.km.toFixed(1)} km away</div><div className="savis-provider-row-line3">{p.verified !== false ? <em>Verified Fundi</em> : <em>SAVIS Provider</em>}<span>· {p.area}</span></div></div>
               <span className="savis-provider-row-action">VIEW</span>
             </Link>
           ))}</div>
@@ -341,100 +271,27 @@ export default function ConsumerPage() {
       </div>}
 
       {activeTab === "for-you" && <div className="savis-app-content">
-        <section className="savis-page-title">
-          <span>DISCOVERY</span>
-          <h1>For You</h1>
-          <p>Providers and services matched to your interests.</p>
-        </section>
-
-        <section className="savis-fy-section">
-          <h2>Matched for you</h2>
-          <div className="savis-provider-list">
-            {(forYouInterests.length
-              ? providers.filter((p) => {
-                  const tags = tagsForInterests(forYouInterests);
-                  const skill = (p.skill || "").toLowerCase();
-                  return tags.some((t) => skill.includes(t) || t.includes(skill));
-                })
-              : providers
-            ).slice(0, 10).map((p) => (
-              <Link key={p.id} href={"/consumer/provider/" + p.id} className="savis-provider-row">
-                <div className="savis-provider-row-avatar">
-                  {p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}
-                  <i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} />
-                </div>
-                <div className="savis-provider-row-main">
-                  <div className="savis-provider-row-line1">
-                    <b>{p.name}</b>
-                    <span className="savis-provider-row-rating">★ {p.rating ? p.rating.toFixed(1) : "New"}</span>
-                  </div>
-                  <div className="savis-provider-row-line2">{p.skill} · {p.km.toFixed(1)} km</div>
-                  <div className="savis-provider-row-line3">
-                    {p.verified !== false ? <em>Verified Fundi</em> : <em>SAVIS Provider</em>}
-                    <span>· {p.area}</span>
-                  </div>
-                </div>
-                <span className="savis-provider-row-action">VIEW</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="savis-fy-section">
-          <h2>Browse by category</h2>
-          <div className="savis-fy-cat-grid">
-            {INTEREST_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                className="savis-fy-cat-card"
-                onClick={() => {
-                  const primary = opt.tags[0] || opt.label;
-                  setActiveCategory(primary);
-                  setSearch("");
-                  setTab("home");
-                }}
-              >
-                <span className="savis-fy-cat-visual" aria-hidden="true">
-                  <CategoryIcon id={opt.icon} />
-                </span>
-                <span className="savis-fy-cat-body">
-                  <b>{opt.label}</b>
-                  <small>View listings →</small>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {FEATURE_FLAGS.shortVideosBanner && (
-          <section className="savis-red-panel">
-            <b>COMING SOON</b>
-            <h2>Short videos from local businesses</h2>
-            <p>See work in progress, product demos and finished projects, then save or hire directly.</p>
-          </section>
-        )}
-
-        <ForYouOnboarding
-          open={showForYouOnboard}
-          onDone={(ids) => {
-            setForYouInterestsState(ids);
-            setShowForYouOnboard(false);
-          }}
-        />
+        <section className="savis-page-title"><span>DISCOVERY</span><h1>For You</h1><p>Providers and services matched to your interests.</p></section>
+        <section className="savis-fy-section"><h2>Matched for you</h2><div className="savis-provider-list">{(forYouInterests.length ? providers.filter((p) => { const tags = tagsForInterests(forYouInterests); const skill = (p.skill || "").toLowerCase(); return tags.some((t) => skill.includes(t) || t.includes(skill)); }) : providers).slice(0, 10).map((p) => (
+            <Link key={p.id} href={"/consumer/provider/" + p.id} className="savis-provider-row"><div className="savis-provider-row-avatar">{p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}<i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} /></div><div className="savis-provider-row-main"><div className="savis-provider-row-line1"><b>{p.name}</b><span className="savis-provider-row-rating">★ {p.rating ? p.rating.toFixed(1) : "New"}</span></div><div className="savis-provider-row-line2">{p.skill} · {p.km.toFixed(1)} km</div><div className="savis-provider-row-line3">{p.verified !== false ? <em>Verified Fundi</em> : <em>SAVIS Provider</em>}<span>· {p.area}</span></div></div><span className="savis-provider-row-action">VIEW</span></Link>
+          ))}</div></section>
+        <section className="savis-fy-section"><h2>Browse by category</h2><div className="savis-fy-cat-grid">{INTEREST_OPTIONS.map((opt) => (<button key={opt.id} type="button" className="savis-fy-cat-card" onClick={() => { const primary = opt.tags[0] || opt.label; setActiveCategory(primary); setSearch(""); setTab("home"); }}><span className="savis-fy-cat-visual" aria-hidden="true"><CategoryIcon id={opt.icon} /></span><span className="savis-fy-cat-body"><b>{opt.label}</b><small>View listings →</small></span></button>))}</div></section>
+        {FEATURE_FLAGS.shortVideosBanner && (<section className="savis-red-panel"><b>COMING SOON</b><h2>Short videos from local businesses</h2><p>See work in progress, product demos and finished projects, then save or hire directly.</p></section>)}
+        <ForYouOnboarding open={showForYouOnboard} onDone={(ids) => { setForYouInterestsState(ids); setShowForYouOnboard(false); }} />
       </div>}
 
       {activeTab === "jobs" && <div className="savis-app-content"><section className="savis-page-title"><span>TRACKING</span><h1>Jobs</h1><p>Follow your active work, quotes and service history.</p></section><Link href="/bookings" className="savis-wide-action">OPEN FULL BOOKINGS <span>→</span></Link>{bookings.slice(0,4).map((booking) => <Link key={booking.id} href="/bookings" className="savis-job-modern"><div><b>{booking.providerName}</b><p>{booking.skill} · #SV-{booking.id.slice(-4)}</p></div><span>{booking.status.replace("_"," ")}</span><div className="savis-job-progress"><i style={{width: (progress(booking.status) + "%")}} /></div></Link>)}{bookings.length === 0 && <div className="savis-empty-state"><b>No active jobs yet</b><p>When you request a provider, live progress will appear here.</p></div>}</div>}
 
       {activeTab === "messages" && <div className="savis-app-content"><section className="savis-page-title"><span>INBOX & PAYMENTS</span><h1>Messages</h1><p>Service enquiries, quote alerts and payment updates stay together.</p></section>
-        <div className="savis-message-cards">
-          <Link href="/messages" className="savis-message-card"><span>💬</span><b>Enquiries</b><small>Provider chats</small></Link>
-          <Link href="/consumer/payments" className="savis-message-card"><span>💳</span><b>Payments</b><small>M-Pesa / wallet</small></Link>
-          <Link href="/bookings" className="savis-message-card"><span>🔔</span><b>Alerts</b><small>Quotes & milestones</small></Link>
-        </div>
+        <div className="savis-message-cards"><Link href="/messages" className="savis-message-card"><span>💬</span><b>Enquiries</b><small>Provider chats</small></Link><Link href="/consumer/payments" className="savis-message-card"><span>💳</span><b>Payments</b><small>M-Pesa / wallet</small></Link><Link href="/bookings" className="savis-message-card"><span>🔔</span><b>Alerts</b><small>Quotes & milestones</small></Link></div>
         <section className="savis-modern-panel"><div className="savis-panel-heading"><b>Recent activity</b><span>SECURE</span></div>{bookings.slice(0,4).map((b) => <Link key={b.id} href="/bookings" className="savis-message-row"><div><b>{b.providerName}</b><p>{b.skill} · {b.description.slice(0,50)}</p></div><span>{b.status.replace("_"," ")}</span></Link>)}{bookings.length === 0 && conversations.length === 0 && <div className="savis-empty-state">Your provider conversations and payment alerts will appear here.</div>}</section></div>}
 
-      {activeTab === "profile" && <div className="savis-app-content"><section className="savis-profile-modern"><div className="savis-profile-avatar-large">{profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}</div><div><span>ACCOUNT</span><h1>{profile?.full_name || "Your SAVIS profile"}</h1><p>{profile?.email || "Consumer"} · SAVIS member</p></div><Link href="/profile/edit" className="savis-outline-button">EDIT</Link></section><div className="savis-profile-grid">{[["⚙️","Settings","Appearance, language, notifications and location","/settings"],["🔐","Security","Password, 2FA and device management","/settings"],["❤️","Saved providers","Favorites and trusted providers","/profile"],["📋","Bookings & receipts","History, reviews and receipts","/bookings"]].map(([icon,title,desc,href]) => <Link key={title} href={href} className="savis-profile-action"><span>{icon}</span><div><b>{title}</b><small>{desc}</small></div><strong>→</strong></Link>)}</div><section className="savis-wallet-modern"><span>SAVIS WALLET</span><strong>Ready for M-Pesa & escrow</strong><p>Payment protection, holds and refunds will appear here as the production wallet goes live.</p></section></div>}
+      {activeTab === "profile" && <div className="savis-app-content">
+        <section className="savis-profile-modern"><div className="savis-profile-avatar-large">{profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}</div><div><span>ACCOUNT</span><h1>{profile?.full_name || "Your SAVIS profile"}</h1><p>{profile?.email || "Consumer"} · SAVIS member</p></div><Link href="/profile/edit" className="savis-outline-button">EDIT</Link></section>
+        <div className="savis-profile-grid">{[["✏️","Edit profile & photo","Name, photo, location","/profile/edit"],["⚙️","Settings","Appearance, language, notifications","/settings"],["📋","Bookings & receipts","History and reviews","/bookings"],["💳","Payments","Wallet and M-Pesa","/consumer/payments"]].map(([icon,title,desc,href]) => (<Link key={title} href={href} className="savis-profile-action"><span>{icon}</span><div><b>{title}</b><small>{desc}</small></div><strong>→</strong></Link>))}</div>
+        <section className="savis-wallet-modern"><span>SAVIS WALLET</span><strong>Ready for M-Pesa & escrow</strong><p>Payment protection will appear here when live payments go on.</p></section>
+        <button type="button" onClick={() => void handleLogout()} className="w-full mt-6 py-3.5 rounded-full border border-white/15 text-[#ff8a8d] font-black">Log out</button>
+      </div>}
 
       <SavisOnboarding open={showTutorial} onClose={() => setShowTutorial(false)} />
       {mapMode && <div className="fixed inset-0 z-[70] bg-[#11171c]"><SavisMap center={mapCenter} providers={filtered} fullScreen radiusKm={radius} selectedProviderId={selectedMapProvider?.id || null} onSelect={setSelectedMapProvider} /><div className="savis-map-overlay-head"><Logo size="sm" /><button type="button" onClick={() => setMapMode(false)}>Close ✕</button></div><div className="savis-map-overlay-foot"><b>{filtered.length} providers in view</b><button type="button" onClick={enableLocation}>Recenter</button></div></div>}
