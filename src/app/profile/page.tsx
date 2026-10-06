@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -52,13 +53,6 @@ export default function ProfilePage() {
     load();
   }, [router]);
 
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.replace("/login");
-    router.refresh();
-  }
-
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -68,76 +62,84 @@ export default function ProfilePage() {
   }
 
   const role = profile?.role || "consumer";
+  const name = profile?.full_name || "Friend";
+  const initial = name.charAt(0).toUpperCase();
 
   return (
     <main className="savis-app-shell min-h-screen pb-28">
       <header className="savis-app-header">
-        <div className="savis-app-header-inner" style={{ gridTemplateColumns: "auto 1fr auto" }}>
+        <div className="savis-app-header-inner" style={{ gridTemplateColumns: "auto 1fr" }}>
           <Logo size="sm" />
           <div>
             <div className="text-[0.65rem] font-black tracking-widest text-[#f5c451]">ACCOUNT</div>
             <h1 className="text-lg font-black leading-tight">Profile</h1>
           </div>
-          <button
-            type="button"
-            onClick={() => void handleLogout()}
-            className="text-xs font-bold text-white/70 px-3 py-2"
-          >
-            Log out
-          </button>
         </div>
       </header>
 
       <div className="savis-app-content max-w-lg mx-auto px-4 pt-4">
-        <section className="savis-profile-modern" style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
-          <div
-            className="savis-profile-avatar-large"
+        {/* Hero: tap photo to view / edit */}
+        <section
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            marginBottom: 20,
+            padding: "16px",
+            borderRadius: 20,
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.04)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setPhotoOpen(true)}
+            aria-label="View or change profile photo"
             style={{
-              width: 72,
-              height: 72,
+              width: 80,
+              height: 80,
               borderRadius: "50%",
               overflow: "hidden",
               flexShrink: 0,
+              border: "2px solid rgba(255,255,255,0.2)",
+              padding: 0,
+              background: "linear-gradient(135deg,#E22227,#C7080C)",
+              cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 900,
-              fontSize: "1.5rem",
-              background: "linear-gradient(135deg,#E22227,#C7080C)",
+              fontSize: "1.6rem",
+              color: "#fff",
             }}
           >
             {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+              <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
-              (profile?.full_name || "U").charAt(0).toUpperCase()
+              initial
             )}
-          </div>
-          <div style={{ flex: 1 }}>
+          </button>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <span className="text-[0.65rem] font-black tracking-widest text-[#f5c451]">ACCOUNT</span>
-            <h1 className="text-xl font-black">{profile?.full_name || "Your SAVIS profile"}</h1>
-            <p className="text-sm text-white/60">
-              {profile?.email || "Member"} · {role}
-            </p>
+            <h1 className="text-xl font-black truncate">{name}</h1>
+            <p className="text-sm text-white/60 truncate">{profile?.email || "Member"}</p>
+            <p className="text-xs text-white/40 capitalize mt-0.5">{role}</p>
             {profile?.location_name && (
               <p className="text-xs text-white/45 mt-1">{profile.location_name}</p>
             )}
+            <p className="text-[0.65rem] text-white/35 mt-2">Tap photo to view or change</p>
           </div>
-          <Link href="/profile/edit" className="savis-outline-button" style={{ whiteSpace: "nowrap" }}>
-            EDIT
-          </Link>
         </section>
 
-        <div className="savis-profile-grid" style={{ display: "grid", gap: 10 }}>
+        <div style={{ display: "grid", gap: 10 }}>
           {[
-            ["✏️", "Edit profile & photo", "Name, photo, location", "/profile/edit"],
-            ["⚙️", "Settings", "Appearance, language, notifications", "/settings"],
+            ["✏️", "Edit name & details", "Full name, location, bio", "/profile/edit"],
+            ["⚙️", "Settings", "Language, notifications, log out", "/settings"],
             ["📋", "Bookings & receipts", "History and reviews", "/bookings"],
-            ["💳", "Payments", "Wallet and M-Pesa", "/consumer/payments"],
           ].map(([icon, title, desc, href]) => (
             <Link
               key={title}
               href={href}
-              className="savis-profile-action"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -159,42 +161,85 @@ export default function ProfilePage() {
             </Link>
           ))}
         </div>
-
-        <section
-          className="savis-wallet-modern"
-          style={{
-            marginTop: 20,
-            padding: 16,
-            borderRadius: 18,
-            border: "1px solid rgba(245,196,81,0.25)",
-            background: "rgba(245,196,81,0.06)",
-          }}
-        >
-          <span className="text-[0.65rem] font-black tracking-widest text-[#f5c451]">SAVIS WALLET</span>
-          <strong className="block text-base mt-1">Ready for M-Pesa & escrow</strong>
-          <p className="text-sm text-white/55 mt-1">
-            Payment protection will appear here when live payments go on.
-          </p>
-        </section>
-
-        <button
-          type="button"
-          onClick={() => void handleLogout()}
-          style={{
-            marginTop: 24,
-            width: "100%",
-            padding: "14px",
-            borderRadius: 999,
-            border: "1px solid rgba(255,255,255,0.15)",
-            background: "transparent",
-            color: "#ff8a8d",
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          Log out
-        </button>
       </div>
+
+      {/* Full-screen photo viewer */}
+      {photoOpen && (
+        <div
+          role="dialog"
+          aria-label="Profile photo"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 80,
+            background: "rgba(0,0,0,0.92)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+          }}
+          onClick={() => setPhotoOpen(false)}
+        >
+          <div
+            style={{
+              width: "min(320px, 90vw)",
+              height: "min(320px, 90vw)",
+              borderRadius: "50%",
+              overflow: "hidden",
+              background: "linear-gradient(135deg,#E22227,#C7080C)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "4rem",
+              fontWeight: 900,
+              color: "#fff",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              initial
+            )}
+          </div>
+          <div style={{ display: "flex", gap: 12, marginTop: 24 }} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => {
+                setPhotoOpen(false);
+                router.replace("/profile/edit");
+              }}
+              style={{
+                padding: "12px 20px",
+                borderRadius: 999,
+                border: 0,
+                background: "linear-gradient(135deg,#E22227,#C7080C)",
+                color: "#fff",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              Change photo
+            </button>
+            <button
+              type="button"
+              onClick={() => setPhotoOpen(false)}
+              style={{
+                padding: "12px 20px",
+                borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "transparent",
+                color: "#fff",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       <SavisBottomNav active="profile" />
     </main>
