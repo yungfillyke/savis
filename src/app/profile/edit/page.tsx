@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import SavisBottomNav from "@/components/SavisBottomNav";
@@ -60,22 +59,25 @@ export default function EditProfilePage() {
     try {
       const s = createClient();
       let avatarUrl = avatar;
+      let photoNote = "";
 
       if (file) {
-        const compressed = await compressImage(file);
-        const path = `${userId}/avatar-${Date.now()}.jpg`;
-        const up = await s.storage.from("profile-media").upload(path, compressed, {
-          contentType: "image/jpeg",
-          upsert: true,
-        });
-        if (up.error) {
-          // Fallback: try public bucket name variants / show real error
-          throw new Error(
-            up.error.message +
-              " — Create a public Storage bucket named \"profile-media\" in Supabase if it is missing."
-          );
+        try {
+          const compressed = await compressImage(file);
+          const path = `${userId}/avatar-${Date.now()}.jpg`;
+          const up = await s.storage.from("profile-media").upload(path, compressed, {
+            contentType: "image/jpeg",
+            upsert: true,
+          });
+          if (up.error) throw up.error;
+          avatarUrl = s.storage.from("profile-media").getPublicUrl(path).data.publicUrl;
+        } catch (photoErr) {
+          photoNote =
+            photoErr instanceof Error
+              ? photoErr.message
+              : "Photo upload failed";
+          // Continue — still save name/location
         }
-        avatarUrl = s.storage.from("profile-media").getPublicUrl(path).data.publicUrl;
       }
 
       const p = await s
@@ -88,16 +90,17 @@ export default function EditProfilePage() {
           location_name: location.trim() || null,
         })
         .eq("id", userId);
-      if (p.error) throw p.error;
 
-      const { error: authError } = await s.auth.updateUser({
-        email: email.trim(),
+      if (p.error) {
+        throw new Error(
+          p.error.message +
+            " — Your profiles table may block updates. Run the SAVIS RLS SQL in Supabase."
+        );
+      }
+
+      await s.auth.updateUser({
         data: { full_name: name.trim(), avatar_url: avatarUrl || null },
       });
-      if (authError) {
-        // Profile row may still have saved; surface auth note without blocking
-        console.warn(authError.message);
-      }
 
       setAvatar(avatarUrl);
       setFile(null);
@@ -105,8 +108,14 @@ export default function EditProfilePage() {
         URL.revokeObjectURL(preview);
         setPreview(null);
       }
-      setMessage("Profile saved.");
-      setTimeout(() => router.push("/profile"), 700);
+
+      if (photoNote) {
+        setError("Name/details saved, but photo failed: " + photoNote);
+        setMessage("");
+      } else {
+        setMessage("Profile saved.");
+        setTimeout(() => router.replace("/profile"), 600);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save profile.");
     } finally {
@@ -121,9 +130,13 @@ export default function EditProfilePage() {
       <div className="savis-app-content max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-black">Edit profile</h1>
-          <Link href="/profile" className="text-sm font-bold text-white/70">
+          <button
+            type="button"
+            onClick={() => router.replace("/profile")}
+            className="text-sm font-bold text-white/70"
+          >
             ← Back
-          </Link>
+          </button>
         </div>
 
         <div className="mb-5 flex items-center gap-4">
@@ -145,7 +158,7 @@ export default function EditProfilePage() {
           </label>
         </div>
         {file && (
-          <p className="text-xs text-white/50 mb-3">New photo selected — tap Save to upload.</p>
+          <p className="text-xs text-white/50 mb-3">New photo selected — tap Save to upload (auto-compressed).</p>
         )}
 
         <div className="space-y-4">
@@ -155,6 +168,7 @@ export default function EditProfilePage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 rounded-2xl bg-black/35 border border-white/15 text-white outline-none"
+              placeholder="Your full name"
             />
           </div>
           <div>
@@ -176,7 +190,7 @@ export default function EditProfilePage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">BIO</label>
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">BIO (optional)</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
