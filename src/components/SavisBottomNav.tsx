@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 
 type Tab = "home" | "for-you" | "jobs" | "messages" | "profile";
 
@@ -17,20 +17,30 @@ const TABS: { id: Tab; label: string; icon: string; href: string }[] = [
 ];
 
 /**
- * Matches consumer app shell bottom nav so profile/bookings/settings
- * do not fall back to the old Home / Search / Bookings / Profile bar.
+ * Shared bottom nav. Uses router.replace (not push) so the phone Back button
+ * does not walk through every tab visit in history.
  */
 export default function SavisBottomNav({ active = "profile" }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  function go(href: string) {
+    if (pathname === href) return;
+    router.replace(href);
+  }
+
   return (
     <nav className="savis-bottom-nav" aria-label="Main">
       <div>
         {TABS.map((item) => (
-          <Link
+          <button
             key={item.id}
-            href={item.href}
+            type="button"
+            onClick={() => go(item.href)}
             className={active === item.id ? "is-active" : ""}
             style={{
-              textDecoration: "none",
+              border: 0,
+              cursor: "pointer",
               display: "flex",
               flexDirection: "row",
               alignItems: "center",
@@ -49,7 +59,7 @@ export default function SavisBottomNav({ active = "profile" }: Props) {
             {active === item.id && (
               <b style={{ fontSize: "0.72rem", fontWeight: 800 }}>{item.label}</b>
             )}
-          </Link>
+          </button>
         ))}
       </div>
     </nav>
