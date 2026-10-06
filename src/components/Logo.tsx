@@ -14,10 +14,10 @@ export default function Logo({ size = "md", showTagline = true }: LogoProps) {
             <stop offset="1" stopColor="#c7080c" />
           </linearGradient>
         </defs>
-        {/* Bold geometric S matching the brand lockup design */}
+        {/* Bold angular S mark matching the SAVIS brand lockup */}
         <path
           fill="url(#savis-logo-red)"
-          d="M12 14c0-3.3 2.7-6 6-6h28c3.3 0 6 2.7 6 6s-2.7 6-6 6H28c-1.1 0-2 .9-2 2s.9 2 2 2h18c3.3 0 6 2.7 6 6s-2.7 6-6 6H18c-3.3 0-6-2.7-6-6s2.7-6 6-6h18c1.1 0 2-.9 2-2s-.9-2-2-2H18c-3.3 0-6-2.7-6-6z"
+          d="M46.8 11.2H22.4c-6.6 0-11.2 3.4-11.2 9.2 0 4.6 2.8 7.4 8.2 8.6l16.4 3.6c2.4.6 3.6 1.6 3.6 3.4 0 2.4-2.2 3.8-5.8 3.8H17.2v7.6h25.2c6.8 0 11.6-3.6 11.6-9.6 0-4.8-2.8-7.6-8.4-8.8l-16.2-3.4c-2.4-.6-3.6-1.6-3.6-3.4 0-2.2 2-3.6 5.4-3.6h24.6v-7.4z"
         />
       </svg>
       <div className="min-w-0">
