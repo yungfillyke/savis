@@ -26,6 +26,24 @@ function SignupForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [social, setSocial] = useState(false);
+
+  async function signInWithGoogle() {
+    setSocial(true);
+    setError("");
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/consumer")}`,
+        queryParams: { access_type: "offline", prompt: "select_account" },
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message);
+      setSocial(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,8 +56,16 @@ function SignupForm() {
       return;
     }
 
-    if (password !== confirmPassword) { setError("Passwords do not match."); setLoading(false); return; }
-    if (!acceptedTerms) { setError("Please agree to the Terms and Privacy Policy."); setLoading(false); return; }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("Please agree to the Terms and Privacy Policy.");
+      setLoading(false);
+      return;
+    }
 
     const supabase = createClient();
 
@@ -61,7 +87,6 @@ function SignupForm() {
       return;
     }
 
-    // Try to create profile row (table may not exist yet — that is ok for first deploy)
     if (data.user) {
       await supabase.from("profiles").upsert({
         id: data.user.id,
@@ -79,18 +104,15 @@ function SignupForm() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-4 py-10">
         <div className="w-full max-w-md text-center">
-          <Logo />
-          <div className="mt-8 p-6 rounded-3xl bg-white/10 border border-white/15">
-            <div className="text-4xl mb-3">📬</div>
-            <h1 className="text-xl font-extrabold mb-2">Check your email</h1>
-            <p className="text-[#B9C3C9] text-sm mb-6">
-              We sent a confirmation link to <strong className="text-white">{email}</strong>.
-              Click it, then log in.
-            </p>
-            <Link href="/login">
-              <Button full>Go to Log in</Button>
-            </Link>
-          </div>
+          <Logo size="sm" />
+          <h1 className="text-2xl font-extrabold mt-6 mb-2">Check your email</h1>
+          <p className="text-[#B9C3C9] text-sm mb-6">
+            We sent a confirmation link to <strong className="text-white">{email}</strong>.
+            Click it, then log in.
+          </p>
+          <Link href="/login">
+            <Button full>Go to Log in</Button>
+          </Link>
         </div>
       </main>
     );
@@ -108,7 +130,8 @@ function SignupForm() {
 
         <h1 className="text-2xl font-extrabold mb-1">Create your account</h1>
         <p className="text-[#B9C3C9] text-sm mb-6">
-          Join as a {
+          Join as a{" "}
+          {
             (
               {
                 consumer: "Consumer",
@@ -117,113 +140,94 @@ function SignupForm() {
                 seller: "Seller",
                 agent: "Agent",
               } as Record<string, string>
-            )[role] || "User"
+            )[role]
           }
+          .
         </p>
 
-        {/* Role toggle */}
-        <div className="flex gap-1.5 p-1 rounded-full bg-black/35 border border-white/10 mb-6">
-          {(
-            [
-              { id: "consumer", label: "🙋" },
-              { id: "provider", label: "🛠️" },
-              { id: "professional", label: "⚖️" },
-              { id: "seller", label: "🏪" },
-              { id: "agent", label: "🤝" },
-            ] as const
-          ).map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => setRole(r.id)}
-              className={`flex-1 py-2.5 rounded-full text-xs font-bold transition ${
-                role === r.id
-                  ? "text-white"
-                  : "text-[#B9C3C9] hover:text-white"
-              }`}
-              style={
-                role === r.id
-                  ? {
-                      background: "linear-gradient(135deg, #E22227, #C7080C)",
-                      boxShadow: "0 4px 14px rgba(226, 34, 39, 0.5)",
-                    }
-                  : undefined
-              }
-            >
-              {r.label}
-            </button>
-          ))}
+        <button
+          type="button"
+          onClick={() => void signInWithGoogle()}
+          disabled={social || loading}
+          className="w-full flex items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white px-4 py-3.5 font-bold text-[#1a1a1a] hover:bg-white/90 disabled:opacity-50 mb-5"
+        >
+          <span style={{ fontWeight: 900 }}>G</span>
+          {social ? "Connecting to Google…" : "Continue with Google"}
+        </button>
+        <div className="mb-5 flex items-center gap-3 text-xs text-[#B9C3C9]">
+          <span className="h-px flex-1 bg-white/10" />
+          <span>OR EMAIL</span>
+          <span className="h-px flex-1 bg-white/10" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">
-              FULL NAME
-            </label>
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">FULL NAME</label>
             <input
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30"
-              placeholder="e.g. James Otieno"
+              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227]"
+              placeholder="Your name"
             />
           </div>
-
           <div>
-            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">
-              EMAIL
-            </label>
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">EMAIL</label>
             <input
               required
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30"
+              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227]"
               placeholder="name@example.com"
             />
           </div>
-
           <div>
-            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">PHONE (KENYA)</label>
-            <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" placeholder="+254 7XX XXX XXX" />
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">PHONE (optional)</label>
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227]"
+              placeholder="07…"
+            />
           </div>
-
           <div>
-            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">
-              PASSWORD
-            </label>
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">PASSWORD</label>
             <input
               required
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30"
-              placeholder="8+ characters with a number"
-              aria-describedby="password-help"
+              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227]"
+              placeholder="At least 8 characters + a number"
             />
-            <div id="password-help" className="mt-2 flex flex-wrap gap-2 text-xs text-[#B9C3C9]">
-              <span className={password.length >= 8 ? "text-[#34D399]" : ""}>● 8+ chars</span>
-              <span className={/\d/.test(password) ? "text-[#34D399]" : ""}>● Number</span>
-              <span className={/[A-Z]/.test(password) ? "text-[#34D399]" : ""}>● Uppercase</span>
-            </div>
           </div>
-
           <div>
             <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">CONFIRM PASSWORD</label>
-            <input required type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" placeholder="Repeat your password" />
+            <input
+              required
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227]"
+              placeholder="Repeat password"
+            />
           </div>
-
-          <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-[#B9C3C9]">
-            <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-1 h-4 w-4" />
-            <span>I agree to the <Link href="/terms" className="font-bold text-[#F5C451]">Terms</Link> and <Link href="/privacy" className="font-bold text-[#F5C451]">Privacy Policy</Link>.</span>
+          <label className="flex items-start gap-2 text-sm text-[#B9C3C9]">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              I agree to the <Link href="/terms" className="text-[#F5C451]">Terms</Link> and{" "}
+              <Link href="/privacy" className="text-[#F5C451]">Privacy Policy</Link>.
+            </span>
           </label>
-
-          {error && (
-            <p className="text-[#ff8a8d] text-sm font-semibold">{error}</p>
-          )}
-
-          <Button type="submit" full disabled={loading}>
-            {loading ? "Creating account…" : "Create account"}
+          {error && <p className="text-[#ff8a8d] text-sm font-semibold">{error}</p>}
+          <Button type="submit" full disabled={loading || social}>
+            {loading ? "Creating account…" : "Sign up"}
           </Button>
         </form>
 
