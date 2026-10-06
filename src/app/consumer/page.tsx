@@ -14,6 +14,16 @@ import SavisMap, { type SavisMapProvider } from "@/components/SavisMap";
 import { getOrCreateConversation, listConversations, sendMessage, subscribeToConversations, type Conversation } from "@/lib/messaging";
 import SavisOnboarding from "@/components/SavisOnboarding";
 import CategoryStrip from "@/components/CategoryStrip";
+import ForYouOnboarding from "@/components/ForYouOnboarding";
+import { FEATURE_FLAGS } from "@/lib/featureFlags";
+import {
+  getForYouInterests,
+  hasCompletedForYouOnboarding,
+  tagsForInterests,
+  type InterestId,
+  INTEREST_OPTIONS,
+} from "@/lib/forYouInterests";
+import CategoryIcon from "@/components/CategoryIcon";
 
 type Profile = { full_name: string | null; role: string | null; email: string | null };
 
@@ -36,15 +46,6 @@ type Provider = {
   bio?: string;
   avatarUrl?: string;
 };
-
-const CATEGORIES = [
-  ["all", "All", "✨"], ["Plumbing", "Plumbing", "🔧"], ["Electrical", "Electrical", "⚡"],
-  ["Masonry", "Masonry", "🧱"], ["Mechanics", "Mechanics", "🚗"], ["Cleaning", "Cleaning", "🧹"],
-  ["Carpentry", "Carpentry", "🪚"], ["Welding", "Welding", "🔥"], ["Tailoring", "Tailoring", "🧵"],
-  ["Painting", "Painting", "🎨"], ["Hardware", "Hardware", "🏪"], ["Quantity Surveying", "QS", "📐"],
-  ["Architecture", "Architecture", "🏛️"], ["Legal", "Legal", "⚖️"], ["Accounting", "Accounting", "🧾"],
-  ["Engineering", "Engineering", "⚙️"], ["Photography", "Photo", "📷"],
-];
 
 const SAMPLE_PROVIDERS: Provider[] = [
   { id: "1", name: "James Otieno", avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg", skill: "Plumbing", area: "Westlands", km: 1.2, rate: 1500, rating: 4.9, reviews: 87, icon: "🔧", available: "Available today", tags: ["M-Pesa"], latitude: -1.2676, longitude: 36.8108 },
@@ -108,10 +109,13 @@ export default function ConsumerPage() {
   const [messageSent, setMessageSent] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messageBusy, setMessageBusy] = useState(false);
+  const [forYouInterests, setForYouInterestsState] = useState<InterestId[]>([]);
+  const [showForYouOnboard, setShowForYouOnboard] = useState(false);
 
   useEffect(() => {
     setLangState(getLang());
     setUserLocation(getSavedLocation());
+    setForYouInterestsState(getForYouInterests());
   }, []);
 
   function switchLang(next: Lang) {
@@ -248,7 +252,6 @@ export default function ConsumerPage() {
     }).sort((a, b) => a.km - b.km || a.name.localeCompare(b.name));
   }, [providers, search, activeCategory]);
 
-  const firstName = profile?.full_name?.split(" ")[0] || "Friend";
   const mapCenter = userLocation || { latitude: -1.2864, longitude: 36.8172 };
 
   if (loading) {
@@ -266,6 +269,9 @@ export default function ConsumerPage() {
   const setTab = (tab: typeof activeTab) => {
     setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (tab === "for-you" && !hasCompletedForYouOnboarding()) {
+      setShowForYouOnboard(true);
+    }
   };
 
   const progress = (status: string) => ({
@@ -278,7 +284,13 @@ export default function ConsumerPage() {
       <header className="savis-app-header"><div className="savis-app-header-inner">
         <button type="button" onClick={() => setTab("profile")} className="savis-logo-button" aria-label="Open SAVIS profile"><Logo size="sm" /></button>
         <div className="savis-app-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { setActiveTab("home"); setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 50); } }} placeholder="Search services, products..." aria-label="Search services and products" /></div>
-        <button type="button" className="savis-icon-button" onClick={() => setTab("messages")} aria-label="Notifications">♧<b /></button>
+        <Link href="/consumer/payments" className="savis-wallet-icon" aria-label="Wallet and payments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 7.5h15a2.5 2.5 0 0 1 0 5H5.5A2.5 2.5 0 0 0 3 15v2.5A2.5 2.5 0 0 0 5.5 20H19a2 2 0 0 0 2-2v-5.5" />
+            <path d="M3 7.5V5.5A2.5 2.5 0 0 1 5.5 3H16" />
+            <circle cx="17.5" cy="12.5" r="1" fill="currentColor" stroke="none" />
+          </svg>
+        </Link>
         <button type="button" className="savis-avatar-button" onClick={() => setTab("profile")} aria-label="Open profile">{profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}</button>
       </div></header>
 
@@ -302,7 +314,7 @@ export default function ConsumerPage() {
               <h2>{search || activeCategory !== "all" ? "Results (" + filtered.length + ")" : "People near you"}</h2>
               <p>{providerMessage || "Trusted local providers"}</p>
             </div>
-            <button type="button" onClick={() => setMapMode(true)}>Map →</button>
+            <Link href="/consumer/nearby" style={{ fontSize: ".75rem", fontWeight: 900, color: "#fff", textDecoration: "none" }}>View All</Link>
           </div>
           <div className="savis-provider-list">{filtered.slice(0, 12).map((p) => (
             <Link key={p.id} href={"/consumer/provider/" + p.id} className="savis-provider-row">
@@ -328,7 +340,89 @@ export default function ConsumerPage() {
         </section>
       </div>}
 
-      {activeTab === "for-you" && <div className="savis-app-content"><section className="savis-page-title"><span>DISCOVERY</span><h1>For You</h1><p>Products, services and local providers selected for your next job or project.</p></section><div className="savis-feature-grid">{[["🪑","Custom furniture"],["🚿","Bathroom fittings"],["🧰","Hardware & tools"],["👗","Tailored fashion"],["📷","Photography"],["🌿","Fresh groceries"]].map(([icon,title]) => <button key={title} type="button" onClick={() => { setSearch(title); setTab("home"); }}><span>{icon}</span><b>{title}</b><small>Explore locally →</small></button>)}</div><section className="savis-red-panel"><b>COMING SOON</b><h2>Short videos from local businesses</h2><p>See work in progress, product demos and finished projects, then save or hire directly.</p></section></div>}
+      {activeTab === "for-you" && <div className="savis-app-content">
+        <section className="savis-page-title">
+          <span>DISCOVERY</span>
+          <h1>For You</h1>
+          <p>Providers and services matched to your interests.</p>
+        </section>
+
+        <section className="savis-fy-section">
+          <h2>Matched for you</h2>
+          <div className="savis-provider-list">
+            {(forYouInterests.length
+              ? providers.filter((p) => {
+                  const tags = tagsForInterests(forYouInterests);
+                  const skill = (p.skill || "").toLowerCase();
+                  return tags.some((t) => skill.includes(t) || t.includes(skill));
+                })
+              : providers
+            ).slice(0, 10).map((p) => (
+              <Link key={p.id} href={"/consumer/provider/" + p.id} className="savis-provider-row">
+                <div className="savis-provider-row-avatar">
+                  {p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}
+                  <i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} />
+                </div>
+                <div className="savis-provider-row-main">
+                  <div className="savis-provider-row-line1">
+                    <b>{p.name}</b>
+                    <span className="savis-provider-row-rating">★ {p.rating ? p.rating.toFixed(1) : "New"}</span>
+                  </div>
+                  <div className="savis-provider-row-line2">{p.skill} · {p.km.toFixed(1)} km</div>
+                  <div className="savis-provider-row-line3">
+                    {p.verified !== false ? <em>Verified Fundi</em> : <em>SAVIS Provider</em>}
+                    <span>· {p.area}</span>
+                  </div>
+                </div>
+                <span className="savis-provider-row-action">VIEW</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="savis-fy-section">
+          <h2>Browse by category</h2>
+          <div className="savis-fy-cat-grid">
+            {INTEREST_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                className="savis-fy-cat-card"
+                onClick={() => {
+                  const primary = opt.tags[0] || opt.label;
+                  setActiveCategory(primary);
+                  setSearch("");
+                  setTab("home");
+                }}
+              >
+                <span className="savis-fy-cat-visual" aria-hidden="true">
+                  <CategoryIcon id={opt.icon} />
+                </span>
+                <span className="savis-fy-cat-body">
+                  <b>{opt.label}</b>
+                  <small>View listings →</small>
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {FEATURE_FLAGS.shortVideosBanner && (
+          <section className="savis-red-panel">
+            <b>COMING SOON</b>
+            <h2>Short videos from local businesses</h2>
+            <p>See work in progress, product demos and finished projects, then save or hire directly.</p>
+          </section>
+        )}
+
+        <ForYouOnboarding
+          open={showForYouOnboard}
+          onDone={(ids) => {
+            setForYouInterestsState(ids);
+            setShowForYouOnboard(false);
+          }}
+        />
+      </div>}
 
       {activeTab === "jobs" && <div className="savis-app-content"><section className="savis-page-title"><span>TRACKING</span><h1>Jobs</h1><p>Follow your active work, quotes and service history.</p></section><Link href="/bookings" className="savis-wide-action">OPEN FULL BOOKINGS <span>→</span></Link>{bookings.slice(0,4).map((booking) => <Link key={booking.id} href="/bookings" className="savis-job-modern"><div><b>{booking.providerName}</b><p>{booking.skill} · #SV-{booking.id.slice(-4)}</p></div><span>{booking.status.replace("_"," ")}</span><div className="savis-job-progress"><i style={{width: (progress(booking.status) + "%")}} /></div></Link>)}{bookings.length === 0 && <div className="savis-empty-state"><b>No active jobs yet</b><p>When you request a provider, live progress will appear here.</p></div>}</div>}
 
