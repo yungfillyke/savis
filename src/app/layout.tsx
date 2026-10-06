@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./savis-nav.css";
 import "./savis-categories.css";
+import "./savis-provider-list.css";
 import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
