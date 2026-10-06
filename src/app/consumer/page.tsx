@@ -282,13 +282,37 @@ export default function ConsumerPage() {
           }}
         />
 
-        <section className="savis-sponsored-strip"><div className="savis-section-heading"><div><span>SPONSORED</span><h2>Local businesses</h2></div><small>Auto-scroll →</small></div><div className="savis-sponsored-track">{["Kahawa Fresh","Mali Home Decor","SwiftFix Appliances","Nia Beauty Studio","Green Basket","Jirani Motors"].map((name, i) => <article key={name} className="savis-sponsored-card"><div className={"savis-sponsored-image sponsored-" + (i + 1)} /><b>{name}</b><p>{["Fresh Kenyan coffee delivered locally.","Handcrafted pieces for your home.","Reliable appliance repair.","Beauty appointments near you.","Farm-fresh produce and essentials.","Trusted vehicle servicing."][i]}</p></article>)}</div></section>
-
-        <section id="nearby-results" className="savis-provider-section"><div className="savis-section-heading"><div><span>DISCOVER</span><h2>{search || activeCategory !== "all" ? "Results (" + filtered.length + ")" : "People near you"}</h2><p>{providerMessage || "Trusted local providers"}</p></div><button type="button" onClick={() => setMapMode(true)}>Map →</button></div>
-          <div className="savis-provider-grid">{filtered.slice(0, 8).map((p, index) => <article key={p.id} className="savis-provider-card"><div className={"savis-business-image business-" + ((index % 6) + 1)}><span>{p.icon}</span></div><div className="savis-provider-card-body"><div className="savis-provider-title"><div><h3>{["UrbanFix Home Services","BestBuild Suppliers","QuickFix Auto Garage","BrightLine Electricals","Kijani Fresh Mart","Pixel Pro Gadgets","Mali Home Decor","Jirani Motors"][index] || p.name}</h3><div className="savis-rating">★ {p.rating ? p.rating.toFixed(1) : "New"} <i>•</i> ◉ {p.km.toFixed(1)} km</div></div>{p.verified !== false && <span className="savis-verified-dot">✓</span>}</div><p className="savis-provider-description">{p.bio || (p.skill + ", repairs and trusted local service near " + p.area + ".")}</p><div className="savis-provider-footer"><div className="savis-provider-person"><div className="savis-person-avatar">{p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : p.name.charAt(0)}</div><div><b>{p.name}</b><small>{p.verified !== false ? "Verified Provider" : "SAVIS Provider"}</small></div></div><Link href={"/consumer/provider/" + p.id} className="savis-view-button">VIEW</Link></div></div></article>)}</div>
-          {filtered.length === 0 && <div className="savis-empty-state">No providers match this search yet.</div>}</section>
-
-        <section className="savis-live-map-preview"><div className="savis-section-heading"><div><span>LIVE DISCOVERY</span><h2>Nearby on the map</h2></div><button type="button" onClick={() => setMapMode(true)}>Open map →</button></div><div className="savis-map-preview-frame"><SavisMap center={mapCenter} providers={filtered} radiusKm={radius} selectedProviderId={selectedMapProvider?.id || null} onSelect={setSelectedMapProvider} /><div className="savis-map-preview-badge">● {filtered.length} nearby results</div></div></section>
+        <section id="nearby-results" className="savis-provider-section">
+          <div className="savis-section-heading">
+            <div>
+              <span>DISCOVER</span>
+              <h2>{search || activeCategory !== "all" ? "Results (" + filtered.length + ")" : "People near you"}</h2>
+              <p>{providerMessage || "Trusted local providers"}</p>
+            </div>
+            <button type="button" onClick={() => setMapMode(true)}>Map →</button>
+          </div>
+          <div className="savis-provider-list">{filtered.slice(0, 12).map((p) => (
+            <article key={p.id} className="savis-provider-row">
+              <div className="savis-provider-row-avatar">
+                {p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}
+                <i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} />
+              </div>
+              <div className="savis-provider-row-main">
+                <div className="savis-provider-row-line1">
+                  <b>{p.name}</b>
+                  <span className="savis-provider-row-rating">★ {p.rating ? p.rating.toFixed(1) : "New"}{p.reviews ? ` (${p.reviews})` : ""}</span>
+                </div>
+                <div className="savis-provider-row-line2">{p.skill} · {p.km.toFixed(1)} km away</div>
+                <div className="savis-provider-row-line3">
+                  {p.verified !== false ? <em>Verified Fundi</em> : <em>SAVIS Provider</em>}
+                  <span>· {p.area}</span>
+                </div>
+              </div>
+              <Link href={"/consumer/provider/" + p.id} className="savis-provider-row-action">VIEW</Link>
+            </article>
+          ))}</div>
+          {filtered.length === 0 && <div className="savis-empty-state">No providers match this search yet.</div>}
+        </section>
       </div>}
 
       {activeTab === "for-you" && <div className="savis-app-content"><section className="savis-page-title"><span>DISCOVERY</span><h1>For You</h1><p>Products, services and local providers selected for your next job or project.</p></section><div className="savis-feature-grid">{[["🪑","Custom furniture"],["🚿","Bathroom fittings"],["🧰","Hardware & tools"],["👗","Tailored fashion"],["📷","Photography"],["🌿","Fresh groceries"]].map(([icon,title]) => <button key={title} type="button" onClick={() => { setSearch(title); setTab("home"); }}><span>{icon}</span><b>{title}</b><small>Explore locally →</small></button>)}</div><section className="savis-red-panel"><b>COMING SOON</b><h2>Short videos from local businesses</h2><p>See work in progress, product demos and finished projects, then save or hire directly.</p></section></div>}
