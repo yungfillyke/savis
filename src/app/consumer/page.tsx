@@ -229,11 +229,23 @@ export default function ConsumerPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const cat = activeCategory.trim().toLowerCase();
     return providers.filter((p) => {
-      const categoryMatch = activeCategory === "all" || p.skill === activeCategory;
-      const searchMatch = !q || [p.name, p.skill, p.area].some((value) => value.toLowerCase().includes(q));
+      const skill = (p.skill || "").toLowerCase();
+      const tags = (p.tags || []).map((t) => t.toLowerCase());
+      const categoryMatch =
+        cat === "all" ||
+        skill === cat ||
+        skill.includes(cat) ||
+        cat.includes(skill) ||
+        tags.some((t) => t === cat || t.includes(cat) || cat.includes(t));
+      const searchMatch =
+        !q ||
+        [p.name, p.skill, p.area, p.bio || "", ...(p.tags || [])].some((value) =>
+          String(value).toLowerCase().includes(q)
+        );
       return categoryMatch && searchMatch;
-    }).sort((a, b) => a.name.localeCompare(b.name));
+    }).sort((a, b) => a.km - b.km || a.name.localeCompare(b.name));
   }, [providers, search, activeCategory]);
 
   const firstName = profile?.full_name?.split(" ")[0] || "Friend";
@@ -265,7 +277,7 @@ export default function ConsumerPage() {
     <main className="savis-app-shell min-h-screen pb-28">
       <header className="savis-app-header"><div className="savis-app-header-inner">
         <button type="button" onClick={() => setTab("profile")} className="savis-logo-button" aria-label="Open SAVIS profile"><Logo size="sm" /></button>
-        <div className="savis-app-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search services, products..." aria-label="Search services and products" /></div>
+        <div className="savis-app-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { setActiveTab("home"); setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 50); } }} placeholder="Search services, products..." aria-label="Search services and products" /></div>
         <button type="button" className="savis-icon-button" onClick={() => setTab("messages")} aria-label="Notifications">♧<b /></button>
         <button type="button" className="savis-avatar-button" onClick={() => setTab("profile")} aria-label="Open profile">{profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}</button>
       </div></header>
@@ -279,6 +291,7 @@ export default function ConsumerPage() {
             const primary = sub.tags[0] || sub.label;
             setActiveCategory(primary);
             setSearch("");
+            setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 80);
           }}
         />
 
@@ -292,7 +305,7 @@ export default function ConsumerPage() {
             <button type="button" onClick={() => setMapMode(true)}>Map →</button>
           </div>
           <div className="savis-provider-list">{filtered.slice(0, 12).map((p) => (
-            <article key={p.id} className="savis-provider-row">
+            <Link key={p.id} href={"/consumer/provider/" + p.id} className="savis-provider-row">
               <div className="savis-provider-row-avatar">
                 {p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}
                 <i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} />
@@ -308,8 +321,8 @@ export default function ConsumerPage() {
                   <span>· {p.area}</span>
                 </div>
               </div>
-              <Link href={"/consumer/provider/" + p.id} className="savis-provider-row-action">VIEW</Link>
-            </article>
+              <span className="savis-provider-row-action">VIEW</span>
+            </Link>
           ))}</div>
           {filtered.length === 0 && <div className="savis-empty-state">No providers match this search yet.</div>}
         </section>
@@ -317,9 +330,15 @@ export default function ConsumerPage() {
 
       {activeTab === "for-you" && <div className="savis-app-content"><section className="savis-page-title"><span>DISCOVERY</span><h1>For You</h1><p>Products, services and local providers selected for your next job or project.</p></section><div className="savis-feature-grid">{[["🪑","Custom furniture"],["🚿","Bathroom fittings"],["🧰","Hardware & tools"],["👗","Tailored fashion"],["📷","Photography"],["🌿","Fresh groceries"]].map(([icon,title]) => <button key={title} type="button" onClick={() => { setSearch(title); setTab("home"); }}><span>{icon}</span><b>{title}</b><small>Explore locally →</small></button>)}</div><section className="savis-red-panel"><b>COMING SOON</b><h2>Short videos from local businesses</h2><p>See work in progress, product demos and finished projects, then save or hire directly.</p></section></div>}
 
-      {activeTab === "jobs" && <div className="savis-app-content"><section className="savis-page-title"><span>TRACKING</span><h1>Jobs</h1><p>Follow your active work, quotes and service history.</p></section><Link href="/bookings" className="savis-wide-action">OPEN FULL BOOKINGS <span>→</span></Link>{bookings.slice(0,4).map((booking) => <article key={booking.id} className="savis-job-modern"><div><b>{booking.providerName}</b><p>{booking.skill} · #SV-{booking.id.slice(-4)}</p></div><span>{booking.status.replace("_"," ")}</span><div className="savis-job-progress"><i style={{width: (progress(booking.status) + "%")}} /></div></article>)}{bookings.length === 0 && <div className="savis-empty-state"><b>No active jobs yet</b><p>When you request a provider, live progress will appear here.</p></div>}</div>}
+      {activeTab === "jobs" && <div className="savis-app-content"><section className="savis-page-title"><span>TRACKING</span><h1>Jobs</h1><p>Follow your active work, quotes and service history.</p></section><Link href="/bookings" className="savis-wide-action">OPEN FULL BOOKINGS <span>→</span></Link>{bookings.slice(0,4).map((booking) => <Link key={booking.id} href="/bookings" className="savis-job-modern"><div><b>{booking.providerName}</b><p>{booking.skill} · #SV-{booking.id.slice(-4)}</p></div><span>{booking.status.replace("_"," ")}</span><div className="savis-job-progress"><i style={{width: (progress(booking.status) + "%")}} /></div></Link>)}{bookings.length === 0 && <div className="savis-empty-state"><b>No active jobs yet</b><p>When you request a provider, live progress will appear here.</p></div>}</div>}
 
-      {activeTab === "messages" && <div className="savis-app-content"><section className="savis-page-title"><span>INBOX & PAYMENTS</span><h1>Messages</h1><p>Service enquiries, quote alerts and payment updates stay together.</p></section><div className="savis-message-cards">{[["💬","Enquiries","Provider chats"],["💳","Payments","M-Pesa / wallet"],["🔔","Alerts","Quotes & milestones"]].map(([icon,title,desc]) => <button key={title} type="button"><span>{icon}</span><b>{title}</b><small>{desc}</small></button>)}</div><section className="savis-modern-panel"><div className="savis-panel-heading"><b>Recent activity</b><span>SECURE</span></div>{bookings.slice(0,4).map((b) => <div key={b.id} className="savis-message-row"><div><b>{b.providerName}</b><p>{b.skill} · {b.description.slice(0,50)}</p></div><span>{b.status.replace("_"," ")}</span></div>)}{bookings.length === 0 && conversations.length === 0 && <div className="savis-empty-state">Your provider conversations and payment alerts will appear here.</div>}</section></div>}
+      {activeTab === "messages" && <div className="savis-app-content"><section className="savis-page-title"><span>INBOX & PAYMENTS</span><h1>Messages</h1><p>Service enquiries, quote alerts and payment updates stay together.</p></section>
+        <div className="savis-message-cards">
+          <Link href="/messages" className="savis-message-card"><span>💬</span><b>Enquiries</b><small>Provider chats</small></Link>
+          <Link href="/consumer/payments" className="savis-message-card"><span>💳</span><b>Payments</b><small>M-Pesa / wallet</small></Link>
+          <Link href="/bookings" className="savis-message-card"><span>🔔</span><b>Alerts</b><small>Quotes & milestones</small></Link>
+        </div>
+        <section className="savis-modern-panel"><div className="savis-panel-heading"><b>Recent activity</b><span>SECURE</span></div>{bookings.slice(0,4).map((b) => <Link key={b.id} href="/bookings" className="savis-message-row"><div><b>{b.providerName}</b><p>{b.skill} · {b.description.slice(0,50)}</p></div><span>{b.status.replace("_"," ")}</span></Link>)}{bookings.length === 0 && conversations.length === 0 && <div className="savis-empty-state">Your provider conversations and payment alerts will appear here.</div>}</section></div>}
 
       {activeTab === "profile" && <div className="savis-app-content"><section className="savis-profile-modern"><div className="savis-profile-avatar-large">{profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}</div><div><span>ACCOUNT</span><h1>{profile?.full_name || "Your SAVIS profile"}</h1><p>{profile?.email || "Consumer"} · SAVIS member</p></div><Link href="/profile/edit" className="savis-outline-button">EDIT</Link></section><div className="savis-profile-grid">{[["⚙️","Settings","Appearance, language, notifications and location","/settings"],["🔐","Security","Password, 2FA and device management","/settings"],["❤️","Saved providers","Favorites and trusted providers","/profile"],["📋","Bookings & receipts","History, reviews and receipts","/bookings"]].map(([icon,title,desc,href]) => <Link key={title} href={href} className="savis-profile-action"><span>{icon}</span><div><b>{title}</b><small>{desc}</small></div><strong>→</strong></Link>)}</div><section className="savis-wallet-modern"><span>SAVIS WALLET</span><strong>Ready for M-Pesa & escrow</strong><p>Payment protection, holds and refunds will appear here as the production wallet goes live.</p></section></div>}
 
