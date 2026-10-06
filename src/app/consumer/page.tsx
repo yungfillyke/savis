@@ -25,7 +25,7 @@ import {
 } from "@/lib/forYouInterests";
 import CategoryIcon from "@/components/CategoryIcon";
 
-type Profile = { full_name: string | null; role: string | null; email: string | null };
+type Profile = { full_name: string | null; role: string | null; email: string | null; avatar_url?: string | null };
 
 type Provider = {
   id: string;
@@ -131,11 +131,12 @@ export default function ConsumerPage() {
         router.replace("/login");
         return;
       }
-      const { data } = await supabase.from("profiles").select("full_name, role, email").eq("id", user.id).maybeSingle();
+      const { data } = await supabase.from("profiles").select("full_name, role, email, avatar_url").eq("id", user.id).maybeSingle();
       setProfile(data || {
         full_name: user.user_metadata?.full_name || "Friend",
         role: user.user_metadata?.role || "consumer",
         email: user.email || null,
+        avatar_url: user.user_metadata?.avatar_url || null,
       });
       setLoading(false);
     }
@@ -224,6 +225,10 @@ export default function ConsumerPage() {
   ];
 
   const setTab = (tab: typeof activeTab) => {
+    if (tab === "profile") {
+      router.replace("/profile");
+      return;
+    }
     setActiveTab(tab);
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (tab === "for-you" && !hasCompletedForYouOnboarding()) setShowForYouOnboard(true);
@@ -250,7 +255,13 @@ export default function ConsumerPage() {
             <circle cx="17.5" cy="12.5" r="1" fill="currentColor" stroke="none" />
           </svg>
         </Link>
-        <button type="button" className="savis-avatar-button" onClick={() => setTab("profile")} aria-label="Open profile">{profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}</button>
+        <button type="button" className="savis-avatar-button" onClick={() => setTab("profile")} aria-label="Open profile" style={{ overflow: "hidden", padding: 0 }}>
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"
+          )}
+        </button>
       </div></header>
 
       {activeTab === "home" && <div className="savis-app-content">
@@ -276,8 +287,6 @@ export default function ConsumerPage() {
             <Link key={p.id} href={"/consumer/provider/" + p.id} className="savis-provider-row"><div className="savis-provider-row-avatar">{p.avatarUrl ? <img src={p.avatarUrl} alt="" loading="lazy" /> : <span>{p.name.charAt(0)}</span>}<i className={p.available?.toLowerCase().includes("now") || p.available?.toLowerCase().includes("today") ? "is-online" : ""} /></div><div className="savis-provider-row-main"><div className="savis-provider-row-line1"><b>{p.name}</b><span className="savis-provider-row-rating">★ {p.rating ? p.rating.toFixed(1) : "New"}</span></div><div className="savis-provider-row-line2">{p.skill} · {p.km.toFixed(1)} km</div><div className="savis-provider-row-line3">{p.verified !== false ? <em>Verified Fundi</em> : <em>SAVIS Provider</em>}<span>· {p.area}</span></div></div><span className="savis-provider-row-action">VIEW</span></Link>
           ))}</div></section>
         <section className="savis-fy-section"><h2>Browse by category</h2><div className="savis-fy-cat-grid">{INTEREST_OPTIONS.map((opt) => (<button key={opt.id} type="button" className="savis-fy-cat-card" onClick={() => { const primary = opt.tags[0] || opt.label; setActiveCategory(primary); setSearch(""); setTab("home"); }}><span className="savis-fy-cat-visual" aria-hidden="true"><CategoryIcon id={opt.icon} /></span><span className="savis-fy-cat-body"><b>{opt.label}</b><small>View listings →</small></span></button>))}</div></section>
-        {FEATURE_FLAGS.shortVideosBanner && (<section className="savis-red-panel"><b>COMING SOON</b><h2>Short videos from local businesses</h2><p>See work in progress, product demos and finished projects, then save or hire directly.</p></section>)}
-        <ForYouOnboarding open={showForYouOnboard} onDone={(ids) => { setForYouInterestsState(ids); setShowForYouOnboard(false); }} />
       </div>}
 
       {activeTab === "jobs" && <div className="savis-app-content"><section className="savis-page-title"><span>TRACKING</span><h1>Jobs</h1><p>Follow your active work, quotes and service history.</p></section><Link href="/bookings" className="savis-wide-action">OPEN FULL BOOKINGS <span>→</span></Link>{bookings.slice(0,4).map((booking) => <Link key={booking.id} href="/bookings" className="savis-job-modern"><div><b>{booking.providerName}</b><p>{booking.skill} · #SV-{booking.id.slice(-4)}</p></div><span>{booking.status.replace("_"," ")}</span><div className="savis-job-progress"><i style={{width: (progress(booking.status) + "%")}} /></div></Link>)}{bookings.length === 0 && <div className="savis-empty-state"><b>No active jobs yet</b><p>When you request a provider, live progress will appear here.</p></div>}</div>}
@@ -286,12 +295,7 @@ export default function ConsumerPage() {
         <div className="savis-message-cards"><Link href="/messages" className="savis-message-card"><span>💬</span><b>Enquiries</b><small>Provider chats</small></Link><Link href="/consumer/payments" className="savis-message-card"><span>💳</span><b>Payments</b><small>M-Pesa / wallet</small></Link><Link href="/bookings" className="savis-message-card"><span>🔔</span><b>Alerts</b><small>Quotes & milestones</small></Link></div>
         <section className="savis-modern-panel"><div className="savis-panel-heading"><b>Recent activity</b><span>SECURE</span></div>{bookings.slice(0,4).map((b) => <Link key={b.id} href="/bookings" className="savis-message-row"><div><b>{b.providerName}</b><p>{b.skill} · {b.description.slice(0,50)}</p></div><span>{b.status.replace("_"," ")}</span></Link>)}{bookings.length === 0 && conversations.length === 0 && <div className="savis-empty-state">Your provider conversations and payment alerts will appear here.</div>}</section></div>}
 
-      {activeTab === "profile" && <div className="savis-app-content">
-        <section className="savis-profile-modern"><div className="savis-profile-avatar-large">{profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}</div><div><span>ACCOUNT</span><h1>{profile?.full_name || "Your SAVIS profile"}</h1><p>{profile?.email || "Consumer"} · SAVIS member</p></div><Link href="/profile/edit" className="savis-outline-button">EDIT</Link></section>
-        <div className="savis-profile-grid">{[["✏️","Edit profile & photo","Name, photo, location","/profile/edit"],["⚙️","Settings","Appearance, language, notifications","/settings"],["📋","Bookings & receipts","History and reviews","/bookings"],["💳","Payments","Wallet and M-Pesa","/consumer/payments"]].map(([icon,title,desc,href]) => (<Link key={title} href={href} className="savis-profile-action"><span>{icon}</span><div><b>{title}</b><small>{desc}</small></div><strong>→</strong></Link>))}</div>
-        <section className="savis-wallet-modern"><span>SAVIS WALLET</span><strong>Ready for M-Pesa & escrow</strong><p>Payment protection will appear here when live payments go on.</p></section>
-        <button type="button" onClick={() => void handleLogout()} className="w-full mt-6 py-3.5 rounded-full border border-white/15 text-[#ff8a8d] font-black">Log out</button>
-      </div>}
+      {/* Profile is the dedicated /profile route — no internal tab to avoid dual UI / overlap */}
 
       <SavisOnboarding open={showTutorial} onClose={() => setShowTutorial(false)} />
       {mapMode && <div className="fixed inset-0 z-[70] bg-[#11171c]"><SavisMap center={mapCenter} providers={filtered} fullScreen radiusKm={radius} selectedProviderId={selectedMapProvider?.id || null} onSelect={setSelectedMapProvider} /><div className="savis-map-overlay-head"><Logo size="sm" /><button type="button" onClick={() => setMapMode(false)}>Close ✕</button></div><div className="savis-map-overlay-foot"><b>{filtered.length} providers in view</b><button type="button" onClick={enableLocation}>Recenter</button></div></div>}
