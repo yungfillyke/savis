@@ -64,19 +64,27 @@ function rowToBooking(row: Record<string, unknown>): Booking {
     consumerId: row.consumer_id ? String(row.consumer_id) : undefined,
     latitude: row.latitude == null ? undefined : Number(row.latitude),
     longitude: row.longitude == null ? undefined : Number(row.longitude),
-    locationAccuracy: row.location_accuracy == null ? undefined : Number(row.location_accuracy),
+    locationAccuracy:
+      row.location_accuracy == null ? undefined : Number(row.location_accuracy),
     scheduledFor: row.scheduled_for ? String(row.scheduled_for) : undefined,
   };
 }
 
 /** Load all jobs (newest first). Tries Supabase, falls back to local. */
-export async function fetchBookings(scope: "all" | "consumer" = "all"): Promise<Booking[]> {
+export async function fetchBookings(
+  scope: "all" | "consumer" = "all"
+): Promise<Booking[]> {
   try {
     const supabase = createClient();
-    let query = supabase.from("jobs").select("*").order("created_at", { ascending: false });
+    let query = supabase
+      .from("jobs")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (scope === "consumer") {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return [];
       query = query.eq("consumer_id", user.id);
     }
@@ -109,7 +117,6 @@ export async function addBooking(
     /* ignore */
   }
 
-  // Try Supabase insert
   try {
     const baseInsert = {
       consumer_id: consumerId || null,
@@ -136,7 +143,11 @@ export async function addBooking(
       .single();
 
     if (error) {
-      const retry = await supabase.from("jobs").insert(baseInsert).select("*").single();
+      const retry = await supabase
+        .from("jobs")
+        .insert(baseInsert)
+        .select("*")
+        .single();
       data = retry.data;
       error = retry.error;
     }
@@ -152,7 +163,6 @@ export async function addBooking(
     /* fall through to local */
   }
 
-  // Local fallback
   const local: Booking = {
     ...booking,
     id: Date.now().toString(),
@@ -172,8 +182,9 @@ export async function updateBookingStatus(
   note?: string,
   location?: { latitude?: number; longitude?: number }
 ): Promise<void> {
-  // Keep the UI responsive while the secure Supabase transition runs.
-  const optimistic = fromLocal().map((b) => b.id === id ? { ...b, status } : b);
+  const optimistic = fromLocal().map((b) =>
+    b.id === id ? { ...b, status } : b
+  );
   saveLocal(optimistic);
 
   try {
@@ -198,11 +209,15 @@ export async function updateBookingStatus(
 }
 
 export function getOpenRequests(): Booking[] {
-  return fromLocal().filter((b) => b.status === "requested");
+  return fromLocal().filter(
+    (b) => b.status === "requested" || b.status === "quote_pending"
+  );
 }
 
 export function getAcceptedJobs(): Booking[] {
-  return fromLocal().filter((b) => b.status === "accepted");
+  return fromLocal().filter((b) =>
+    ["accepted", "en_route", "in_progress"].includes(b.status)
+  );
 }
 
 /** Pull latest from server into local cache */
@@ -211,12 +226,17 @@ export async function syncBookings(): Promise<Booking[]> {
   if (remote.length > 0 || fromLocal().length === 0) {
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.from("jobs").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*")
+        .order("created_at", { ascending: false });
       if (!error && data) {
         saveLocal(data.map(rowToBooking));
         return data.map(rowToBooking);
       }
-    } catch { /* keep local */ }
+    } catch {
+      /* keep local */
+    }
   }
   return fromLocal();
 }
