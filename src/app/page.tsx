@@ -134,7 +134,6 @@ export default function HomePage() {
   const [items, setItems] = useState<Provider[]>(DEMO);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
-  // Default Nairobi centre for public discovery (no guest location prompt)
   const coords = { latitude: -1.286389, longitude: 36.817223 };
 
   useEffect(() => {
@@ -257,14 +256,14 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-          {/* Hero art — will accept vignette-blended photos next */}
+          {/* Original SAVIS art — vignette soft-blends into the card */}
           <div className="savis-hero-art" aria-hidden="true">
-            <span className="savis-art-phone">▣</span>
-            <span className="savis-art-tools">🔧</span>
-            <span className="savis-art-camera">▣</span>
-            <span className="savis-art-headphones">◉</span>
-            <span className="savis-art-bricks">▦</span>
-            <span className="savis-art-ring" />
+            <div
+              className="savis-hero-art-photo"
+              style={{
+                backgroundImage: "url(/images/hero-services.svg)",
+              }}
+            />
           </div>
         </section>
 
