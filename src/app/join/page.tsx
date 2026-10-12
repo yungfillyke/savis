@@ -21,22 +21,22 @@ const PROVIDER_CATEGORIES = [
 ];
 
 const PROVIDER_PERKS = [
-  "Get Verified Badge",
-  "Low Commission",
-  "Exclusive Jobs",
-  "Premium Support",
+  { title: "Verified badge", sub: "Build trust. Get more jobs." },
+  { title: "Low commission", sub: "Keep more of what you earn." },
+  { title: "Exclusive requests", sub: "Jobs matched to your skill." },
+  { title: "Protected payouts", sub: "Money released when work is done." },
 ];
 
 const CONSUMER_PERKS = [
-  "Trusted local providers",
-  "Protected payments",
-  "Quotes & messaging",
-  "Track jobs easily",
+  { title: "Trusted locals", sub: "Verified pros near you." },
+  { title: "Safe payments", sub: "Escrow until the job is complete." },
+  { title: "Quotes & chat", sub: "Compare offers before you book." },
+  { title: "Track every job", sub: "Status updates in one place." },
 ];
 
 export default function JoinPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("provider");
+  const [mode, setMode] = useState<Mode>("consumer");
   const [category, setCategory] = useState("Plumber");
   const [catOpen, setCatOpen] = useState(false);
 
@@ -49,224 +49,228 @@ export default function JoinPage() {
     return "/signup?role=consumer";
   }, [isProvider, category]);
 
-  function continueJoin() {
-    router.push(signupHref);
-  }
-
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-b from-[#e8f1f4] via-[#f4f8fa] to-[#eef3f6]">
-      <div className="w-full max-w-[400px]">
-        {/* Phone-style card matching the concept */}
-        <div className="rounded-[2rem] border border-[#c5d5dc]/60 bg-white shadow-[0_20px_60px_rgba(15,40,55,0.12)] overflow-hidden">
-          <div className="px-5 pt-6 pb-2 flex justify-center">
-            <Logo size="sm" showTagline={false} />
-          </div>
+    <main className="savis-app-shell min-h-screen">
+      <header className="savis-app-header">
+        <div
+          className="savis-app-header-inner"
+          style={{ gridTemplateColumns: "auto 1fr auto" }}
+        >
+          <Link href="/" className="savis-logo-button" aria-label="SAVIS home">
+            <Logo size="sm" />
+          </Link>
+          <div />
+          <Link
+            href="/login"
+            className="text-xs font-bold text-white/70 px-3 py-2 whitespace-nowrap hover:text-white"
+          >
+            Log in
+          </Link>
+        </div>
+      </header>
 
-          {/* Segmented control */}
-          <div className="px-5 pt-4">
-            <div
-              className="flex rounded-full bg-[#e8eef1] p-1"
-              role="tablist"
-              aria-label="Join as"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isProvider}
-                onClick={() => setMode("provider")}
-                className={`flex-1 rounded-full py-2.5 text-[0.7rem] font-black tracking-wide transition ${
-                  isProvider
-                    ? "bg-[#2a6b7a] text-white shadow-sm"
-                    : "text-[#5a6f78]"
-                }`}
-              >
-                BECOME A PROVIDER
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={!isProvider}
-                onClick={() => setMode("consumer")}
-                className={`flex-1 rounded-full py-2.5 text-[0.7rem] font-black tracking-wide transition ${
-                  !isProvider
-                    ? "bg-[#2a6b7a] text-white shadow-sm"
-                    : "text-[#5a6f78]"
-                }`}
-              >
-                JOIN AS CONSUMER
-              </button>
-            </div>
-          </div>
-
-          {/* Dynamic hero card */}
-          <div className="px-5 pt-4">
-            <div
-              className={`relative rounded-[1.4rem] overflow-hidden border ${
-                isProvider
-                  ? "border-[#b8d4dc] bg-gradient-to-br from-[#d4e8ee] via-[#c5dde6] to-[#a8c9d6]"
-                  : "border-[#d4c8e8] bg-gradient-to-br from-[#e8e0f4] via-[#ddd4f0] to-[#c8bce4]"
-              }`}
-            >
-              <div className="p-5 min-h-[180px] flex items-center justify-center relative">
-                {/* Soft city / network backdrop */}
-                <div
-                  aria-hidden
-                  className="absolute inset-0 opacity-30"
-                  style={{
-                    backgroundImage:
-                      "radial-gradient(circle at 20% 30%, rgba(255,255,255,.7) 0 1px, transparent 1.5px), radial-gradient(circle at 70% 60%, rgba(255,255,255,.5) 0 1px, transparent 1.5px)",
-                    backgroundSize: "40px 40px, 55px 55px",
-                  }}
-                />
-
-                {isProvider ? (
-                  <div className="relative z-[1] flex items-end gap-3 scale-[1.05]">
-                    <span className="text-4xl" aria-hidden>
-                      🧰
-                    </span>
-                    <span className="text-5xl" aria-hidden>
-                      💻
-                    </span>
-                    <span className="text-3xl self-start" aria-hidden>
-                      ☕
-                    </span>
-                  </div>
-                ) : (
-                  <div className="relative z-[1] flex items-end gap-3 scale-[1.05]">
-                    <span className="text-4xl" aria-hidden>
-                      🔍
-                    </span>
-                    <span className="text-5xl" aria-hidden>
-                      🏠
-                    </span>
-                    <span className="text-3xl self-start" aria-hidden>
-                      ⭐
-                    </span>
-                  </div>
-                )}
-
-                {/* Floating perk chips (right side, concept-style) */}
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2">
-                  {(isProvider
-                    ? [
-                        { icon: "✓", label: "Verified" },
-                        { icon: "$", label: "Fees" },
-                        { icon: "★", label: "Rewards" },
-                      ]
-                    : [
-                        { icon: "🛡", label: "Safe pay" },
-                        { icon: "📍", label: "Nearby" },
-                        { icon: "💬", label: "Chat" },
-                      ]
-                  ).map((chip) => (
-                    <div
-                      key={chip.label}
-                      className="flex items-center gap-1.5 rounded-full bg-white/90 border border-white shadow-sm pl-1.5 pr-2.5 py-1"
-                    >
-                      <span className="w-6 h-6 rounded-full bg-[#2a6b7a] text-white text-[0.65rem] font-black flex items-center justify-center">
-                        {chip.icon}
-                      </span>
-                      <span className="text-[0.62rem] font-bold text-[#2a4550]">
-                        {chip.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Category (provider only) + perks + CTA */}
-          <div className="px-5 pt-4 pb-6">
-            {isProvider && (
-              <div className="mb-3 relative">
-                <button
-                  type="button"
-                  onClick={() => setCatOpen((v) => !v)}
-                  className="w-full flex items-center justify-between rounded-2xl border border-[#d0dde3] bg-[#f7fafb] px-4 py-3 text-left"
-                >
-                  <span className="text-[0.7rem] font-black tracking-wide text-[#3a525c]">
-                    SELECTED CATEGORY:{" "}
-                    <span className="text-[#1a3038]">{category.toUpperCase()}</span>
-                  </span>
-                  <span className="text-[#5a6f78] text-xs">{catOpen ? "▴" : "▾"}</span>
-                </button>
-                {catOpen && (
-                  <div className="absolute z-20 left-0 right-0 mt-1 rounded-2xl border border-[#d0dde3] bg-white shadow-lg max-h-48 overflow-auto">
-                    {PROVIDER_CATEGORIES.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => {
-                          setCategory(c);
-                          setCatOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-sm font-semibold hover:bg-[#f0f6f8] ${
-                          c === category
-                            ? "text-[#2a6b7a] bg-[#eef6f8]"
-                            : "text-[#2a3d45]"
-                        }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <ul className="space-y-2 mb-5">
-              {(isProvider ? PROVIDER_PERKS : CONSUMER_PERKS).map((perk) => (
-                <li
-                  key={perk}
-                  className="flex items-center gap-2.5 text-sm font-semibold text-[#243840]"
-                >
-                  <span className="w-5 h-5 rounded-full bg-[#2a6b7a]/12 text-[#2a6b7a] flex items-center justify-center text-xs font-black shrink-0">
-                    ✓
-                  </span>
-                  {perk}
-                </li>
-              ))}
-            </ul>
-
-            <button
-              type="button"
-              onClick={continueJoin}
-              className="w-full rounded-full bg-[#2a6b7a] hover:bg-[#245f6c] text-white font-black text-sm py-3.5 tracking-wide shadow-md transition flex items-center justify-center gap-2"
-            >
-              {isProvider ? "JOIN SAVIS AS A PROVIDER" : "JOIN SAVIS AS A CONSUMER"}
-              <span aria-hidden>↑</span>
-            </button>
-
-            <p className="text-center text-[0.72rem] text-[#6a7f88] mt-4">
-              {isProvider ? (
-                <>
-                  Representing a Firm or Company?{" "}
-                  <Link
-                    href="/signup?role=provider&type=business"
-                    className="font-bold text-[#2a6b7a] underline underline-offset-2"
-                  >
-                    Work with SAVIS
-                  </Link>
-                  .
-                </>
-              ) : (
-                <>
-                  Already have an account?{" "}
-                  <Link
-                    href="/login"
-                    className="font-bold text-[#2a6b7a] underline underline-offset-2"
-                  >
-                    Log in
-                  </Link>
-                </>
-              )}
-            </p>
-          </div>
+      <div className="savis-app-content max-w-lg mx-auto pb-16">
+        <div className="text-center mb-6 pt-2">
+          <span className="savis-red-pill">JOIN SAVIS</span>
+          <h1 className="mt-4 text-[1.75rem] sm:text-[2rem] font-black tracking-tight leading-tight">
+            How do you want to
+            <br />
+            <strong className="text-[#ff2a32]">use SAVIS?</strong>
+          </h1>
+          <p className="mt-2 text-sm text-white/55 max-w-sm mx-auto">
+            Pick a path. You can always switch later from settings.
+          </p>
         </div>
 
-        <p className="text-center mt-5">
-          <Link href="/" className="text-sm font-semibold text-[#5a6f78] hover:text-[#2a4550]">
+        {/* Segmented control — red active */}
+        <div
+          className="flex rounded-2xl border border-white/12 p-1 mb-5"
+          style={{ background: "rgba(255,255,255,0.04)" }}
+          role="tablist"
+          aria-label="Join as"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isProvider}
+            onClick={() => setMode("consumer")}
+            className={`flex-1 rounded-xl py-3 text-[0.72rem] font-black tracking-wide transition ${
+              !isProvider
+                ? "bg-gradient-to-r from-[#E22227] to-[#C7080C] text-white shadow-lg shadow-red-900/40"
+                : "text-white/50 hover:text-white/80"
+            }`}
+          >
+            JOIN AS CONSUMER
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isProvider}
+            onClick={() => setMode("provider")}
+            className={`flex-1 rounded-xl py-3 text-[0.72rem] font-black tracking-wide transition ${
+              isProvider
+                ? "bg-gradient-to-r from-[#E22227] to-[#C7080C] text-white shadow-lg shadow-red-900/40"
+                : "text-white/50 hover:text-white/80"
+            }`}
+          >
+            BECOME A PROVIDER
+          </button>
+        </div>
+
+        {/* Dynamic preview card */}
+        <section
+          className="relative overflow-hidden rounded-[24px] border border-white/12 mb-4"
+          style={{
+            background:
+              "linear-gradient(145deg, rgba(22,26,30,0.95), rgba(12,14,16,0.98))",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.35)",
+          }}
+        >
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full blur-3xl"
+            style={{
+              background: isProvider
+                ? "rgba(226,34,39,0.35)"
+                : "rgba(245,196,81,0.18)",
+            }}
+          />
+          <div className="relative p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[0.65rem] font-black tracking-[0.16em] text-[#F5C451]">
+                  {isProvider ? "EARN ON SAVIS" : "BOOK WITH CONFIDENCE"}
+                </p>
+                <h2 className="mt-1.5 text-xl font-black leading-snug">
+                  {isProvider
+                    ? "Get real jobs.\nGet paid safely."
+                    : "Find pros near you.\nPay only when done."}
+                </h2>
+              </div>
+              <div
+                className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center text-2xl border border-white/10"
+                style={{
+                  background: isProvider
+                    ? "linear-gradient(135deg,#E22227,#6c0102)"
+                    : "linear-gradient(135deg,#2a3238,#111417)",
+                }}
+                aria-hidden
+              >
+                {isProvider ? "🔧" : "📍"}
+              </div>
+            </div>
+
+            {/* Compact trust chips */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {(isProvider
+                ? ["Verified", "Low fees", "Weekly payouts"]
+                : ["Escrow", "Nearby", "Chat"]
+              ).map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-[0.68rem] font-bold text-white/80"
+                >
+                  <i className="w-1.5 h-1.5 rounded-full bg-[#E22227]" />
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Category — provider only */}
+        {isProvider && (
+          <div className="relative mb-4">
+            <button
+              type="button"
+              onClick={() => setCatOpen((v) => !v)}
+              className="w-full flex items-center justify-between rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-3.5 text-left hover:border-white/20 transition"
+            >
+              <span className="text-[0.7rem] font-bold text-white/45 tracking-wide">
+                YOUR CATEGORY{" "}
+                <span className="text-white font-black ml-1">
+                  {category.toUpperCase()}
+                </span>
+              </span>
+              <span className="text-white/40 text-xs">{catOpen ? "▴" : "▾"}</span>
+            </button>
+            {catOpen && (
+              <div className="absolute z-20 left-0 right-0 mt-1.5 rounded-2xl border border-white/12 bg-[#12161a] shadow-2xl max-h-52 overflow-auto">
+                {PROVIDER_CATEGORIES.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      setCategory(c);
+                      setCatOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm font-semibold transition ${
+                      c === category
+                        ? "bg-[#E22227]/15 text-[#ff6b6f]"
+                        : "text-white/75 hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Perks */}
+        <ul className="space-y-2.5 mb-6">
+          {(isProvider ? PROVIDER_PERKS : CONSUMER_PERKS).map((perk) => (
+            <li
+              key={perk.title}
+              className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3.5 py-3"
+            >
+              <span className="mt-0.5 w-5 h-5 rounded-full bg-[#E22227]/15 text-[#ff4d52] flex items-center justify-center text-[0.65rem] font-black shrink-0">
+                ✓
+              </span>
+              <div>
+                <p className="text-sm font-bold text-white">{perk.title}</p>
+                <p className="text-[0.72rem] text-white/45 mt-0.5">{perk.sub}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <button
+          type="button"
+          onClick={() => router.push(signupHref)}
+          className="savis-primary-button w-full justify-center text-sm py-3.5"
+        >
+          {isProvider ? "Continue as Provider" : "Continue as Consumer"}
+          <span>→</span>
+        </button>
+
+        <p className="text-center text-[0.75rem] text-white/40 mt-4">
+          {isProvider ? (
+            <>
+              Representing a firm or company?{" "}
+              <Link
+                href="/signup?role=provider&type=business"
+                className="font-bold text-[#F5C451] hover:underline"
+              >
+                Work with SAVIS
+              </Link>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <Link href="/login" className="font-bold text-[#F5C451] hover:underline">
+                Log in
+              </Link>
+            </>
+          )}
+        </p>
+
+        <p className="text-center mt-6">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-white/40 hover:text-white/70"
+          >
             ← Back to browse
           </Link>
         </p>
