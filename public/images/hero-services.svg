@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" fill="none" role="img" aria-label="SAVIS local service professionals">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2a080a"/>
+      <stop offset="55%" stop-color="#120608"/>
+      <stop offset="100%" stop-color="#050607"/>
+    </linearGradient>
+    <linearGradient id="skinA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8a07a"/>
+      <stop offset="100%" stop-color="#c47850"/>
+    </linearGradient>
+    <linearGradient id="skinB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8b5a3c"/>
+      <stop offset="100%" stop-color="#5c3a28"/>
+    </linearGradient>
+    <linearGradient id="skinC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4926a"/>
+      <stop offset="100%" stop-color="#a86b45"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff2d35"/>
+      <stop offset="100%" stop-color="#9a0609"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a3238"/>
+      <stop offset="100%" stop-color="#12161a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5c451"/>
+      <stop offset="100%" stop-color="#c9962a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="70%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#e22227" stop-opacity=".45"/>
+      <stop offset="100%" stop-color="#e22227" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- soft backdrop glow -->
+  <rect width="640" height="520" fill="url(#bg)"/>
+  <ellipse cx="420" cy="200" rx="260" ry="200" fill="url(#glow)"/>
+
+  <!-- back row figure: painter -->
+  <g transform="translate(70,40)">
+    <ellipse cx="70" cy="70" rx="48" ry="52" fill="url(#skinB)"/>
+    <path d="M22 55c8-28 40-40 70-28 12 5 22 18 26 32v40H22V55z" fill="#1a1e22"/>
+    <rect x="28" y="110" width="90" height="130" rx="18" fill="url(#dark)"/>
+    <rect x="28" y="110" width="90" height="28" fill="#e22227" opacity=".85"/>
+    <!-- paint roller -->
+    <rect x="95" y="20" width="14" height="70" rx="4" fill="#55666e" transform="rotate(-25 102 55)"/>
+    <rect x="78" y="8" width="48" height="18" rx="6" fill="url(#gold)" transform="rotate(-25 102 17)"/>
+  </g>
+
+  <!-- mid-left: technician -->
+  <g transform="translate(180,90)">
+    <ellipse cx="55" cy="58" rx="44" ry="48" fill="url(#skinA)"/>
+    <path d="M18 48c10-24 36-34 62-24 14 6 22 18 26 30v36H18V48z" fill="#2a1214"/>
+    <path d="M12 115h90c6 0 12 8 12 16v100H0V131c0-8 6-16 12-16z" fill="url(#red)"/>
+    <path d="M20 115h74v22H20z" fill="#fff" opacity=".12"/>
+    <!-- wrench -->
+    <path d="M88 175l28-28 10 10-18 18 14 14-12 12-14-14-18 18-10-10 18-18-8-8z" fill="url(#gold)"/>
+  </g>
+
+  <!-- front-left: care / support -->
+  <g transform="translate(40,200)">
+    <ellipse cx="50" cy="52" rx="42" ry="46" fill="url(#skinC)"/>
+    <path d="M16 42c8-22 32-32 56-22 12 5 20 16 24 28v34H16V42z" fill="#1c1012"/>
+    <path d="M8 110h88c5 0 10 6 10 12v120H-2V122c0-6 5-12 10-12z" fill="url(#dark)"/>
+    <circle cx="50" cy="150" r="14" fill="#e22227" opacity=".9"/>
+    <path d="M50 140v20M40 150h20" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- center hero: main provider -->
+  <g transform="translate(280,70)">
+    <ellipse cx="70" cy="65" rx="52" ry="56" fill="url(#skinA)"/>
+    <path d="M20 55c12-30 48-42 80-28 16 7 28 22 32 40v42H20V55z" fill="#140a0b"/>
+    <path d="M8 125h128c8 0 16 10 16 20v160H-8V145c0-10 8-20 16-20z" fill="url(#red)"/>
+    <path d="M8 125h128v32H8z" fill="#fff" opacity=".1"/>
+    <!-- tablet / device -->
+    <rect x="95" y="175" width="70" height="52" rx="8" fill="#0b0c0e" stroke="#f5c451" stroke-width="2"/>
+    <rect x="102" y="183" width="56" height="30" rx="3" fill="#1a2228"/>
+    <circle cx="130" cy="218" r="3" fill="#e22227"/>
+  </g>
+
+  <!-- right: builder / field tech -->
+  <g transform="translate(430,110)">
+    <ellipse cx="58" cy="55" rx="46" ry="50" fill="url(#skinB)"/>
+    <!-- hard hat -->
+    <path d="M18 48c8-28 40-40 72-24 8 4 14 12 16 22H18z" fill="url(#gold)"/>
+    <ellipse cx="54" cy="48" rx="40" ry="10" fill="#c9962a"/>
+    <path d="M10 115h100c6 0 12 8 12 16v130H-2V131c0-8 6-16 12-16z" fill="url(#dark)"/>
+    <path d="M10 115h100v24H10z" fill="#e22227" opacity=".75"/>
+    <!-- tool bag hint -->
+    <rect x="70" y="200" width="50" height="40" rx="6" fill="#1a1e22" stroke="#f5c451" stroke-width="1.5"/>
+    <path d="M78 200v-12h34v12" stroke="#f5c451" stroke-width="2" fill="none"/>
+  </g>
+
+  <!-- soft bottom vignette already in CSS; slight base shadow -->
+  <rect y="420" width="640" height="100" fill="url(#bg)" opacity=".55"/>
+</svg>
