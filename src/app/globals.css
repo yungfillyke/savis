@@ -313,9 +313,9 @@ textarea {
 .savis-icon-button b{position:absolute;right:5px;top:4px;width:8px;height:8px;border-radius:50%;background:#e22227;box-shadow:0 0 0 3px rgba(226,34,39,.16)}
 .savis-avatar-button{width:42px;height:42px;border-radius:50%;font-weight:900;background:linear-gradient(135deg,#252c31,#080a0c);border:2px solid rgba(255,255,255,.28);box-shadow:0 0 0 2px rgba(226,34,39,.22);overflow:hidden}
 .savis-app-content{width:min(1120px,100%);margin:auto;padding:20px 14px 28px}
-.savis-hero-card{position:relative;min-height:320px;overflow:hidden;border-radius:28px;border:1px solid rgba(255,255,255,.19);background:linear-gradient(110deg,rgba(16,20,24,.97),rgba(20,25,29,.78));box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.1);display:flex;align-items:center}
+.savis-hero-card{position:relative;min-height:320px;overflow:hidden;border-radius:28px;border:1px solid rgba(255,255,255,.19);background:linear-gradient(90deg,#101418 0%,#12171b 42%,rgba(18,23,27,.92) 58%,rgba(18,23,27,.35) 100%);box-shadow:0 24px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.1);display:flex;align-items:center}
 .savis-hero-card:before{content:"";position:absolute;inset:auto -10% -58% 34%;height:85%;background:radial-gradient(circle,rgba(226,34,39,.82),rgba(226,34,39,.08) 42%,transparent 70%);filter:blur(6px)}
-.savis-hero-copy{position:relative;z-index:2;width:52%;padding:28px 22px 28px 28px}
+.savis-hero-copy{position:relative;z-index:2;width:50%;padding:28px 18px 28px 28px}
 .savis-red-pill{display:inline-flex;padding:6px 12px;border-radius:999px;background:linear-gradient(135deg,#f12b32,#b8070d);font-size:.76rem;font-weight:900;box-shadow:0 8px 20px rgba(226,34,39,.32)}
 .savis-hero-copy h1{margin:12px 0 0;font-size:clamp(2rem,4vw,3.4rem);line-height:1.02;letter-spacing:-.045em}
 .savis-hero-copy h1 strong{color:#ff2a32}
@@ -323,7 +323,7 @@ textarea {
 .savis-primary-button,.savis-view-button{border:0;cursor:pointer;color:#fff;background:linear-gradient(135deg,#ff2d35,#c90910);box-shadow:0 9px 22px rgba(226,34,39,.32);font-weight:900}
 .savis-primary-button{padding:13px 18px;border-radius:999px;font-size:.8rem}
 .savis-primary-button span{margin-left:16px;font-size:1.15rem}
-.savis-hero-art{position:absolute;right:2%;bottom:-5%;width:52%;height:100%;filter:drop-shadow(0 20px 35px rgba(0,0,0,.4))}
+.savis-hero-art{position:absolute;right:0;top:0;bottom:0;width:56%;height:100%;pointer-events:none;z-index:1}
 .savis-hero-art:before{content:"";position:absolute;right:8%;bottom:15%;width:72%;height:48%;border-radius:45% 55% 35% 65%;background:linear-gradient(145deg,#4a0b0d,#121619 48%,#050608);border:1px solid rgba(255,52,59,.52);box-shadow:0 0 40px rgba(226,34,39,.5),inset 0 0 30px rgba(226,34,39,.14);transform:rotate(-7deg)}
 .savis-hero-art span{position:absolute;z-index:2;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);background:linear-gradient(145deg,#30383f,#111417);box-shadow:0 14px 25px rgba(0,0,0,.45);color:#fff}
 .savis-art-phone{right:40%;top:20%;width:70px;height:116px;border-radius:15px;font-size:30px;transform:rotate(-12deg)}
