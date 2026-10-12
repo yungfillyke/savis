@@ -261,7 +261,7 @@ export default function HomePage() {
             <div
               className="savis-hero-art-photo"
               style={{
-                backgroundImage: "url(/images/hero-services.svg)",
+                backgroundImage: "url(/images/savis-services-hero.jpg)",
               }}
             />
           </div>
