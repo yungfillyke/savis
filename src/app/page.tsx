@@ -140,7 +140,6 @@ export default function HomePage() {
   });
   const [locLabel, setLocLabel] = useState("Nairobi");
 
-  // Logged-in members go straight to the consumer home
   useEffect(() => {
     const s = createClient();
     void s.auth.getSession().then(({ data }) => {
@@ -203,16 +202,13 @@ export default function HomePage() {
         });
         setLocLabel("Near you");
       },
-      () => {
-        /* keep Nairobi default */
-      },
+      () => {},
       { enableHighAccuracy: true, timeout: 12000 }
     );
   }
 
   return (
     <main className="savis-app-shell min-h-screen pb-24">
-      {/* Same header shell as consumer — public actions only */}
       <header className="savis-app-header">
         <div
           className="savis-app-header-inner"
@@ -244,7 +240,7 @@ export default function HomePage() {
             Log in
           </Link>
           <Link
-            href="/signup?role=consumer"
+            href="/join"
             className="rounded-full bg-gradient-to-r from-[#E22227] to-[#C7080C] px-3 py-2 text-xs font-black text-white whitespace-nowrap"
           >
             Join
@@ -253,7 +249,6 @@ export default function HomePage() {
       </header>
 
       <div className="savis-app-content">
-        {/* Hero — same language as consumer home */}
         <section className="savis-hero-card">
           <div className="savis-hero-copy">
             <span className="savis-red-pill">SAVIS</span>
@@ -297,12 +292,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Same category system as consumer */}
         <CategoryStrip
           activeSubId={
-            cat
-              ? cat.toLowerCase().replace(/\s+/g, "-")
-              : undefined
+            cat ? cat.toLowerCase().replace(/\s+/g, "-") : undefined
           }
           onSelectSub={(sub) => {
             const primary = sub.tags[0] || sub.label;
@@ -318,7 +310,6 @@ export default function HomePage() {
           }}
         />
 
-        {/* People near you — identical row style to consumer */}
         <section id="nearby-results" className="savis-provider-section">
           <div className="savis-section-heading">
             <div>
@@ -426,7 +417,6 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* Soft membership CTA — no fake messages/profile */}
         <section
           className="mt-6 mb-4 rounded-[20px] border border-white/10 p-5"
           style={{ background: "rgba(255,255,255,0.04)" }}
@@ -443,7 +433,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap gap-2 mt-4">
             <Link
-              href="/signup?role=consumer"
+              href="/join"
               className="rounded-full bg-gradient-to-r from-[#E22227] to-[#C7080C] px-5 py-2.5 text-sm font-black text-white"
             >
               Create free account
@@ -455,7 +445,7 @@ export default function HomePage() {
               Log in
             </Link>
             <Link
-              href="/signup?role=provider"
+              href="/join"
               className="rounded-full border border-[#F5C451]/30 px-5 py-2.5 text-sm font-bold text-[#F5C451]"
             >
               Offer services
@@ -481,7 +471,6 @@ export default function HomePage() {
         </footer>
       </div>
 
-      {/* Minimal sticky bar — no Profile / Messages */}
       <div
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 px-4 py-3"
         style={{
@@ -498,7 +487,7 @@ export default function HomePage() {
             </span>
           </p>
           <Link
-            href="/signup?role=consumer"
+            href="/join"
             className="shrink-0 rounded-full bg-gradient-to-r from-[#E22227] to-[#C7080C] px-4 py-2.5 text-xs font-black text-white"
           >
             Get started
