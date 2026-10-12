@@ -5,6 +5,7 @@ import "./savis-categories.css";
 import "./savis-provider-list.css";
 import "./savis-actions.css";
 import "./savis-foryou.css";
+import "./savis-hero.css";
 import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
