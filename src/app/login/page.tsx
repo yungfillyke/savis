@@ -138,7 +138,7 @@ function LoginForm() {
 
         <p className="text-center text-sm text-[#B9C3C9] mt-6">
           Don't have an account yet?{" "}
-          <Link href="/signup" className="text-[#F5C451] font-bold">
+          <Link href="/join" className="text-[#F5C451] font-bold">
             Sign up
           </Link>
         </p>
