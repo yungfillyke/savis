@@ -134,11 +134,8 @@ export default function HomePage() {
   const [items, setItems] = useState<Provider[]>(DEMO);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
-  const [coords, setCoords] = useState({
-    latitude: -1.286389,
-    longitude: 36.817223,
-  });
-  const [locLabel, setLocLabel] = useState("Nairobi");
+  // Default Nairobi centre for public discovery (no guest location prompt)
+  const coords = { latitude: -1.286389, longitude: 36.817223 };
 
   useEffect(() => {
     const s = createClient();
@@ -184,28 +181,13 @@ export default function HomePage() {
     return () => {
       stop = true;
     };
-  }, [coords, cat, q]);
+  }, [cat, q]);
 
   const filtered = useMemo(() => {
     return [...items].sort(
       (a, b) => a.km - b.km || a.name.localeCompare(b.name)
     );
   }, [items]);
-
-  function enableLocation() {
-    if (!("geolocation" in navigator)) return;
-    navigator.geolocation.getCurrentPosition(
-      (p) => {
-        setCoords({
-          latitude: p.coords.latitude,
-          longitude: p.coords.longitude,
-        });
-        setLocLabel("Near you");
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 12000 }
-    );
-  }
 
   return (
     <main className="savis-app-shell min-h-screen pb-24">
@@ -273,15 +255,9 @@ export default function HomePage() {
               >
                 BROWSE NOW <span>→</span>
               </button>
-              <button
-                type="button"
-                onClick={enableLocation}
-                className="rounded-full border border-white/15 px-4 py-2.5 text-xs font-bold text-white/80"
-              >
-                📍 {locLabel === "Near you" ? "Location on" : "Use my location"}
-              </button>
             </div>
           </div>
+          {/* Hero art — will accept vignette-blended photos next */}
           <div className="savis-hero-art" aria-hidden="true">
             <span className="savis-art-phone">▣</span>
             <span className="savis-art-tools">🔧</span>
