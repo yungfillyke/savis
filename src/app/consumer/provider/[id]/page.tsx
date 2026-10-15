@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
 import Button from "@/components/Button";
 import { addBooking } from "@/lib/bookings";
-import { getBalance, holdForJob } from "@/lib/wallet";
+import { getBalance } from "@/lib/wallet";
 import { getSavedLocation, distanceKm } from "@/lib/location";
 
 type Provider = {
@@ -128,13 +128,6 @@ export default function ProviderDetailPage() {
       return;
     }
 
-    const hold = holdForJob(provider.rate, "pending", `Hold for ${provider.name}`);
-    if (!hold.ok) {
-      setError(hold.message + " Top up from Profile (sample).");
-      return;
-    }
-
-    setBalance(getBalance());
     try {
       const currentLocation = getSavedLocation();
       await addBooking({
@@ -170,7 +163,7 @@ export default function ProviderDetailPage() {
         <div className="w-full max-w-md text-center">
           <div className="text-5xl mb-4">✅</div>
           <h1 className="text-2xl font-extrabold mb-2">Request sent</h1>
-          <p className="text-[#B9C3C9] text-sm mb-6">Your request was sent to <strong className="text-white">{provider.name}</strong>. Funds are held in SAVIS Wallet escrow. (Prototype — no real M-Pesa charge.)</p>
+          <p className="text-[#B9C3C9] text-sm mb-6">Your request was sent to <strong className="text-white">{provider.name}</strong>. No payment has been taken. The provider can review your request and respond through SAVIS.</p>
           <Link href="/consumer"><Button full>Back to Home</Button></Link>
           <Link href="/bookings" className="block mt-3"><Button variant="outline" full>View my bookings</Button></Link>
         </div>
@@ -222,7 +215,7 @@ export default function ProviderDetailPage() {
         ) : (
           <form onSubmit={handleSend} className="space-y-4">
             <h2 className="font-extrabold text-lg">Describe your job</h2>
-            <p className="text-sm text-[#B9C3C9]">Sending request to {provider.name}</p>
+            <p className="text-sm text-[#B9C3C9]">Sending an enquiry to {provider.name}. You will not be charged to ask for a quote.</p>
 
             <div>
               <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">What is the problem?</label>
