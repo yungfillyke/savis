@@ -152,28 +152,21 @@ export async function addBooking(
       error = retry.error;
     }
 
-    if (!error && data) {
-      const b = rowToBooking(data);
-      const list = fromLocal();
-      list.unshift(b);
-      saveLocal(list);
-      return b;
-    }
-  } catch {
-    /* fall through to local */
+    if (error) throw error;
+    if (!data) throw new Error("SAVIS could not save your request. Please try again.");
+    const saved = rowToBooking(data);
+    const list = fromLocal();
+    list.unshift(saved);
+    saveLocal(list);
+    return saved;
+  } catch (error) {
+    // Do not report a successful enquiry unless Supabase actually saved it.
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "SAVIS could not save your request. Check your connection and try again."
+    );
   }
-
-  const local: Booking = {
-    ...booking,
-    id: Date.now().toString(),
-    status: "requested",
-    createdAt: new Date().toISOString(),
-    consumerId,
-  };
-  const list = fromLocal();
-  list.unshift(local);
-  saveLocal(list);
-  return local;
 }
 
 export async function updateBookingStatus(
