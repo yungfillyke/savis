@@ -228,6 +228,57 @@ export default function EditProfilePage() {
             />
           </div>
 
+          {["provider", "professional"].includes(role.toLowerCase()) && (
+            <section className="rounded-2xl border border-[#F5C451]/20 bg-white/[0.03] p-4 space-y-4">
+              <div>
+                <h2 className="font-black text-white">Provider discovery details</h2>
+                <p className="mt-1 text-xs leading-relaxed text-white/60">
+                  Add your service and location so customers can find you. You will only appear in discovery after SAVIS verifies your account.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">SERVICE CATEGORY</label>
+                <select
+                  value={serviceCategory}
+                  onChange={(e) => setServiceCategory(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl bg-[#171717] border border-white/15 text-white outline-none"
+                >
+                  <option value="">Choose your service</option>
+                  {["Plumbing", "Electrical", "Masonry", "Carpentry", "Cleaning", "Painting", "Mechanics", "Tailoring", "Photography", "Architecture", "Engineering", "Legal", "Other"].map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">STARTING RATE (KSH)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={hourlyRate}
+                  onChange={(e) => setHourlyRate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl bg-black/35 border border-white/15 text-white outline-none"
+                  placeholder="e.g. 1500"
+                />
+                <p className="mt-1 text-xs text-white/45">Use your starting price; agree the final quote with the customer.</p>
+              </div>
+              <div className="rounded-xl bg-black/20 p-3">
+                <p className="text-sm font-semibold text-white">
+                  {coordinates ? "✓ Service coordinates saved" : "Service coordinates not set"}
+                </p>
+                {coordinates && <p className="mt-1 text-xs text-white/50">{coordinates.latitude.toFixed(5)}, {coordinates.longitude.toFixed(5)}</p>}
+                <button
+                  type="button"
+                  onClick={() => void useCurrentLocation()}
+                  disabled={locationBusy}
+                  className="mt-3 rounded-full border border-[#F5C451]/35 px-4 py-2 text-xs font-black text-[#F5C451] disabled:opacity-50"
+                >
+                  {locationBusy ? "Getting location…" : "Use my current location"}
+                </button>
+                <p className="mt-2 text-xs leading-relaxed text-white/45">Your browser will ask permission. You can also enter your service area in the Location field above.</p>
+              </div>
+            </section>
+          )}
+
           {error && <p className="text-[#ff8a8d] text-sm font-semibold">{error}</p>}
           {message && <p className="text-[#34d399] text-sm font-semibold">{message}</p>}
 
