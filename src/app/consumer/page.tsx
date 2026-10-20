@@ -96,7 +96,7 @@ export default function ConsumerPage() {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationBusy, setLocationBusy] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
-  const [providers, setProviders] = useState<Provider[]>(SAMPLE_PROVIDERS);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [realProviders, setRealProviders] = useState(false);
   const [providerMessage, setProviderMessage] = useState("");
   const [activeTab, setActiveTab] = useState<"home" | "for-you" | "jobs" | "messages" | "profile">("home");
