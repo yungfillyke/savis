@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 type DocKey = "idFront" | "idBack" | "selfie" | "certificate";
+type KycStatus = "not_started" | "submitted" | "under_review" | "verified" | "rejected";
 const labels: Record<DocKey,string> = {
   idFront: "National ID / Passport — front",
   idBack: "National ID / Passport — back",
@@ -19,6 +20,36 @@ export default function ProviderVerificationPage() {
   const [consent,setConsent] = useState(false);
   const [busy,setBusy] = useState(false);
   const [message,setMessage] = useState<string|null>(null);
+  const [status,setStatus] = useState<KycStatus>("not_started");
+  const [rejectionReason,setRejectionReason] = useState<string|null>(null);
+  const [statusLoading,setStatusLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function loadStatus() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { router.replace("/login?next=/provider/verification"); return; }
+        const { data, error } = await supabase
+          .from("provider_verifications")
+          .select("status,rejection_reason")
+          .eq("provider_id", user.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (active && data) {
+          setStatus((data.status || "not_started") as KycStatus);
+          setRejectionReason(data.rejection_reason || null);
+        }
+      } catch {
+        // Keep the submission form usable if reading the status fails.
+      } finally {
+        if (active) setStatusLoading(false);
+      }
+    }
+    void loadStatus();
+    return () => { active = false; };
+  }, [router]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -49,8 +80,9 @@ export default function ProviderVerificationPage() {
         p_id_front_path:front,p_id_back_path:back,p_selfie_path:selfie,p_certificate_path:certificate
       });
       if(error) throw error;
+      setStatus("submitted");
+      setRejectionReason(null);
       setMessage("KYC submitted. SAVIS will review your documents before your profile can go live.");
-      setTimeout(()=>router.replace("/provider"),900);
     } catch(err) {
       const failure = err as { message?: string; details?: string; hint?: string; code?: string };
       const parts = [failure?.message, failure?.details, failure?.hint, failure?.code ? `Code: ${failure.code}` : null]
@@ -59,28 +91,51 @@ export default function ProviderVerificationPage() {
     } finally { setBusy(false); }
   }
 
+  const waiting = status === "submitted" || status === "under_review";
+  const alreadyReviewed = status === "verified";
   return <main className="min-h-screen bg-[#07111f] text-white px-4 py-8">
     <div className="max-w-2xl mx-auto">
       <Link href="/provider" className="text-sm text-[#B9C3C9]">← Back to Provider Hub</Link>
       <section className="mt-5 rounded-[28px] border border-white/10 bg-[rgba(13,29,48,.82)] p-5 sm:p-7">
         <span className="text-xs font-black tracking-[.16em] uppercase text-[#F5C451]">SAVIS KYC</span>
-        <h1 className="mt-2 text-3xl font-black">Ready to provide a service?</h1>
-        <p className="mt-3 text-sm leading-6 text-[#B9C3C9]">Before you put yourself out to consumers, SAVIS requires identity verification. This protects customers and helps us build a trusted local marketplace.</p>
-        <div className="mt-5 grid gap-3 text-sm text-[#D8E1E6]">
-          <div>✓ National ID or passport</div><div>✓ Selfie for identity matching</div><div>✓ Professional certificate where relevant</div><div>✓ Private document storage — your KYC files are not public</div>
-        </div>
-        <form onSubmit={submit} className="mt-7 space-y-4">
-          {(Object.keys(labels) as DocKey[]).map(key=><label key={key} className="block rounded-2xl border border-white/10 bg-white/[.03] p-4">
-            <span className="block text-sm font-bold">{labels[key]}{key!=="certificate" && <b className="text-[#F5C451]"> *</b>}</span>
-            <input className="mt-3 block w-full text-xs text-[#B9C3C9]" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>setFiles(v=>({...v,[key]:e.target.files?.[0]}))}/>
-          </label>)}
-          <label className="flex gap-3 items-start text-xs text-[#B9C3C9]">
-            <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} className="mt-0.5"/>
-            <span>I consent to SAVIS processing these documents for provider verification and trust & safety review.</span>
-          </label>
-          {message && <div className="rounded-xl border border-white/10 bg-white/[.04] p-3 text-sm">{message}</div>}
-          <button disabled={busy} className="w-full rounded-2xl bg-[#F5C451] px-5 py-3.5 font-black text-[#141B1F] disabled:opacity-50">{busy ? "Submitting securely…" : "Submit KYC for review"}</button>
-        </form>
+        {statusLoading ? (
+          <p className="mt-5 text-sm text-[#B9C3C9]">Checking your verification status…</p>
+        ) : waiting || alreadyReviewed ? (
+          <div className="mt-5">
+            <div className={`rounded-2xl border p-5 ${alreadyReviewed ? "border-emerald-400/30 bg-emerald-400/10" : "border-amber-400/30 bg-amber-400/10"}`}>
+              <p className={`text-xs font-black uppercase tracking-wider ${alreadyReviewed ? "text-emerald-300" : "text-amber-300"}`}>Verification status</p>
+              <h1 className="mt-2 text-2xl font-black">{alreadyReviewed ? "You're verified" : "Your documents are pending review"}</h1>
+              <p className="mt-3 text-sm leading-6 text-[#D8E1E6]">{alreadyReviewed
+                ? "Your identity verification has been approved. You can return to your Provider Hub."
+                : "We've received your documents. No need to submit them again — SAVIS will review them before your profile can go live."}</p>
+              <p className="mt-4 inline-flex rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-bold capitalize">{status.replace("_", " ")}</p>
+            </div>
+            <button type="button" onClick={() => router.push("/provider")} className="mt-4 w-full rounded-2xl bg-[#F5C451] px-5 py-3.5 font-black text-[#141B1F]">Return to Provider Hub</button>
+          </div>
+        ) : (
+          <>
+            <h1 className="mt-2 text-3xl font-black">{status === "rejected" ? "Update your verification documents" : "Ready to provide a service?"}</h1>
+            <p className="mt-3 text-sm leading-6 text-[#B9C3C9]">{status === "rejected"
+              ? "Your previous submission needs changes before it can be approved."
+              : "Before you put yourself out to consumers, SAVIS requires identity verification. This protects customers and helps us build a trusted local marketplace."}</p>
+            {status === "rejected" && rejectionReason && <p className="mt-3 rounded-xl border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">Review note: {rejectionReason}</p>}
+            <div className="mt-5 grid gap-3 text-sm text-[#D8E1E6]">
+              <div>✓ National ID or passport</div><div>✓ Selfie for identity matching</div><div>✓ Professional certificate where relevant</div><div>✓ Private document storage — your KYC files are not public</div>
+            </div>
+            <form onSubmit={submit} className="mt-7 space-y-4">
+              {(Object.keys(labels) as DocKey[]).map(key=><label key={key} className="block rounded-2xl border border-white/10 bg-white/[.03] p-4">
+                <span className="block text-sm font-bold">{labels[key]}{key!=="certificate" && <b className="text-[#F5C451]"> *</b>}</span>
+                <input className="mt-3 block w-full text-xs text-[#B9C3C9]" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={e=>setFiles(v=>({...v,[key]:e.target.files?.[0]}))}/>
+              </label>)}
+              <label className="flex gap-3 items-start text-xs text-[#B9C3C9]">
+                <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} className="mt-0.5"/>
+                <span>I consent to SAVIS processing these documents for provider verification and trust & safety review.</span>
+              </label>
+              {message && <div className="rounded-xl border border-white/10 bg-white/[.04] p-3 text-sm">{message}</div>}
+              <button disabled={busy} className="w-full rounded-2xl bg-[#F5C451] px-5 py-3.5 font-black text-[#141B1F] disabled:opacity-50">{busy ? "Submitting securely…" : "Submit KYC for review"}</button>
+            </form>
+          </>
+        )}
       </section>
     </div>
   </main>;
