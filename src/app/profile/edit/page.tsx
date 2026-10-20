@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
+import { requestCurrentLocation } from "@/lib/location";
 import SavisBottomNav from "@/components/SavisBottomNav";
 
 export default function EditProfilePage() {
@@ -13,6 +14,11 @@ export default function EditProfilePage() {
   const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
+  const [role, setRole] = useState("consumer");
+  const [serviceCategory, setServiceCategory] = useState("");
+  const [hourlyRate, setHourlyRate] = useState("0");
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationBusy, setLocationBusy] = useState(false);
   const [avatar, setAvatar] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -34,13 +40,17 @@ export default function EditProfilePage() {
       setEmail(user.email || "");
       const { data } = await s
         .from("profiles")
-        .select("full_name,email,avatar_url,bio,location_name")
+        .select("full_name,email,avatar_url,bio,location_name,role,service_category,hourly_rate,latitude,longitude")
         .eq("id", user.id)
         .maybeSingle();
       setName(data?.full_name || user.user_metadata?.full_name || "");
       setAvatar(data?.avatar_url || user.user_metadata?.avatar_url || "");
       setBio(data?.bio || "");
       setLocation(data?.location_name || "");
+      setRole(data?.role || user.user_metadata?.role || "consumer");
+      setServiceCategory(data?.service_category || "");
+      setHourlyRate(String(data?.hourly_rate ?? 0));
+      if (data?.latitude != null && data?.longitude != null) setCoordinates({ latitude: Number(data.latitude), longitude: Number(data.longitude) });
     })();
   }, [router]);
 
@@ -50,6 +60,21 @@ export default function EditProfilePage() {
     if (preview) URL.revokeObjectURL(preview);
     if (f) setPreview(URL.createObjectURL(f));
     else setPreview(null);
+  }
+
+  async function useCurrentLocation() {
+    setLocationBusy(true);
+    setError("");
+    try {
+      const current = await requestCurrentLocation();
+      setCoordinates({ latitude: current.latitude, longitude: current.longitude });
+      setLocation("Current location");
+      setMessage("Location captured. Save your profile to keep it.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not get your location. You can enter your service area manually.");
+    } finally {
+      setLocationBusy(false);
+    }
   }
 
   async function save() {
@@ -88,6 +113,10 @@ export default function EditProfilePage() {
           avatar_url: avatarUrl || null,
           bio: bio.trim() || null,
           location_name: location.trim() || null,
+          service_category: ["provider", "professional"].includes(role) ? (serviceCategory.trim() || null) : null,
+          hourly_rate: ["provider", "professional"].includes(role) ? Math.max(0, Math.round(Number(hourlyRate) || 0)) : 0,
+          latitude: coordinates?.latitude ?? null,
+          longitude: coordinates?.longitude ?? null,
         })
         .eq("id", userId);
 
