@@ -168,9 +168,9 @@ export default function ConsumerPage() {
       setProviderMessage("Live provider profiles from SAVIS.");
       return;
     }
-    setProviders(SAMPLE_PROVIDERS);
+    setProviders([]);
     setRealProviders(false);
-    setProviderMessage("Showing Alpha sample providers until provider profiles are published.");
+    setProviderMessage("No live providers are published for these filters yet. Try another category or check back soon.");
   }
 
   useEffect(() => { if (!loading) void loadProviders(userLocation, activeCategory); }, [loading, userLocation, activeCategory, radius]);
