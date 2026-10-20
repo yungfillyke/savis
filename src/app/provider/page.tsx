@@ -96,6 +96,7 @@ function dayTone(key: string, bookings: Booking[]): "idle" | "planned" | "done" 
 export default function ProviderPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [providerUserId, setProviderUserId] = useState("");
   const [loading, setLoading] = useState(true);
   const [available, setAvailable] = useState(true);
   const [openJobs, setOpenJobs] = useState<Booking[]>([]);
@@ -116,13 +117,15 @@ export default function ProviderPage() {
   useEffect(() => setLangState(getLang()), []);
   function switchLang(l: Lang) { setLang(l); setLangState(l); }
 
-  const refreshJobs = useCallback(() => {
-    setOpenJobs(getOpenRequests());
-    setActiveJobs(getAcceptedJobs());
-    setAllJobs(getBookings());
+  const refreshJobs = useCallback((ownerId?: string) => {
+    const currentProviderId = ownerId || providerUserId;
+    const providerJobs = getBookings().filter((job) => job.providerId === currentProviderId);
+    setOpenJobs(providerJobs.filter((job) => job.status === "requested" || job.status === "quote_pending"));
+    setActiveJobs(providerJobs.filter((job) => ["accepted", "en_route", "in_progress"].includes(job.status)));
+    setAllJobs(providerJobs);
     setProviderAvailableAmt(getProviderAvailable());
     setProviderTx(getProviderTransactions());
-  }, []);
+  }, [providerUserId]);
 
   useEffect(() => {
     async function load() {
@@ -131,13 +134,14 @@ export default function ProviderPage() {
       if (!user) { router.replace("/login"); return; }
       const { data } = await supabase.from("profiles").select("full_name, role, service_category, rating, review_count, verified, verification_status, availability, avatar_url").eq("id", user.id).maybeSingle();
       setProfile(data || { full_name: user.user_metadata?.full_name || "Friend", role: user.user_metadata?.role || "provider", avatar_url: user.user_metadata?.avatar_url || null });
+      setProviderUserId(user.id);
       setAvailable(data?.verification_status === "verified" && data?.verified === true && (data?.availability || "Available").toLowerCase() !== "offline");
       const { data: savedAvailability } = await supabase.from("provider_availability").select("weekday, enabled, start_time, end_time, travel_radius_km").eq("provider_id", user.id).order("weekday");
       if (savedAvailability?.length) {
         setAvailability(savedAvailability.map((row) => ({ weekday: Number(row.weekday), enabled: Boolean(row.enabled), start_time: String(row.start_time || "08:00").slice(0, 5), end_time: String(row.end_time || "17:00").slice(0, 5), travel_radius_km: Number(row.travel_radius_km) || 25 })));
       }
       await syncBookings();
-      refreshJobs();
+      refreshJobs(user.id);
       setLoading(false);
     }
     load();
