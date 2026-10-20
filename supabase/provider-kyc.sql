@@ -196,3 +196,15 @@ language sql stable security definer set search_path=''
 as $$ select s.id,s.name,s.description,s.starting_price,s.unit from public.provider_services s join public.profiles p on p.id=s.provider_id where s.provider_id=p_provider_id and s.is_active=true and p.verification_status='verified' and p.verified=true order by s.starting_price $$;
 revoke all on function public.get_public_provider_services(uuid) from public;
 grant execute on function public.get_public_provider_services(uuid) to anon,authenticated;
+
+
+-- Restrict KYC SECURITY DEFINER RPCs: authenticated callers still must pass
+-- the in-function role/reviewer checks; anonymous/public callers are denied.
+revoke all on function public.submit_provider_kyc(text,text,text,text) from public, anon;
+grant execute on function public.submit_provider_kyc(text,text,text,text) to authenticated;
+
+revoke all on function public.list_provider_kyc_queue(text) from public, anon;
+grant execute on function public.list_provider_kyc_queue(text) to authenticated;
+
+revoke all on function public.review_provider_kyc(uuid,text,text) from public, anon;
+grant execute on function public.review_provider_kyc(uuid,text,text) to authenticated;
