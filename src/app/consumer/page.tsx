@@ -151,13 +151,16 @@ export default function ConsumerPage() {
         p_lat: location.latitude, p_lng: location.longitude, p_radius_km: radius, p_category: categoryArg, p_limit: 40,
       });
       if (!rpc.error && rpc.data?.length) {
-        setProviders(rpc.data.map(providerFromRow));
-        setRealProviders(true);
-        setProviderMessage("Live provider locations from SAVIS.");
-        return;
+        const published = rpc.data.filter((row: Record<string, unknown>) => row.verified === true);
+        if (published.length) {
+          setProviders(published.map(providerFromRow));
+          setRealProviders(true);
+          setProviderMessage("Verified provider locations from SAVIS.");
+          return;
+        }
       }
     }
-    const result = await supabase.from("profiles").select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio").in("role", ["provider", "professional"]).not("latitude", "is", null).not("longitude", "is", null).limit(40);
+    const result = await supabase.from("profiles").select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio").in("role", ["provider", "professional"]).eq("verified", true).not("latitude", "is", null).not("longitude", "is", null).limit(40);
     if (!result.error && result.data?.length) {
       const rows = result.data.map((row) => ({
         ...row,
@@ -170,7 +173,7 @@ export default function ConsumerPage() {
     }
     setProviders([]);
     setRealProviders(false);
-    setProviderMessage("No live providers are published for these filters yet. Try another category or check back soon.");
+    setProviderMessage("No verified providers are published for these filters yet. Providers must complete verification before appearing in discovery.");
   }
 
   useEffect(() => { if (!loading) void loadProviders(userLocation, activeCategory); }, [loading, userLocation, activeCategory, radius]);
