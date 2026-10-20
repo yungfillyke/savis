@@ -132,11 +132,20 @@ export default function ProfilePage() {
         </section>
 
         <div style={{ display: "grid", gap: 10 }}>
-          {[
-            ["✏️", "Edit name & details", "Full name, location, bio", "/profile/edit"],
-            ["⚙️", "Settings", "Language, notifications, log out", "/settings"],
-            ["📋", "Bookings & receipts", "History and reviews", "/bookings"],
-          ].map(([icon, title, desc, href]) => (
+          {(role === "provider" || role === "professional" || role === "producer"
+            ? [
+                ["🧰", "Provider dashboard", "Manage work, enquiries and availability", "/provider"],
+                ["🛡️", "Service verification", "View or complete your KYC verification", "/provider/verification"],
+                ["✏️", "Edit name & details", "Update your profile and location", "/profile/edit"],
+                ["⚙️", "Settings", "Language, notifications and account", "/settings"],
+                ["📋", "Jobs & bookings", "Review your customer jobs", "/bookings"],
+              ]
+            : [
+                ["✏️", "Edit name & details", "Full name, location, bio", "/profile/edit"],
+                ["⚙️", "Settings", "Language, notifications, log out", "/settings"],
+                ["📋", "Bookings & receipts", "History and reviews", "/bookings"],
+              ]
+          ).map(([icon, title, desc, href]) => (
             <Link
               key={title}
               href={href}
