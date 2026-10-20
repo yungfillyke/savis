@@ -52,7 +52,10 @@ export default function ProviderVerificationPage() {
       setMessage("KYC submitted. SAVIS will review your documents before your profile can go live.");
       setTimeout(()=>router.replace("/provider"),900);
     } catch(err) {
-      setMessage(err instanceof Error ? err.message : "KYC submission failed. Please try again.");
+      const failure = err as { message?: string; details?: string; hint?: string; code?: string };
+      const parts = [failure?.message, failure?.details, failure?.hint, failure?.code ? `Code: ${failure.code}` : null]
+        .filter((part): part is string => Boolean(part && part.trim()));
+      setMessage(parts.length ? `KYC submission failed: ${parts.join(" — ")}` : "KYC submission failed. Please try again.");
     } finally { setBusy(false); }
   }
 
