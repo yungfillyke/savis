@@ -151,7 +151,7 @@ export default function ConsumerPage() {
         p_lat: location.latitude, p_lng: location.longitude, p_radius_km: radius, p_category: categoryArg, p_limit: 40,
       });
       if (!rpc.error && rpc.data?.length) {
-        const published = rpc.data.filter((row: Record<string, unknown>) => row.verified === true);
+        const published = rpc.data.filter((row: Record<string, unknown>) => row.verified === true && row.verification_status === "verified");
         if (published.length) {
           setProviders(published.map(providerFromRow));
           setRealProviders(true);
@@ -160,7 +160,7 @@ export default function ConsumerPage() {
         }
       }
     }
-    const result = await supabase.from("profiles").select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio").in("role", ["provider", "professional"]).eq("verified", true).not("latitude", "is", null).not("longitude", "is", null).limit(40);
+    const result = await supabase.from("profiles").select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio").in("role", ["provider", "professional"]).eq("verified", true).eq("verification_status", "verified").not("latitude", "is", null).not("longitude", "is", null).limit(40);
     if (!result.error && result.data?.length) {
       const rows = result.data.map((row) => ({
         ...row,
