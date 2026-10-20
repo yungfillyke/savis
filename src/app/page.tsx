@@ -256,15 +256,6 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-          {/* Original SAVIS art — vignette soft-blends into the card */}
-          <div className="savis-hero-art" aria-hidden="true">
-            <div
-              className="savis-hero-art-photo"
-              style={{
-                backgroundImage: "url(/images/savis-services-hero.jpg)",
-              }}
-            />
-          </div>
         </section>
 
         <CategoryStrip
