@@ -256,6 +256,12 @@ export default function HomePage() {
               </button>
             </div>
           </div>
+          <div className="savis-hero-art" aria-hidden="true">
+            <div
+              className="savis-hero-art-photo"
+              style={{ backgroundImage: "url(/images/savis-services-hero.jpg)" }}
+            />
+          </div>
         </section>
 
         <CategoryStrip
