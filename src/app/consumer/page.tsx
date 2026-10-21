@@ -160,13 +160,13 @@ export default function ConsumerPage() {
         }
       }
     }
-    const result = await supabase.from("profiles").select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio").in("role", ["provider", "professional"]).eq("verified", true).eq("verification_status", "verified").not("latitude", "is", null).not("longitude", "is", null).limit(40);
+    const result = await supabase.from("profiles").select("id, full_name, role, avatar_url, latitude, longitude, location_name, service_category, hourly_rate, rating, review_count, availability, verified, verification_status, bio").in("role", ["provider", "professional"]).eq("verified", true).eq("verification_status", "verified").limit(40);
     if (!result.error && result.data?.length) {
       const rows = result.data.map((row) => ({
         ...row,
-        distance_km: location && row.latitude != null && row.longitude != null ? distanceKm(location, { latitude: Number(row.latitude), longitude: Number(row.longitude) }) : 0,
-      })).filter((row) => (!categoryArg || String(row.service_category || "").toLowerCase() === categoryArg.toLowerCase()) && (!location || Number(row.distance_km) <= radius));
-      setProviders(rows.map(providerFromRow).sort((a, b) => a.km - b.km));
+        distance_km: location && row.latitude != null && row.longitude != null ? distanceKm(location, { latitude: Number(row.latitude), longitude: Number(row.longitude) }) : null,
+      })).filter((row) => (!categoryArg || String(row.service_category || "").toLowerCase() === categoryArg.toLowerCase()) && (!location || (row.latitude != null && row.longitude != null && Number(row.distance_km) <= radius)));
+      setProviders(rows.map(providerFromRow).sort((a, b) => (a.km || Number.POSITIVE_INFINITY) - (b.km || Number.POSITIVE_INFINITY)));
       setRealProviders(true);
       setProviderMessage("Live provider profiles from SAVIS.");
       return;
