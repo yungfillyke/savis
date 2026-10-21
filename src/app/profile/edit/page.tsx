@@ -115,8 +115,9 @@ export default function EditProfilePage() {
           location_name: location.trim() || null,
           service_category: ["provider", "professional"].includes(role) ? (serviceCategory.trim() || null) : null,
           hourly_rate: ["provider", "professional"].includes(role) ? Math.max(0, Math.round(Number(hourlyRate) || 0)) : 0,
-          latitude: coordinates?.latitude ?? null,
-          longitude: coordinates?.longitude ?? null,
+          // Preserve existing coordinates unless the user explicitly sets a new location.
+          // A profile edit must not silently remove a provider from radius-based discovery.
+          ...(coordinates ? { latitude: coordinates.latitude, longitude: coordinates.longitude } : {}),
         })
         .eq("id", userId);
 
