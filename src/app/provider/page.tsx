@@ -123,7 +123,7 @@ export default function ProviderPage() {
     const currentProviderId = ownerId || providerUserId;
     const providerJobs = getBookings().filter((job) => job.providerId === currentProviderId);
     setOpenJobs(providerJobs.filter((job) => job.status === "requested" || job.status === "quote_pending"));
-    setActiveJobs(providerJobs.filter((job) => ["accepted", "en_route", "in_progress"].includes(job.status)));
+    setActiveJobs(providerJobs.filter((job) => ["accepted", "en_route", "arrived", "in_progress"].includes(job.status)));
     setAllJobs(providerJobs);
     setProviderAvailableAmt(getProviderAvailable());
     setProviderTx(getProviderTransactions());
@@ -218,12 +218,12 @@ export default function ProviderPage() {
   async function startJob(id: string) {
     const job = getBookings().find((item) => item.id === id);
     if (!job) return;
-    const nextStatus = job.status === "accepted" ? "en_route" : "in_progress";
+    const nextStatus = job.status === "accepted" ? "en_route" : job.status === "en_route" ? "arrived" : "in_progress";
     try {
       await updateBookingStatus(id, nextStatus);
       await syncProviderBookings();
       refreshJobs();
-      showToast(nextStatus === "en_route" ? "Provider is en route." : "Work started.");
+      showToast(nextStatus === "en_route" ? "You are on the way." : nextStatus === "arrived" ? "Arrival marked. You can now start work." : "Work started.");
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Could not update this job.");
       await syncProviderBookings();
@@ -383,7 +383,7 @@ export default function ProviderPage() {
                     <p className="text-xs text-slate-600 mt-1">{jobId(j.id)} · {j.location} · {j.rate > 0 ? "KSh " + j.rate.toLocaleString() : "Awaiting quote"}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "accepted" && j.requestType === "booking" && j.rate === 0 && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
-                      {(j.status === "accepted" || j.status === "en_route") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark en route") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
+                      {(j.status === "accepted" || j.status === "en_route" || j.status === "arrived") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark on the way") : j.status === "en_route" ? (lang === "sw" ? "Nimefika" : "Mark arrived") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
                       <button type="button" onClick={() => setTab("messages")} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                       <a href={j.latitude != null && j.longitude != null ? `https://www.google.com/maps/dir/?api=1&destination=${j.latitude},${j.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.location)}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white text-center">{lang === "sw" ? "Maelekezo" : "Directions"}</a>
                       {j.status === "in_progress" && <button type="button" onClick={() => completeJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kamilisha" : "Complete"}</button>}
