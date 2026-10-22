@@ -10,6 +10,7 @@ import Button from "@/components/Button";
 import {
   getBookings,
   syncConsumerBookings,
+  updateConsumerJobRequest,
   updateBookingStatus,
   type Booking,
   type BookingStatus,
@@ -98,6 +99,12 @@ export default function BookingsPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [quoteBusy, setQuoteBusy] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [detailJobId, setDetailJobId] = useState<string | null>(null);
+  const [editJobId, setEditJobId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [editUrgency, setEditUrgency] = useState("today");
+  const [editScheduledFor, setEditScheduledFor] = useState("");
 
   useEffect(() => {
     setLangState(getLang());
@@ -196,6 +203,37 @@ export default function BookingsPage() {
       setActionMessage(error instanceof Error ? error.message : "Could not cancel this job.");
       await syncConsumerBookings();
       setBookings(getBookings());
+    } finally {
+      setQuoteBusy(null);
+    }
+  }
+
+  function beginEdit(b: Booking) {
+    setEditJobId(b.id);
+    setEditDescription(b.description || "");
+    setEditLocation(b.location || "");
+    setEditUrgency(b.urgency || "today");
+    setEditScheduledFor(b.scheduledFor ? new Date(b.scheduledFor).toISOString().slice(0, 16) : "");
+    setDetailJobId(null);
+  }
+
+  async function saveEditedRequest() {
+    if (!editJobId) return;
+    setQuoteBusy(editJobId);
+    try {
+      await updateConsumerJobRequest(editJobId, {
+        description: editDescription.trim(),
+        location: editLocation.trim(),
+        urgency: editUrgency,
+        scheduledFor: editScheduledFor || undefined,
+      });
+      const list = getBookings();
+      setBookings(list);
+      setQuotes(await listQuotesForJobs(list.map((booking) => booking.id)));
+      setEditJobId(null);
+      setActionMessage("Request updated. Any earlier pending quote was cancelled; the provider must send a fresh quote.");
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : "Could not update this request.");
     } finally {
       setQuoteBusy(null);
     }
