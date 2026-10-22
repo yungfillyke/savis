@@ -72,7 +72,7 @@ function rowToBooking(row: Record<string, unknown>): Booking {
 
 /** Load all jobs (newest first). Tries Supabase, falls back to local. */
 export async function fetchBookings(
-  scope: "all" | "consumer" = "all"
+  scope: "all" | "consumer" | "provider" = "all"
 ): Promise<Booking[]> {
   try {
     const supabase = createClient();
@@ -81,19 +81,20 @@ export async function fetchBookings(
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (scope === "consumer") {
+    if (scope === "consumer" || scope === "provider") {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return [];
-      query = query.eq("consumer_id", user.id);
+      query = query.eq(scope === "consumer" ? "consumer_id" : "provider_id", user.id);
     }
 
     const { data, error } = await query;
     if (error) throw error;
     if (data) return data.map(rowToBooking);
   } catch {
-    // table missing or network — use local
+    // Never substitute another role's local cache for a scoped server query.
+    if (scope !== "all") return [];
   }
   return fromLocal();
 }
@@ -236,6 +237,12 @@ export async function syncBookings(): Promise<Booking[]> {
 
 export async function syncConsumerBookings(): Promise<Booking[]> {
   const remote = await fetchBookings("consumer");
+  saveLocal(remote);
+  return remote;
+}
+
+export async function syncProviderBookings(): Promise<Booking[]> {
+  const remote = await fetchBookings("provider");
   saveLocal(remote);
   return remote;
 }
