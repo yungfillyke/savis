@@ -315,7 +315,8 @@ export default function BookingsPage() {
                           <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-white">
                             {(quote.message || "").split("\n").filter((line) => /^\d+\.\s/.test(line)).map((line, index) => <li key={index}>{line.replace(/^\d+\.\s*/, "")}</li>)}
                           </ol>
-                          <p className="mt-3 text-xs text-[#B9C3C9]">{(quote.message || "").split("\n").find((line) => line.startsWith("Service fee:")) || ""}</p>
+                          {!(quote.message || "").split("\n").some((line) => /^\\d+\\.\\s/.test(line)) && <p className="mt-2 text-sm text-[#B9C3C9]">The provider has not itemized this quote yet. Ask them to clarify the charges before accepting.</p>}
+                          {(quote.message || "").split("\n").filter((line) => /^(Service fee:|SAVIS fee:|Company fee:|Labour:|Labor:)/i.test(line)).map((line, index) => <p key={index} className="mt-2 text-xs text-[#B9C3C9]">{line}</p>)}
                           {(() => { const note = (quote.message || "").split("\n").find((line) => line.startsWith("Provider note:")); return note ? <div className="mt-3 rounded-xl border border-[#F5C451]/25 bg-[#F5C451]/[0.08] p-3"><p className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">Provider note</p><p className="mt-1 text-sm text-white">{note.replace("Provider note: ", "")}</p></div> : null; })()}
                         </div>
                         <p className="mt-3 text-[0.65rem] text-[#B9C3C9]">{quote.status === "accepted" ? "This is the agreed amount for this job." : "This becomes the agreed amount when you accept the quote."}</p>
@@ -338,7 +339,7 @@ export default function BookingsPage() {
                   )}
                   <button type="button" onClick={() => setDetailJobId(b.id)} className="mb-2 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-white">View Job Details</button>
                   {(b.status !== "quote_pending") && <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mb-3 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">{b.status === "completed" ? "View message history" : "Message provider"}</button>}
-                  {["requested", "quote_pending"].includes(b.status) && <button type="button" onClick={() => beginEdit(b)} className="mb-2 w-full rounded-full border border-[#F5C451]/40 py-2.5 text-xs font-bold text-[#F5C451]">Edit job request</button>
+                  {["requested", "quote_pending"].includes(b.status) && <button type="button" onClick={() => beginEdit(b)} className="mb-2 w-full rounded-full border border-[#F5C451]/40 py-2.5 text-xs font-bold text-[#F5C451]">Edit job request</button>}
 
                   {["requested", "quote_pending", "accepted"].includes(b.status) && (
                     <button
@@ -385,6 +386,46 @@ export default function BookingsPage() {
           <Button full>{t("find.provider", lang)}</Button>
         </Link>
       </div>
+
+      {detailJobId && (() => {
+        const b = bookings.find((item) => item.id === detailJobId);
+        if (!b) return null;
+        return <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 px-4 pb-6" role="dialog" aria-modal="true" aria-label="Job details">
+          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 rounded-[24px] border border-white/15 bg-[#222B31] shadow-2xl">
+            <div className="flex items-start justify-between gap-3"><div><h2 className="font-extrabold text-lg">Job details</h2><p className="text-xs text-[#B9C3C9] mt-1">Job #{b.id.slice(-4).toUpperCase()}</p></div><button type="button" onClick={() => setDetailJobId(null)} className="text-[#B9C3C9] text-sm">Close</button></div>
+            <div className="mt-4 space-y-4 text-sm">
+              <div><p className="text-xs text-[#B9C3C9] mb-1">Work requested</p><p className="whitespace-pre-wrap">{b.description || "No description supplied."}</p></div>
+              <div><p className="text-xs text-[#B9C3C9] mb-1">Location</p><p>{b.location || "Not specified"}</p></div>
+              <div><p className="text-xs text-[#B9C3C9] mb-1">When</p><p>{URGENCY_LABEL[b.urgency] || b.urgency || "Not specified"}{b.scheduledFor ? " · " + new Date(b.scheduledFor).toLocaleString() : ""}</p></div>
+              <div><p className="text-xs text-[#B9C3C9] mb-1">Provider</p><p>{b.providerName || "Selected provider"} · {b.skill || "Service"}</p></div>
+            </div>
+            {["requested", "quote_pending"].includes(b.status) && <button type="button" onClick={() => beginEdit(b)} className="mt-5 w-full rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-3 text-sm font-bold">Edit job request</button>}
+            <button type="button" onClick={() => setDetailJobId(null)} className="mt-2 w-full rounded-full border border-white/15 py-3 text-sm">Close details</button>
+          </div>
+        </div>;
+      })()}
+
+      {editJobId && (() => {
+        const b = bookings.find((item) => item.id === editJobId);
+        if (!b) return null;
+        return <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 px-4 pb-6" role="dialog" aria-modal="true" aria-label="Edit job request">
+          <div className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 rounded-[24px] border border-white/15 bg-[#222B31] shadow-2xl">
+            <h2 className="font-extrabold text-lg">Edit job request</h2>
+            <p className="text-xs text-[#B9C3C9] mt-1 mb-4">This updates the same job. If a quote is already pending, it will be cancelled and the provider must send a new one.</p>
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1">What needs to be done?</label>
+            <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="w-full px-3 py-3 rounded-xl bg-black/30 border border-white/15 text-white text-sm mb-3" />
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1">Where is the job?</label>
+            <input value={editLocation} onChange={(e) => setEditLocation(e.target.value)} className="w-full px-3 py-3 rounded-xl bg-black/30 border border-white/15 text-white text-sm mb-3" />
+            <label className="block text-xs font-bold text-[#B9C3C9] mb-1">When do you need the work?</label>
+            <select value={editUrgency} onChange={(e) => setEditUrgency(e.target.value)} className="w-full px-3 py-3 rounded-xl bg-[#222B31] border border-white/15 text-white text-sm mb-3">
+              <option value="now">As soon as possible</option><option value="asap">As soon as possible</option><option value="today">Today</option><option value="week">This week</option><option value="custom">Choose a date &amp; time</option>
+            </select>
+            {editUrgency === "custom" && <input type="datetime-local" value={editScheduledFor} onChange={(e) => setEditScheduledFor(e.target.value)} className="w-full px-3 py-3 rounded-xl bg-black/30 border border-white/15 text-white text-sm mb-3" />}
+            <button type="button" disabled={quoteBusy === editJobId || !editDescription.trim() || !editLocation.trim()} onClick={() => void saveEditedRequest()} className="w-full rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-3 text-sm font-bold disabled:opacity-50">{quoteBusy === editJobId ? "Saving…" : "Save changes"}</button>
+            <button type="button" onClick={() => setEditJobId(null)} className="mt-2 w-full rounded-full border border-white/15 py-3 text-sm">Cancel</button>
+          </div>
+        </div>;
+      })()}
 
       {ratingJobId && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4 pb-6">
