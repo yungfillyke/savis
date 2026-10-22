@@ -27,9 +27,18 @@ export default function SettingsPage() {
   const [lang, setLangState] = useState<Lang>("en");
   const [saved, setSaved] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isProvider, setIsProvider] = useState(false);
 
   useEffect(() => {
     setLangState(getLang());
+    void (async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      const role = String(data?.role || user.user_metadata?.role || "consumer").toLowerCase();
+      setIsProvider(["provider", "professional", "producer", "agent", "wholesale_retail"].includes(role));
+    })();
     const stored = localStorage.getItem("savis_settings");
     if (stored) {
       try {
@@ -160,7 +169,7 @@ export default function SettingsPage() {
         <p className="pb-4 text-center text-[0.65rem] text-white/35">SAVIS · Preferences save on this device</p>
       </div>
 
-      <SavisBottomNav active="profile" />
+      {!isProvider && <SavisBottomNav active="profile" />}
     </main>
   );
 }
