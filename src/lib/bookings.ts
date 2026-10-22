@@ -257,3 +257,20 @@ export async function syncProviderBookings(): Promise<Booking[]> {
   saveLocal(remote);
   return remote;
 }
+
+
+export async function updateConsumerJobRequest(
+  id: string,
+  input: { description: string; location: string; urgency: string; scheduledFor?: string }
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("update_consumer_job_request", {
+    p_job_id: id,
+    p_description: input.description,
+    p_location: input.location,
+    p_urgency: input.urgency,
+    p_scheduled_for: input.scheduledFor ? new Date(input.scheduledFor).toISOString() : null,
+  });
+  if (error) throw new Error(error.message || "Could not update this job request.");
+  await syncConsumerBookings();
+}
