@@ -118,7 +118,41 @@ export default function MessagesPage() {
   async function openConversation(conversation: Conversation) {
     setSelected(conversation);
     setNotice("");
+    setPeerProfile(null);
+    setJobContext(null);
     await loadMessages(conversation.id);
+
+    // Load context for this exact conversation so another job's details never remain visible.
+    if (!conversation.jobId) return;
+    const supabase = createClient();
+    const { data: job } = await supabase
+      .from("jobs")
+      .select("id, consumer_id, provider_id, description, location, scheduled_for")
+      .eq("id", conversation.jobId)
+      .maybeSingle();
+    if (!job || (job.consumer_id !== userId && job.provider_id !== userId)) {
+      setNotice("This job conversation is not available to this account.");
+      return;
+    }
+    setJobContext({
+      description: String(job.description || ""),
+      location: String(job.location || ""),
+      scheduledFor: job.scheduled_for ? String(job.scheduled_for) : null,
+    });
+    const otherUserId = job.consumer_id === userId ? String(job.provider_id) : String(job.consumer_id);
+    const fallbackName = job.consumer_id === userId ? "Service provider" : "Customer";
+    const { data: otherProfile } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url, role")
+      .eq("id", otherUserId)
+      .maybeSingle();
+    setPeerProfile(otherProfile
+      ? {
+          name: String(otherProfile.full_name || fallbackName),
+          avatarUrl: otherProfile.avatar_url ? String(otherProfile.avatar_url) : null,
+          role: otherProfile.role ? String(otherProfile.role) : null,
+        }
+      : { name: fallbackName, avatarUrl: null, role: null });
   }
 
   async function submitMessage(e: React.FormEvent) {
