@@ -22,7 +22,7 @@ import {
   getProviderTransactions,
   withdrawProvider,
 } from "@/lib/wallet";
-import { createQuote } from "@/lib/quotes";
+import { createQuote, listQuotesForJobs, type Quote } from "@/lib/quotes";
 
 type Profile = {
   full_name: string | null;
@@ -110,6 +110,7 @@ export default function ProviderPage() {
   const [availability, setAvailability] = useState<AvailabilityDay[]>(DEFAULT_AVAILABILITY);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [quoteJob, setQuoteJob] = useState<Booking | null>(null);
+  const [quoteHistory, setQuoteHistory] = useState<Quote[]>([]);
   const [quoteAmount, setQuoteAmount] = useState("");
   const [quoteMessage, setQuoteMessage] = useState("");
   const [quoteItems, setQuoteItems] = useState([{ name: "", amount: "" }]);
@@ -119,6 +120,11 @@ export default function ProviderPage() {
   const [providerTx, setProviderTx] = useState(getProviderTransactions());
 
   useEffect(() => setLangState(getLang()), []);
+  useEffect(() => {
+    let active = true;
+    listQuotesForJobs(allJobs.map((job) => job.id)).then((items) => { if (active) setQuoteHistory(items); });
+    return () => { active = false; };
+  }, [allJobs]);
   function switchLang(l: Lang) { setLang(l); setLangState(l); }
 
   const refreshJobs = useCallback((ownerId?: string) => {
@@ -540,9 +546,10 @@ export default function ProviderPage() {
       {quoteJob && (
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/50 px-4 pb-5">
           <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
-            <div className="flex justify-between gap-3"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</h2></div><button type="button" onClick={() => setQuoteJob(null)} aria-label="Close quote form">✕</button></div>
+            <div className="flex justify-between gap-3"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{quoteHistory.some((quote) => quote.jobId === quoteJob.id) ? (lang === "sw" ? "Tuma nukuu tena" : "Send replacement quote") : (lang === "sw" ? "Tuma nukuu" : "Send quote")}</h2></div><button type="button" onClick={() => setQuoteJob(null)} aria-label="Close quote form">✕</button></div>
             {quoteJob && <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-[0.65rem] font-bold uppercase tracking-wide text-slate-500">Full job description · {jobId(quoteJob.id)}</p>
+              {quoteHistory.some((quote) => quote.jobId === quoteJob.id) && <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Replacement quote · Previous quote history is retained. This is not the first quote for this job.</p>}
               <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold text-slate-800">{quoteJob.description}</p>
               <p className="mt-2 text-xs text-slate-600">{quoteJob.location} · {quoteJob.scheduledFor ? new Date(quoteJob.scheduledFor).toLocaleString() : (URGENCY[quoteJob.urgency]?.[lang] || quoteJob.urgency)}</p>
               <button type="button" onClick={() => router.push(`/messages?job=${quoteJob.id}`)} className="mt-3 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold">Ask customer a question</button>
