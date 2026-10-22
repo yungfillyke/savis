@@ -25,6 +25,9 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
+  const [peerProfile, setPeerProfile] = useState<{name:string; avatarUrl:string|null; role:string|null} | null>(null);
+  const [jobContext, setJobContext] = useState<{description:string; location:string; scheduledFor:string|null} | null>(null);
+  const [homeHref, setHomeHref] = useState("/consumer");
 
   const loadMessages = useCallback(async (conversationId: string) => {
     setMessages(await listMessages(conversationId));
@@ -47,6 +50,9 @@ export default function MessagesPage() {
       }
       if (cancelled) return;
       setUserId(user.id);
+      const { data: ownProfile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+      const ownRole = String(ownProfile?.role || user.user_metadata?.role || "").toLowerCase();
+      setHomeHref(ownRole.includes("provider") || ownRole.includes("professional") || ownRole.includes("producer") || ownRole.includes("agent") ? "/provider" : "/consumer");
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("job");
       let rows = await loadConversations();
@@ -54,10 +60,14 @@ export default function MessagesPage() {
       if (jobId) {
         const { data: job } = await supabase
           .from("jobs")
-          .select("id, consumer_id, provider_id")
+          .select("id, consumer_id, provider_id, description, location, scheduled_for")
           .eq("id", jobId)
           .maybeSingle();
         if (job && (job.consumer_id === user.id || job.provider_id === user.id)) {
+          setJobContext({description:String(job.description || ""),location:String(job.location || ""),scheduledFor:job.scheduled_for ? String(job.scheduled_for) : null});
+          const otherUserId = job.consumer_id === user.id ? String(job.provider_id) : String(job.consumer_id);
+          const { data: otherProfile } = await supabase.from("profiles").select("full_name, avatar_url, role").eq("id", otherUserId).maybeSingle();
+          setPeerProfile(otherProfile ? {name:String(otherProfile.full_name || (job.consumer_id === user.id ? "Service provider" : "Customer")),avatarUrl:otherProfile.avatar_url ? String(otherProfile.avatar_url) : null,role:otherProfile.role ? String(otherProfile.role) : null} : {name:job.consumer_id === user.id ? "Service provider" : "Customer",avatarUrl:null,role:null});
           let conversation = rows.find((row) => row.jobId === jobId) || null;
           if (!conversation) {
             const inserted = await supabase.from("conversations").insert({
@@ -132,7 +142,7 @@ export default function MessagesPage() {
   return (
     <main className="savis-internal min-h-screen pb-24">
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[rgba(34,43,49,0.86)] px-4 py-3 backdrop-blur-md">
-        <Link href="/consumer" className="text-sm font-bold text-[#B9C3C9]">← Home</Link>
+        <Link href={homeHref} className="text-sm font-bold text-[#B9C3C9]">← Home</Link>
         <h1 className="font-extrabold">Messages</h1>
         <span className="w-12" />
       </header>
@@ -150,8 +160,16 @@ export default function MessagesPage() {
         </aside>
         <section className="flex min-h-[65vh] flex-col rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4">
           <div className="border-b border-white/10 pb-3">
-            <h2 className="font-extrabold">{selected ? shortJob(selected.jobId) : "Your conversation"}</h2>
-            <p className="mt-1 text-xs text-[#B9C3C9]">Discuss the work, quote details and arrival time here.</p>
+            <div className="flex items-center gap-3">
+              {peerProfile?.avatarUrl ? <img src={peerProfile.avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover border border-white/15" /> : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-lg font-black">{(peerProfile?.name || "S").charAt(0).toUpperCase()}</div>}
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-extrabold">{peerProfile?.name || (selected ? "Job conversation" : "Your conversation")}</h2>
+                <p className="mt-0.5 text-xs text-[#F5C451]">{selected ? shortJob(selected.jobId) : "No job selected"}{peerProfile?.role ? " · " + peerProfile.role : ""}</p>
+                {jobContext && <p className="mt-1 text-xs text-[#B9C3C9]">{jobContext.location}{jobContext.scheduledFor ? " · " + new Date(jobContext.scheduledFor).toLocaleString() : ""}</p>}
+              </div>
+              {selected && <Link href={homeHref === "/provider" ? "/provider" : "/bookings"} className="shrink-0 rounded-full border border-white/15 px-3 py-2 text-xs font-bold text-[#F5C451]">Job</Link>}
+            </div>
+            {jobContext?.description && <details className="mt-3 rounded-xl bg-white/5 px-3 py-2"><summary className="cursor-pointer text-xs font-bold text-[#B9C3C9]">View work description</summary><p className="whitespace-pre-wrap break-words pt-2 text-sm text-white">{jobContext.description}</p></details>}
           </div>
           <div className="flex-1 space-y-3 overflow-y-auto py-4">
             {!selected ? <p className="py-8 text-center text-sm text-[#B9C3C9]">Open a conversation from a job to get started.</p> :
