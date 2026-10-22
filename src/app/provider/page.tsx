@@ -237,8 +237,8 @@ export default function ProviderPage() {
     const itemsTotal = validItems.reduce((sum, item) => sum + Math.round(Number(item.amount) || 0), 0);
     const fee = Math.max(0, Math.round(Number(quoteServiceFee) || 0));
     const amount = itemsTotal + fee;
-    const itemBreakdown = validItems.map((item) => `${item.name.trim()}: KSh ${Math.round(Number(item.amount)).toLocaleString()}`).join("\\n");
-    const fullMessage = [itemBreakdown, `Service fee: KSh ${fee.toLocaleString()}`, quoteMessage.trim()].filter(Boolean).join("\\n");
+    const itemBreakdown = ["Items included:", ...validItems.map((item, index) => `${index + 1}. ${item.name.trim()} — KSh ${Math.round(Number(item.amount)).toLocaleString()}`)].join("\\n");
+    const fullMessage = [itemBreakdown, `Service fee: KSh ${fee.toLocaleString()}`, quoteMessage.trim() ? `Provider note: ${quoteMessage.trim()}` : ""].filter(Boolean).join("\\n");
     if (!quoteJob || validItems.length === 0 || !Number.isFinite(amount) || amount <= 0) {
       showToast("Add at least one item with a name and price.");
       return;
