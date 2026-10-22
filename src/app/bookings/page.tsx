@@ -267,7 +267,7 @@ export default function BookingsPage() {
                       <p><b>Location:</b> {b.location}</p>
                       <p><b>Requested:</b> {b.scheduledFor ? new Date(b.scheduledFor).toLocaleString() : (URGENCY_LABEL[b.urgency] || b.urgency)}</p>
                       <p><b>Provider:</b> {b.providerName}</p>
-                      <button type="button" onClick={() => router.push(`/messages?job=${b.id}`)} className="mt-2 rounded-full border border-white/15 px-4 py-2 font-bold text-[#F5C451]">Message provider about this job</button>
+                      <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mt-2 rounded-full border border-white/15 px-4 py-2 font-bold text-[#F5C451]">Message provider about this job</button>
                     </div>
                   </details>
                   <div className="text-sm font-bold text-[#F5C451] mb-2">{b.rate > 0 ? `Agreed amount: KSh ${b.rate.toLocaleString()}` : "Awaiting provider quote"}</div>
@@ -294,7 +294,7 @@ export default function BookingsPage() {
                           {quoteBusy === quote.id ? "Saving…" : "Decline quote"}
                         </button>
                       </div>
-                      <button type="button" onClick={() => router.push(`/messages?job=${b.id}`)} className="mt-2 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">Message provider about this quote</button>
+                      <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mt-2 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">Message provider about this quote</button>
                     </div>
                   ))}
 
