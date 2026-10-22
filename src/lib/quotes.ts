@@ -49,6 +49,13 @@ export async function createQuote(jobId: string, amount: number, message: string
   return rowToQuote(data);
 }
 
+export async function declineQuote(quoteId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("decline_quote", { p_quote_id: quoteId });
+  if (error || !data) return { ok: false, error: error?.message || "Could not decline this quote." };
+  return { ok: true, jobId: String(data) };
+}
+
 export async function acceptQuote(quoteId: string) {
   const supabase = createClient();
   const { data, error } = await supabase.rpc("accept_quote", { p_quote_id: quoteId });
