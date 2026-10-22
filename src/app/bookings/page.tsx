@@ -255,36 +255,22 @@ export default function BookingsPage() {
               return (
                 <div key={b.id} className="p-4 rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)]">
                   <div className="flex justify-between items-start gap-2 mb-1">
-                    <div className="font-bold">{b.providerName}</div>
+                    <div className="font-bold">Job #{b.id.slice(-4).toUpperCase()}</div>
                     <span className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full border shrink-0 text-center max-w-[9.5rem] ${st.className}`}>{st.label}</span>
                   </div>
-                  <div className="text-xs text-[#B9C3C9] mb-2">{b.skill} · {b.location} · {URGENCY_LABEL[b.urgency] || b.urgency}</div>
-                  <p className="text-sm text-[#B9C3C9] mb-2 whitespace-pre-wrap break-words">{b.description}</p>
-                  <details className="mb-3 rounded-xl border border-white/10 bg-black/10">
-                    <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-[#F5C451]">Full job details</summary>
-                    <div className="px-3 pb-3 space-y-1 text-xs text-[#B9C3C9]">
-                      <p><b>Job ID:</b> {b.id}</p>
-                      <p><b>Location:</b> {b.location}</p>
-                      <p><b>Requested:</b> {b.scheduledFor ? new Date(b.scheduledFor).toLocaleString() : (URGENCY_LABEL[b.urgency] || b.urgency)}</p>
-                      <p><b>Provider:</b> {b.providerName}</p>
-                      <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mt-2 rounded-full border border-white/15 px-4 py-2 font-bold text-[#F5C451]">{b.status === "completed" ? "View message history" : "Message provider about this job"}</button>
-                    </div>
-                  </details>
-                  <div className="text-sm font-bold text-[#F5C451] mb-2">{b.rate > 0 ? `Agreed amount: KSh ${b.rate.toLocaleString()}` : "Awaiting provider quote"}</div>
-                  <p className="text-[0.7rem] text-[#55666E] mb-2">{st.hint}</p>
-
+                  <p className="text-[0.7rem] text-[#B9C3C9] mb-2">{st.hint}</p>
                   {quotes.filter((quote) => quote.jobId === b.id && quote.status === "pending").map((quote) => (
                     <div key={quote.id} className="mb-3 rounded-2xl border border-[#F5C451]/30 bg-[#F5C451]/[0.06] p-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">Provider quote</span>
                         <span className="text-[0.62rem] text-[#B9C3C9]">Expires {quote.expiresAt ? new Date(quote.expiresAt).toLocaleString() : "soon"}</span>
                       </div>
-                      <div className="mt-2 flex items-end justify-between gap-3">
-                        <div>
-                          <b className="text-xl text-white">KSh {quote.amount.toLocaleString()}</b>
-                          <p className="mt-1 text-xs text-[#B9C3C9]">{quote.message || "Provider sent a quote for this job."}</p>
-                        </div>
-                        <span className="rounded-full bg-[#34D399]/10 px-2.5 py-1 text-[0.62rem] font-bold text-[#34D399]">Awaiting acceptance</span>
+                      <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4">
+                        <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[#B9C3C9]">Quote receipt · Job #{b.id.slice(-4).toUpperCase()}</p>
+                        <p className="mt-2 text-xs text-[#B9C3C9]">Provider's proposed total</p>
+                        <b className="mt-1 block text-2xl text-white">KSh {quote.amount.toLocaleString()}</b>
+                        <p className="mt-2 text-sm text-[#B9C3C9] whitespace-pre-wrap">{quote.message || "Provider sent a quote for this job."}</p>
+                        <p className="mt-3 text-[0.65rem] text-[#B9C3C9]">This becomes the agreed amount when you accept the quote.</p>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <button type="button" disabled={quoteBusy === quote.id} onClick={() => handleAcceptQuote(quote.id)} className="rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-2.5 text-xs font-bold disabled:opacity-50">
@@ -297,6 +283,13 @@ export default function BookingsPage() {
                       <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mt-2 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">Message provider about this quote</button>
                     </div>
                   ))}
+
+                  {b.status !== "quote_pending" && b.rate > 0 && (
+                    <div className="mb-2 text-sm font-bold text-[#F5C451]">
+                      {["accepted", "en_route", "arrived", "in_progress", "completed"].includes(b.status) ? "Agreed amount" : "Current amount"}: KSh {b.rate.toLocaleString()}
+                    </div>
+                  )}
+                  <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mb-3 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">{b.status === "completed" ? "View message history" : "Message provider"}</button>
 
                   {["requested", "quote_pending", "accepted"].includes(b.status) && (
                     <button
