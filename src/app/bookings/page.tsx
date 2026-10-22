@@ -364,8 +364,8 @@ export default function BookingsPage() {
                   {b.status === "completed" && hasReview && (
                     <p className="text-xs text-[#34D399] font-semibold mt-1">✓ Thanks for your review</p>
                   )}
-                  {b.status === "declined" && (
-                    <Link href="/consumer" className="inline-block mt-1 text-xs font-bold text-[#F5C451]">Find another provider →</Link>
+                  {(b.status === "declined" || quotes.filter((quote) => quote.jobId === b.id && quote.status === "declined").length >= 2) && (
+                    <Link href="/consumer" className="inline-block mt-1 text-xs font-bold text-[#F5C451]">{quotes.filter((quote) => quote.jobId === b.id && quote.status === "declined").length >= 2 ? "Two quotes declined · Find another provider →" : "Find another provider →"}</Link>
                   )}
                 </div>
               );
