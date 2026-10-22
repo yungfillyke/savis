@@ -100,6 +100,8 @@ export default function BookingsPage() {
   const [quoteBusy, setQuoteBusy] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [detailJobId, setDetailJobId] = useState<string | null>(null);
+  const [expandedJobIds, setExpandedJobIds] = useState<Record<string, boolean>>({});
+  const [showPastQuotes, setShowPastQuotes] = useState<Record<string, boolean>>({});
   const [editJobId, setEditJobId] = useState<string | null>(null);
   const [editDescription, setEditDescription] = useState("");
   const [editLocation, setEditLocation] = useState("");
@@ -294,13 +296,15 @@ export default function BookingsPage() {
               const st = STATUS[b.status] || STATUS.requested;
               const hasReview = reviewed[b.id];
               return (
-                <div key={b.id} className="p-4 rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)]">
+                <div key={b.id} className="p-3 rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)]">
                   <div className="flex justify-between items-start gap-2 mb-1">
-                    <div className="font-bold">Job #{b.id.slice(-4).toUpperCase()}</div>
+                    <div><div className="font-bold text-sm">Job #{b.id.slice(-4).toUpperCase()}</div><p className="text-xs text-[#B9C3C9] mt-0.5">{b.providerName ? `Provider ${b.providerName}` : b.skill || "Service provider"}</p></div>
                     <span className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full border shrink-0 text-center max-w-[9.5rem] ${st.className}`}>{st.label}</span>
                   </div>
+                  {["completed", "declined", "cancelled"].includes(b.status) && <button type="button" onClick={() => setExpandedJobIds((state) => ({ ...state, [b.id]: !state[b.id] }))} className="mt-2 rounded-full border border-white/15 px-3 py-1.5 text-xs font-bold text-[#F5C451]">{expandedJobIds[b.id] ? "Hide details" : "Show details"}</button>}
+                  {(!["completed", "declined", "cancelled"].includes(b.status) || expandedJobIds[b.id]) && <>
                   <p className="text-[0.7rem] text-[#B9C3C9] mb-2">{st.hint}</p>
-                  {quotes.filter((quote) => quote.jobId === b.id && quote.status !== "cancelled").sort((x, y) => new Date(x.createdAt).getTime() - new Date(y.createdAt).getTime()).map((quote, quoteIndex) => (
+                  {quotes.filter((quote) => quote.jobId === b.id && quote.status !== "cancelled" && (["pending", "accepted"].includes(quote.status) || showPastQuotes[b.id])).sort((x, y) => new Date(y.createdAt).getTime() - new Date(x.createdAt).getTime()).map((quote, quoteIndex) => (
                     <div key={quote.id} className="mb-3 rounded-2xl border border-[#F5C451]/30 bg-[#F5C451]/[0.06] p-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">{quote.status === "accepted" ? "Accepted quote · agreed receipt" : quote.status === "declined" ? `Quote ${quoteIndex + 1} · Declined` : quote.status === "expired" ? `Quote ${quoteIndex + 1} · Expired` : quoteIndex > 0 ? `Replacement quote ${quoteIndex + 1}` : "Provider quote"}</span>
@@ -331,6 +335,7 @@ export default function BookingsPage() {
                       </div>}
                     </div>
                   ))}
+                  {quotes.filter((quote) => quote.jobId === b.id && ["declined", "expired"].includes(quote.status)).length > 0 && <button type="button" onClick={() => setShowPastQuotes((state) => ({ ...state, [b.id]: !state[b.id] }))} className="mb-3 w-full rounded-full border border-white/15 py-2 text-xs font-bold text-[#F5C451]">{showPastQuotes[b.id] ? "Hide past quotes" : `View past quotes (${quotes.filter((quote) => quote.jobId === b.id && ["declined", "expired"].includes(quote.status)).length})`}</button>}
 
                   {b.status !== "quote_pending" && b.rate > 0 && !quotes.some((quote) => quote.jobId === b.id && quote.status === "accepted") && (
                     <div className="mb-2 text-sm font-bold text-[#F5C451]">
@@ -367,6 +372,7 @@ export default function BookingsPage() {
                   {(b.status === "declined" || quotes.filter((quote) => quote.jobId === b.id && quote.status === "declined").length >= 2) && (
                     <Link href="/consumer" className="inline-block mt-1 text-xs font-bold text-[#F5C451]">{quotes.filter((quote) => quote.jobId === b.id && quote.status === "declined").length >= 2 ? "Two quotes declined · Find another provider →" : "Find another provider →"}</Link>
                   )}
+                  </>}
                 </div>
               );
                 })}
