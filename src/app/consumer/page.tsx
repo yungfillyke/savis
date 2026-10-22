@@ -177,7 +177,21 @@ export default function ConsumerPage() {
   }
 
   useEffect(() => { if (!loading) void loadProviders(userLocation, activeCategory); }, [loading, userLocation, activeCategory, radius]);
-  useEffect(() => { if (!loading) void syncConsumerBookings().then(setBookings); }, [loading]);
+  useEffect(() => {
+    if (loading) return;
+    const refreshConsumerJobs = () => { void syncConsumerBookings().then(setBookings); };
+    refreshConsumerJobs();
+    // Refresh when the consumer tab becomes active again, and when another tab
+    // changes the shared cache. The database remains the source of truth.
+    window.addEventListener("focus", refreshConsumerJobs);
+    window.addEventListener("storage", refreshConsumerJobs);
+    document.addEventListener("visibilitychange", refreshConsumerJobs);
+    return () => {
+      window.removeEventListener("focus", refreshConsumerJobs);
+      window.removeEventListener("storage", refreshConsumerJobs);
+      document.removeEventListener("visibilitychange", refreshConsumerJobs);
+    };
+  }, [loading]);
   useEffect(() => {
     if (loading || activeTab !== "messages") return;
     void listConversations().then(setConversations);
