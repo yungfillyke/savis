@@ -176,30 +176,37 @@ export async function updateBookingStatus(
   note?: string,
   location?: { latitude?: number; longitude?: number }
 ): Promise<void> {
-  const optimistic = fromLocal().map((b) =>
-    b.id === id ? { ...b, status } : b
-  );
-  saveLocal(optimistic);
+  const supabase = createClient();
+  const { error } = await supabase.rpc("transition_job", {
+    p_job_id: id,
+    p_next_status: status,
+    p_note: note ?? null,
+    p_latitude: location?.latitude ?? null,
+    p_longitude: location?.longitude ?? null,
+  });
 
-  try {
-    const supabase = createClient();
-    const { error } = await supabase.rpc("transition_job", {
-      p_job_id: id,
-      p_next_status: status,
-      p_note: note ?? null,
-      p_latitude: location?.latitude ?? null,
-      p_longitude: location?.longitude ?? null,
-    });
-    if (error) throw error;
-
-    const { data } = await supabase
-      .from("jobs")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (data) saveLocal(data.map(rowToBooking));
-  } catch {
-    // Demo/offline fallback: retain the optimistic local state.
+  // Do not report success or update the local cache unless the server accepted
+  // the transition. The RPC enforces participant permissions and valid states.
+  if (error) {
+    throw new Error(error.message || "SAVIS could not update this job. Please try again.");
   }
+
+  const { data, error: fetchError } = await supabase
+    .from("jobs")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !data) {
+    throw new Error(fetchError?.message || "The job changed, but SAVIS could not reload it. Refresh the page.");
+  }
+
+  const saved = rowToBooking(data);
+  const current = fromLocal();
+  const next = current.some((item) => item.id === id)
+    ? current.map((item) => item.id === id ? saved : item)
+    : [saved, ...current];
+  saveLocal(next);
 }
 
 export function getOpenRequests(): Booking[] {
