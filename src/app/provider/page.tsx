@@ -335,12 +335,13 @@ export default function ProviderPage() {
   const cells = calendarCells(calendarMonth);
 
   return (
-    <main className="min-h-screen pb-28 bg-[#f4f6f8] text-slate-900">
+    <main data-provider-theme={darkMode ? "dark" : "light"} className={`savis-provider-dashboard min-h-screen pb-28 ${darkMode ? "bg-[#091321] text-[#e8eef7]" : "bg-[#eaf1fb] text-[#17283d]"}`}>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#101e2d]/95 text-white shadow-lg shadow-black/10 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <Logo size="sm" />
           <div className="flex items-center gap-2">
             <LangToggle lang={lang} onChange={switchLang} />
+            <button type="button" onClick={() => { const next = !darkMode; setDarkMode(next); document.documentElement.dataset.savisTheme = next ? "dark" : "light"; try { const current = JSON.parse(localStorage.getItem("savis_settings") || "{}"); localStorage.setItem("savis_settings", JSON.stringify({ ...current, darkMode: next })); } catch { /* storage may be unavailable */ } window.dispatchEvent(new Event("savis-theme-changed")); }} aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"} title={darkMode ? "Switch to light mode" : "Switch to dark mode"} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/[0.06] text-lg text-white hover:bg-white/10">{darkMode ? "☀" : "☾"}</button>
             <Link href="/provider-profile" className="text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 bg-white/[0.06] text-white/85 hover:bg-white/10">{lang === "sw" ? "Wasifu" : "Profile"}</Link>
           </div>
         </div>
