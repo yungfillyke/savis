@@ -47,9 +47,9 @@ const STATUS: Record<
     hint: "Review the provider quote below. Accept it to lock the job.",
   },
   accepted: {
-    label: "Accepted · Protected",
+    label: "Accepted",
     className: "text-[#34D399] bg-[#34D399]/10 border-[#34D399]/30",
-    hint: "The quote is accepted and the job is protected in the SAVIS ledger.",
+    hint: "The job is accepted. Confirm the final price and payment method with the provider before work begins.",
   },
   en_route: {
     label: "Provider en route",
@@ -250,7 +250,7 @@ export default function BookingsPage() {
                           <b className="text-xl text-white">KSh {quote.amount.toLocaleString()}</b>
                           <p className="mt-1 text-xs text-[#B9C3C9]">{quote.message || "Provider sent a quote for this job."}</p>
                         </div>
-                        <span className="rounded-full bg-[#34D399]/10 px-2.5 py-1 text-[0.62rem] font-bold text-[#34D399]">Protected</span>
+                        <span className="rounded-full bg-[#34D399]/10 px-2.5 py-1 text-[0.62rem] font-bold text-[#34D399]">Awaiting acceptance</span>
                       </div>
                       <button type="button" disabled={quoteBusy === quote.id} onClick={() => handleAcceptQuote(quote.id)} className="mt-3 w-full rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-2.5 text-xs font-bold">
                         {quoteBusy === quote.id ? "Locking job…" : "Accept & Lock Job"}
