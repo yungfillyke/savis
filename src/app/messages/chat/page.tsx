@@ -55,6 +55,7 @@ export default function MessagesPage() {
       setHomeHref(ownRole.includes("provider") || ownRole.includes("professional") || ownRole.includes("producer") || ownRole.includes("agent") ? "/provider" : "/consumer");
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("job");
+      const conversationId = params.get("conversation");
       let rows = await loadConversations();
 
       if (jobId) {
@@ -95,9 +96,21 @@ export default function MessagesPage() {
         } else {
           setNotice("This job conversation is not available to this account.");
         }
-      } else if (rows.length) {
-        setSelected(rows[0]);
-        await loadMessages(rows[0].id);
+      } else if (conversationId) {
+        const conversation = rows.find((row) => row.id === conversationId);
+        if (conversation) {
+          setSelected(conversation);
+          await loadMessages(conversation.id);
+          if (conversation.jobId) {
+            const { data: job } = await supabase.from("jobs").select("id,consumer_id,provider_id,description,location,scheduled_for").eq("id", conversation.jobId).maybeSingle();
+            if (job && (job.consumer_id === user.id || job.provider_id === user.id)) {
+              setJobContext({description:String(job.description || ""),location:String(job.location || ""),scheduledFor:job.scheduled_for ? String(job.scheduled_for) : null});
+              const otherId = job.consumer_id === user.id ? String(job.provider_id) : String(job.consumer_id);
+              const { data: peer } = await supabase.from("profiles").select("full_name,avatar_url,role").eq("id", otherId).maybeSingle();
+              setPeerProfile({name:String(peer?.full_name || (job.consumer_id === user.id ? "Service provider" : "Customer")),avatarUrl:peer?.avatar_url ? String(peer.avatar_url) : null,role:peer?.role ? String(peer.role) : null});
+            }
+          }
+        }
       }
       if (!cancelled) {
         setConversations(rows);
