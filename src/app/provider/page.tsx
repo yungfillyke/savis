@@ -301,7 +301,7 @@ export default function ProviderPage() {
           <Logo size="sm" />
           <div className="flex items-center gap-2">
             <LangToggle lang={lang} onChange={switchLang} />
-            <Link href="/profile" className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-600">{lang === "sw" ? "Wasifu" : "Profile"}</Link>
+            <Link href="/provider-profile" className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-600">{lang === "sw" ? "Wasifu" : "Profile"}</Link>
           </div>
         </div>
       </header>
@@ -373,20 +373,20 @@ export default function ProviderPage() {
                         <p><b>Job ID:</b> {j.id}</p>
                         <p><b>Location:</b> {j.location}</p>
                         <p><b>Requested:</b> {j.scheduledFor ? new Date(j.scheduledFor).toLocaleString() : (URGENCY[j.urgency]?.[lang] || j.urgency)}</p>
-                        <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="w-full rounded-full border border-slate-200 py-2 font-bold">Message customer about this job</button>
+                        <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="w-full rounded-full border border-slate-200 py-2 font-bold">Message customer about this job</button>
                       </div>
                     </details>
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "quote_pending" ? (
                         <>
                           <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-800">✓ Quote sent · Awaiting customer response</div>
-                          <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
+                          <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                         </>
                       ) : (
                         <>
                           {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
                           {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteItems([{ name: "", amount: "" }]); setQuoteServiceFee(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
-                          <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
+                          <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                           <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                         </>
                       )}
@@ -407,7 +407,7 @@ export default function ProviderPage() {
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "accepted" && j.requestType === "booking" && j.rate === 0 && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
                       {(j.status === "accepted" || j.status === "en_route" || j.status === "arrived") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark on the way") : j.status === "en_route" ? (lang === "sw" ? "Nimefika" : "Mark arrived") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
-                      <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
+                      <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                       <a href={j.latitude != null && j.longitude != null ? `https://www.google.com/maps/dir/?api=1&destination=${j.latitude},${j.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.location)}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white text-center">{lang === "sw" ? "Maelekezo" : "Directions"}</a>
                       {j.status === "in_progress" && <button type="button" onClick={() => completeJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kamilisha" : "Complete"}</button>}
                     </div>
@@ -499,12 +499,12 @@ export default function ProviderPage() {
         {tab === "messages" && (
           <section className="rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
             <h2 className="font-black mb-1">{lang === "sw" ? "Ujumbe wa kazi" : "Job messages"}</h2>
-            <p className="text-xs text-slate-500 mb-4">{lang === "sw" ? "Mazungumzo ya kazi za SAVIS pekee." : "Only conversations for jobs started on SAVIS."}</p>
+            <p className="text-xs text-slate-500 mb-4">{lang === "sw" ? "Mazungumzo ya kazi za SAVIS pekee." : "Conversations are kept separate for each SAVIS job, including completed jobs."}</p>
             {activeJobs.length === 0 && openJobs.length === 0 ? <p className="text-sm text-slate-500 text-center py-8">{lang === "sw" ? "Hakuna mazungumzo bado." : "No job conversations yet."}</p> : (
-              <div className="space-y-2">{[...activeJobs, ...openJobs].slice(0, 10).map((j) => (
-                <Link key={j.id} href={`/messages?job=${j.id}`} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50">
+              <div className="space-y-2">{allJobs.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 20).map((j) => (
+                <Link key={j.id} href={`/messages/chat?job=${j.id}`} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-slate-50">
                   <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-sm font-black text-slate-600">{(j.consumerName || j.location || "C").charAt(0)}</div>
-                  <div className="min-w-0 flex-1"><b className="block text-sm truncate">{j.consumerName || j.location}</b><p className="text-xs text-slate-500 truncate">{j.skill} · {jobId(j.id)}</p></div>
+                  <div className="min-w-0 flex-1"><b className="block text-sm truncate">{j.consumerName || j.location}</b><p className="text-xs text-slate-500 truncate">{j.skill} · {jobId(j.id)} · {j.status.replace("_", " ")}</p></div>
                   <span className="text-slate-400">→</span>
                 </Link>
               ))}</div>
