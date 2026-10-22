@@ -9,7 +9,7 @@ import Logo from "@/components/Logo";
 import Button from "@/components/Button";
 import {
   getBookings,
-  syncBookings,
+  syncConsumerBookings,
   type Booking,
   type BookingStatus,
 } from "@/lib/bookings";
@@ -117,7 +117,7 @@ export default function BookingsPage() {
         router.replace("/login");
         return;
       }
-      await syncBookings();
+      await syncConsumerBookings();
       const list = getBookings();
       const quoteList = await listQuotesForJobs(list.map((booking) => booking.id));
       setQuotes(quoteList);
@@ -144,7 +144,7 @@ export default function BookingsPage() {
     setQuoteBusy(quoteId);
     const result = await acceptQuote(quoteId);
     if (result.ok) {
-      await syncBookings();
+      await syncConsumerBookings();
       const list = getBookings();
       setBookings(list);
       setQuotes(await listQuotesForJobs(list.map((booking) => booking.id)));
