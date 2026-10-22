@@ -108,7 +108,7 @@ export default function ProviderPage() {
   const [availability, setAvailability] = useState<AvailabilityDay[]>(DEFAULT_AVAILABILITY);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [quoteJob, setQuoteJob] = useState<Booking | null>(null);
-  const [quoteAmount, setQuoteAmount] = useState(0);
+  const [quoteAmount, setQuoteAmount] = useState("");
   const [quoteMessage, setQuoteMessage] = useState("");
   const [quoteBusy, setQuoteBusy] = useState(false);
   const [providerAvailable, setProviderAvailableAmt] = useState(0);
@@ -188,11 +188,16 @@ export default function ProviderPage() {
     }
   }
   async function declineJob(id: string) {
-    const job = getBookings().find((b) => b.id === id);
-    await updateBookingStatus(id, "declined");
-    if (job) refundForJob(job.rate, id, `Refund: ${job.description.slice(0, 40)}`);
-    refreshJobs();
-    showToast(lang === "sw" ? "Kazi imekataliwa" : "Declined · Funds refunded to customer");
+    try {
+      await updateBookingStatus(id, "declined");
+      await syncProviderBookings();
+      refreshJobs();
+      showToast(lang === "sw" ? "Kazi imekataliwa" : "Job declined");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Could not decline this job.");
+      await syncProviderBookings();
+      refreshJobs();
+    }
   }
   async function completeJob(id: string) {
     const job = getBookings().find((b) => b.id === id);
@@ -203,12 +208,29 @@ export default function ProviderPage() {
   }
   async function startJob(id: string) { await updateBookingStatus(id, "in_progress"); refreshJobs(); showToast(lang === "sw" ? "Kazi imeanza" : "Job in progress"); }
   async function submitQuote() {
-    if (!quoteJob || quoteAmount < 0) return;
+    const amount = Number(quoteAmount);
+    if (!quoteJob || !Number.isFinite(amount) || amount <= 0) {
+      showToast("Enter a quote amount greater than KSh 0.");
+      return;
+    }
     setQuoteBusy(true);
-    const quote = await createQuote(quoteJob.id, quoteAmount, quoteMessage, new Date(Date.now() + 86400000).toISOString());
-    if (quote) { await updateBookingStatus(quoteJob.id, "quote_pending", "Provider sent a SAVIS quote."); refreshJobs(); setQuoteJob(null); setQuoteMessage(""); showToast(lang === "sw" ? "Nukuu imetumwa" : "Quote sent"); }
-    else showToast("Quote could not be sent.");
-    setQuoteBusy(false);
+    try {
+      const quote = await createQuote(quoteJob.id, amount, quoteMessage, new Date(Date.now() + 86400000).toISOString());
+      if (!quote) throw new Error("SAVIS could not save the quote. Check that you're signed in as the provider assigned to this job.");
+      await updateBookingStatus(quoteJob.id, "quote_pending", "Provider sent a SAVIS quote.");
+      await syncProviderBookings();
+      refreshJobs();
+      setQuoteJob(null);
+      setQuoteAmount("");
+      setQuoteMessage("");
+      showToast(lang === "sw" ? "Nukuu imetumwa" : "Quote sent");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Quote could not be sent. Please try again.");
+      await syncProviderBookings();
+      refreshJobs();
+    } finally {
+      setQuoteBusy(false);
+    }
   }
   function handleWithdraw() {
     if (providerAvailable <= 0) { showToast("No available balance"); return; }
@@ -314,7 +336,7 @@ export default function ProviderPage() {
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{j.description}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
                       <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali" : "Accept"}</button>
-                      <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate || 0); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>
+                      <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>
                       <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                     </div>
                   </div>
@@ -443,7 +465,7 @@ export default function ProviderPage() {
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/50 px-4 pb-5">
           <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
             <div className="flex justify-between"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</h2></div><button type="button" onClick={() => setQuoteJob(null)}>✕</button></div>
-            <label className="block mt-4"><span className="text-xs font-bold text-slate-500">KSh</span><input type="number" min={0} value={quoteAmount} onChange={(e) => setQuoteAmount(Number(e.target.value) || 0)} className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" /></label>
+            <label className="block mt-4"><span className="text-xs font-bold text-slate-500">KSh</span><input type="number" min={1} step={1} placeholder="e.g. 3000" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" /></label>
             <label className="block mt-3"><span className="text-xs font-bold text-slate-500">{lang === "sw" ? "Nini kimejumuishwa?" : "Included"}</span><textarea rows={3} value={quoteMessage} onChange={(e) => setQuoteMessage(e.target.value)} className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm" /></label>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setQuoteJob(null)} className="rounded-full border border-slate-200 py-3 text-xs font-bold">{lang === "sw" ? "Ghairi" : "Cancel"}</button>
