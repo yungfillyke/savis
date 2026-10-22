@@ -358,9 +358,15 @@ export default function ProviderPage() {
                     <p className="text-xs text-slate-600 mt-1">{j.location} · {URGENCY[j.urgency]?.[lang] || j.urgency}{j.rate > 0 ? ` · KSh ${j.rate.toLocaleString()}` : ` · ${lang === "sw" ? "Nukuu inahitajika" : "Quote needed"}`}</p>
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{j.description}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
-                      {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
-                      <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
+                      {j.status === "quote_pending" ? (
+                        <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-800">✓ Quote sent · Awaiting customer response</div>
+                      ) : (
+                        <>
+                          {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
+                          {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
+                          <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}</div>
@@ -503,7 +509,7 @@ export default function ProviderPage() {
           <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
             <div className="flex justify-between"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</h2></div><button type="button" onClick={() => setQuoteJob(null)}>✕</button></div>
             <label className="block mt-4"><span className="text-xs font-bold text-slate-500">KSh</span><input type="number" min={1} step={1} placeholder="e.g. 3000" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" /></label>
-            <label className="block mt-3"><span className="text-xs font-bold text-slate-500">{lang === "sw" ? "Nini kimejumuishwa?" : "Included"}</span><textarea rows={3} value={quoteMessage} onChange={(e) => setQuoteMessage(e.target.value)} className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm" /></label>
+            <label className="block mt-3"><span className="text-xs font-bold text-slate-500">{lang === "sw" ? "Nini kimejumuishwa?" : "Quote details and itemised costs"}</span><textarea rows={3} value={quoteMessage} onChange={(e) => setQuoteMessage(e.target.value)} placeholder="e.g. Replacement socket: KSh 200; labour: KSh 500" className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm placeholder:text-slate-400" /><span className="mt-1 block text-[0.7rem] text-slate-500">Explain what the total includes so the customer can review it before accepting.</span></label>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setQuoteJob(null)} className="rounded-full border border-slate-200 py-3 text-xs font-bold">{lang === "sw" ? "Ghairi" : "Cancel"}</button>
               <button type="button" disabled={quoteBusy} onClick={() => void submitQuote()} className="rounded-full bg-gradient-to-r from-[#E22227] to-[#C7080C] py-3 text-xs font-bold text-white">{quoteBusy ? "…" : (lang === "sw" ? "Tuma" : "Send")}</button>
