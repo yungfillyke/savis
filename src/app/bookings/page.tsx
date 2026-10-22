@@ -20,9 +20,11 @@ import LangToggle from "@/components/LangToggle";
 import { t, getLang, setLang, type Lang } from "@/lib/i18n";
 
 const URGENCY_LABEL: Record<string, string> = {
-  now: "Right now",
+  now: "As soon as possible",
+  asap: "As soon as possible",
   today: "Today",
   week: "This week",
+  custom: "Choose a date & time",
 };
 
 const STATUS: Record<
@@ -55,6 +57,11 @@ const STATUS: Record<
     label: "Provider en route",
     className: "text-[#60A5FA] bg-[#60A5FA]/10 border-[#60A5FA]/30",
     hint: "Your provider is on the way.",
+  },
+  arrived: {
+    label: "Provider arrived",
+    className: "text-[#60A5FA] bg-[#60A5FA]/10 border-[#60A5FA]/30",
+    hint: "Your provider has arrived. They can now start the work.",
   },
   in_progress: {
     label: "In progress",
