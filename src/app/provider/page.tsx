@@ -359,8 +359,10 @@ export default function ProviderPage() {
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{j.description}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "quote_pending" ? (
-                        <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-800">✓ Quote sent · Awaiting customer response</div>
-                        <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
+                        <>
+                          <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-800">✓ Quote sent · Awaiting customer response</div>
+                          <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
+                        </>
                       ) : (
                         <>
                           {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
