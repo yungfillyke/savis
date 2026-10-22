@@ -10,6 +10,7 @@ import Button from "@/components/Button";
 import {
   getBookings,
   syncConsumerBookings,
+  updateBookingStatus,
   type Booking,
   type BookingStatus,
 } from "@/lib/bookings";
@@ -89,6 +90,7 @@ export default function BookingsPage() {
   const [lang, setLangState] = useState<Lang>("en");
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [quoteBusy, setQuoteBusy] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setLangState(getLang());
@@ -142,14 +144,37 @@ export default function BookingsPage() {
 
   async function handleAcceptQuote(quoteId: string) {
     setQuoteBusy(quoteId);
-    const result = await acceptQuote(quoteId);
-    if (result.ok) {
+    try {
+      const result = await acceptQuote(quoteId);
+      if (!result.ok) throw new Error(result.error || "Could not accept this quote.");
       await syncConsumerBookings();
       const list = getBookings();
       setBookings(list);
       setQuotes(await listQuotesForJobs(list.map((booking) => booking.id)));
+      setActionMessage("Quote accepted. Your job is confirmed.");
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : "Could not accept this quote.");
+    } finally {
+      setQuoteBusy(null);
     }
-    setQuoteBusy(null);
+  }
+
+  async function handleCancelJob(jobId: string) {
+    setQuoteBusy(jobId);
+    try {
+      await updateBookingStatus(jobId, "cancelled", "Cancelled by customer.");
+      await syncConsumerBookings();
+      const list = getBookings();
+      setBookings(list);
+      setQuotes(await listQuotesForJobs(list.map((booking) => booking.id)));
+      setActionMessage("Job cancelled.");
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : "Could not cancel this job.");
+      await syncConsumerBookings();
+      setBookings(getBookings());
+    } finally {
+      setQuoteBusy(null);
+    }
   }
 
   async function submitReview() {
@@ -233,6 +258,17 @@ export default function BookingsPage() {
                     </div>
                   ))}
 
+                  {["requested", "quote_pending", "accepted"].includes(b.status) && (
+                    <button
+                      type="button"
+                      disabled={quoteBusy === b.id}
+                      onClick={() => void handleCancelJob(b.id)}
+                      className="w-full mt-2 rounded-full border border-red-300 py-2.5 text-xs font-bold text-red-300 disabled:opacity-50"
+                    >
+                      {quoteBusy === b.id ? "Cancelling…" : "Cancel job"}
+                    </button>
+                  )}
+
                   {b.status === "completed" && !hasReview && (
                     <button
                       onClick={() => { setRatingJobId(b.id); setStars(5); setComment(""); }}
@@ -251,6 +287,13 @@ export default function BookingsPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {actionMessage && (
+          <div role="status" className="mb-4 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white">
+            {actionMessage}
+            <button type="button" onClick={() => setActionMessage(null)} className="ml-3 font-bold text-[#F5C451]">Dismiss</button>
           </div>
         )}
 
