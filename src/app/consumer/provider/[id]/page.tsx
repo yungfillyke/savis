@@ -68,10 +68,12 @@ export default function ProviderDetailPage() {
   const [provider, setProvider] = useState<Provider | null>(SAMPLE[id] || null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [requestType, setRequestType] = useState<"quote" | "booking">("quote");
   const [desc, setDesc] = useState("");
   const [location, setLocation] = useState("");
   const [urgency, setUrgency] = useState("today");
-  const [scheduledFor, setScheduledFor] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("09:00");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [services, setServices] = useState<Array<{id:string;name:string;description:string;starting_price:number;unit:string}>>([]);
@@ -133,9 +135,10 @@ export default function ProviderDetailPage() {
         skill: provider.skill,
         description: desc.trim(),
         location: location.trim(),
-        urgency,
+        urgency: urgency === "custom" ? "custom" : urgency,
         rate: provider.rate,
-        scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : undefined,
+        requestType,
+        scheduledFor: urgency === "custom" && scheduledDate ? new Date(scheduledDate + "T" + (scheduledTime || "09:00")).toISOString() : urgency === "today" ? new Date(new Date().toISOString().slice(0,10) + "T" + (scheduledTime || "09:00")).toISOString() : undefined,
         latitude: currentLocation?.latitude,
         longitude: currentLocation?.longitude,
         locationAccuracy: currentLocation?.accuracy,
@@ -206,13 +209,13 @@ export default function ProviderDetailPage() {
 
         {!showForm ? (
           <div className="space-y-3">
-            <Button full onClick={handleRequestClick}>Request a quote</Button>
-            <Button variant="outline" full onClick={handleRequestClick}>Book now</Button>
+            <Button full onClick={() => { setRequestType("quote"); void handleRequestClick(); }}>Request a quote</Button>
+            <Button variant="outline" full onClick={() => { setRequestType("booking"); void handleRequestClick(); }}>Book now</Button>
           </div>
         ) : (
           <form onSubmit={handleSend} className="space-y-4">
-            <h2 className="font-extrabold text-lg">Describe your job</h2>
-            <p className="text-sm text-[#B9C3C9]">Sending an enquiry to {provider.name}. You will not be charged to ask for a quote.</p>
+            <h2 className="font-extrabold text-lg">{requestType === "quote" ? "Request a quote" : "Request a booking"}</h2>
+            <p className="text-sm text-[#B9C3C9]">{requestType === "quote" ? `Ask ${provider.name} for a price. You will not be charged to request a quote.` : `Request a booking with ${provider.name}. They will confirm availability and send a price if needed.`}</p>
 
             <div>
               <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">What is the problem?</label>
@@ -225,18 +228,23 @@ export default function ProviderDetailPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">Preferred date & time</label>
-              <input type="datetime-local" value={scheduledFor} onChange={(e) => setScheduledFor(e.target.value)} min={new Date().toISOString().slice(0,16)} className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227]" />
-              <p className="mt-1 text-[0.65rem] text-[#7F8C93]">Optional. The provider can confirm or propose a new time.</p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">How soon?</label>
+              <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">When do you need the work?</label>
               <select value={urgency} onChange={(e) => setUrgency(e.target.value)} className="w-full px-4 py-3.5 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227]">
-                <option value="now">Right now</option>
+                <option value="asap">As soon as possible</option>
                 <option value="today">Today</option>
                 <option value="week">This week</option>
+                <option value="custom">Choose a date & time</option>
               </select>
+              {urgency === "custom" && <div className="grid grid-cols-2 gap-3 mt-3">
+                <label className="block text-xs font-bold text-[#B9C3C9]">Date
+                  <input required type="date" value={scheduledDate} min={new Date().toISOString().slice(0,10)} onChange={(e) => setScheduledDate(e.target.value)} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-black/35 border border-white/15 text-white" />
+                </label>
+                <label className="block text-xs font-bold text-[#B9C3C9]">Time
+                  <input required type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-black/35 border border-white/15 text-white" />
+                </label>
+              </div>}
+              {urgency === "today" && <p className="mt-1 text-[0.65rem] text-[#7F8C93]">The provider can confirm a suitable time.</p>}
+              {urgency === "week" && <p className="mt-1 text-[0.65rem] text-[#7F8C93]">The provider can suggest a day and time this week.</p>}
             </div>
 
             <div className="p-3 rounded-2xl border border-[rgba(245,196,81,0.35)] bg-[rgba(245,196,81,0.1)] text-sm">
