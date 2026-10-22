@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 type Tab = "home" | "for-you" | "jobs" | "messages" | "profile";
 type Props = { active?: Tab };
-type NavRole = "provider" | "professional" | "consumer" | "other";
+type NavRole = "provider" | "consumer" | "other";
 
 export default function SavisBottomNav({ active = "profile" }: Props) {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function SavisBottomNav({ active = "profile" }: Props) {
       const { data } = await db.from("profiles").select("role").eq("id", user.id).maybeSingle();
       const rawRole = String(data?.role || user.user_metadata?.role || "consumer").toLowerCase();
       const nextRole: NavRole =
-        ["provider", "professional", "producer", "wholesale_retail"].includes(rawRole) ? "provider" :
+        ["provider", "professional", "producer", "agent", "wholesale_retail"].includes(rawRole) ? "provider" :
         rawRole === "consumer" ? "consumer" : "other";
       if (mounted) setRole(nextRole);
     }
