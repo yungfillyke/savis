@@ -33,6 +33,12 @@ export default function MessagesPage() {
     setMessages(await listMessages(conversationId));
   }, []);
 
+  const markConversationRead = useCallback(async (conversationId: string, currentUserId: string) => {
+    const supabase = createClient();
+    await supabase.from("messages").update({ read_at: new Date().toISOString() })
+      .eq("conversation_id", conversationId).neq("sender_id", currentUserId).is("read_at", null);
+  }, []);
+
   const loadConversations = useCallback(async () => {
     const rows = await listConversations();
     setConversations(rows);
@@ -92,6 +98,8 @@ export default function MessagesPage() {
           if (conversation) {
             setSelected(conversation);
             await loadMessages(conversation.id);
+          await markConversationRead(conversation.id, user.id);
+            await markConversationRead(conversation.id, user.id);
           }
         } else {
           setNotice("This job conversation is not available to this account.");
@@ -119,7 +127,7 @@ export default function MessagesPage() {
     }
     void boot();
     return () => { cancelled = true; };
-  }, [loadConversations, loadMessages]);
+  }, [loadConversations, loadMessages, markConversationRead]);
 
   useEffect(() => {
     if (!selected?.id) return;
@@ -134,6 +142,7 @@ export default function MessagesPage() {
     setPeerProfile(null);
     setJobContext(null);
     await loadMessages(conversation.id);
+    await markConversationRead(conversation.id, userId);
 
     // Load context for this exact conversation so another job's details never remain visible.
     if (!conversation.jobId) return;
