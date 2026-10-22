@@ -236,7 +236,7 @@ export default function BookingsPage() {
                   </div>
                   <div className="text-xs text-[#B9C3C9] mb-2">{b.skill} · {b.location} · {URGENCY_LABEL[b.urgency] || b.urgency}</div>
                   <p className="text-sm text-[#B9C3C9] mb-2">{b.description}</p>
-                  <div className="text-sm font-bold text-[#F5C451] mb-2">From KSh {b.rate.toLocaleString()}</div>
+                  <div className="text-sm font-bold text-[#F5C451] mb-2">{b.rate > 0 ? `Agreed amount: KSh ${b.rate.toLocaleString()}` : "Awaiting provider quote"}</div>
                   <p className="text-[0.7rem] text-[#55666E] mb-2">{st.hint}</p>
 
                   {quotes.filter((quote) => quote.jobId === b.id && quote.status === "pending").map((quote) => (
