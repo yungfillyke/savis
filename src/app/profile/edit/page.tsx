@@ -144,7 +144,7 @@ export default function EditProfilePage() {
         setMessage("");
       } else {
         setMessage("Profile saved.");
-        setTimeout(() => router.replace("/profile"), 600);
+        setTimeout(() => router.replace(["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "/provider-profile" : "/profile"), 600);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save profile.");
@@ -162,7 +162,7 @@ export default function EditProfilePage() {
           <h1 className="text-xl font-black">Edit profile</h1>
           <button
             type="button"
-            onClick={() => router.replace("/profile")}
+            onClick={() => router.replace(["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "/provider-profile" : "/profile")}
             className="text-sm font-bold text-white/70"
           >
             ← Back
