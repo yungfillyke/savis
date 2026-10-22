@@ -7,6 +7,7 @@ export type BookingStatus =
   | "quote_pending"
   | "accepted"
   | "en_route"
+  | "arrived"
   | "in_progress"
   | "completed"
   | "declined"
@@ -220,7 +221,7 @@ export function getOpenRequests(): Booking[] {
 
 export function getAcceptedJobs(): Booking[] {
   return fromLocal().filter((b) =>
-    ["accepted", "en_route", "in_progress"].includes(b.status)
+    ["accepted", "en_route", "arrived", "in_progress"].includes(b.status)
   );
 }
 
