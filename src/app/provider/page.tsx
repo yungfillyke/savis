@@ -357,6 +357,16 @@ export default function ProviderPage() {
                     <div className="flex justify-between gap-2"><strong className="text-sm">{j.skill || j.description.slice(0, 48)}</strong><span className="text-[0.62rem] font-bold text-slate-400">{jobId(j.id)}</span></div>
                     <p className="text-xs text-slate-600 mt-1">{j.location} · {URGENCY[j.urgency]?.[lang] || j.urgency}{j.rate > 0 ? ` · KSh ${j.rate.toLocaleString()}` : ` · ${lang === "sw" ? "Nukuu inahitajika" : "Quote needed"}`}</p>
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{j.description}</p>
+                    <details className="mt-2 rounded-xl border border-slate-200 bg-white">
+                      <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-slate-700">View full job details</summary>
+                      <div className="px-3 pb-3 space-y-2 text-xs text-slate-600">
+                        <p className="whitespace-pre-wrap break-words">{j.description}</p>
+                        <p><b>Job ID:</b> {j.id}</p>
+                        <p><b>Location:</b> {j.location}</p>
+                        <p><b>Requested:</b> {j.scheduledFor ? new Date(j.scheduledFor).toLocaleString() : (URGENCY[j.urgency]?.[lang] || j.urgency)}</p>
+                        <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="w-full rounded-full border border-slate-200 py-2 font-bold">Message customer about this job</button>
+                      </div>
+                    </details>
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "quote_pending" ? (
                         <>
@@ -510,9 +520,15 @@ export default function ProviderPage() {
 
       {quoteJob && (
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/50 px-4 pb-5">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
-            <div className="flex justify-between"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</h2></div><button type="button" onClick={() => setQuoteJob(null)}>✕</button></div>
-            <label className="block mt-4"><span className="text-xs font-bold text-slate-500">KSh</span><input type="number" min={1} step={1} placeholder="e.g. 3000" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" /></label>
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="flex justify-between gap-3"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</h2></div><button type="button" onClick={() => setQuoteJob(null)} aria-label="Close quote form">✕</button></div>
+            {quoteJob && <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <p className="text-[0.65rem] font-bold uppercase tracking-wide text-slate-500">Full job description · {jobId(quoteJob.id)}</p>
+              <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold text-slate-800">{quoteJob.description}</p>
+              <p className="mt-2 text-xs text-slate-600">{quoteJob.location} · {quoteJob.scheduledFor ? new Date(quoteJob.scheduledFor).toLocaleString() : (URGENCY[quoteJob.urgency]?.[lang] || quoteJob.urgency)}</p>
+              <button type="button" onClick={() => router.push(`/messages?job=${quoteJob.id}`)} className="mt-3 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold">Ask customer a question</button>
+            </div>}
+            <label className="block mt-4"><span className="text-xs font-bold text-slate-500">Total quote amount (KSh) — required</span><input type="number" min={1} step={1} required aria-label="Total quote amount in Kenyan shillings" placeholder="e.g. 8350" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} className={`w-full mt-1 rounded-2xl border ${!quoteAmount.trim() ? "border-amber-400" : "border-slate-200"} bg-slate-50 px-4 py-3`} />{!quoteAmount.trim() && <span className="mt-1 block text-xs font-semibold text-amber-700">Enter the total amount before sending this quote.</span>}</label>
             <label className="block mt-3"><span className="text-xs font-bold text-slate-500">{lang === "sw" ? "Nini kimejumuishwa?" : "Quote details and itemised costs"}</span><textarea rows={3} value={quoteMessage} onChange={(e) => setQuoteMessage(e.target.value)} placeholder="e.g. Replacement socket: KSh 200; labour: KSh 500" className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm placeholder:text-slate-400" /><span className="mt-1 block text-[0.7rem] text-slate-500">Explain what the total includes so the customer can review it before accepting.</span></label>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setQuoteJob(null)} className="rounded-full border border-slate-200 py-3 text-xs font-bold">{lang === "sw" ? "Ghairi" : "Cancel"}</button>
