@@ -36,7 +36,7 @@ export default function SavisBottomNav({ active = "profile" }: Props) {
     { id: "for-you", label: provider ? "My Work" : "For You", icon: "✦", href: provider ? "/provider" : "/consumer" },
     { id: "jobs", label: provider ? "Jobs" : "Bookings", icon: "▣", href: provider ? "/provider" : "/bookings" },
     { id: "messages", label: "Messages", icon: "◌", href: "/messages" },
-    { id: "profile", label: "Profile", icon: "◉", href: "/profile" },
+    { id: "profile", label: "Profile", icon: "◉", href: provider ? "/provider-profile" : "/profile" },
   ];
 
   function go(href: string) {
