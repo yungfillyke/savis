@@ -12,7 +12,7 @@ import {
   getOpenRequests,
   getAcceptedJobs,
   updateBookingStatus,
-  syncBookings,
+  syncProviderBookings,
   type Booking,
 } from "@/lib/bookings";
 import {
@@ -140,7 +140,7 @@ export default function ProviderPage() {
       if (savedAvailability?.length) {
         setAvailability(savedAvailability.map((row) => ({ weekday: Number(row.weekday), enabled: Boolean(row.enabled), start_time: String(row.start_time || "08:00").slice(0, 5), end_time: String(row.end_time || "17:00").slice(0, 5), travel_radius_km: Number(row.travel_radius_km) || 25 })));
       }
-      await syncBookings();
+      await syncProviderBookings();
       refreshJobs(user.id);
       setLoading(false);
     }
