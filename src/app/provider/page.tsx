@@ -112,6 +112,8 @@ export default function ProviderPage() {
   const [quoteJob, setQuoteJob] = useState<Booking | null>(null);
   const [quoteAmount, setQuoteAmount] = useState("");
   const [quoteMessage, setQuoteMessage] = useState("");
+  const [quoteItems, setQuoteItems] = useState([{ name: "", amount: "" }]);
+  const [quoteServiceFee, setQuoteServiceFee] = useState("");
   const [quoteBusy, setQuoteBusy] = useState(false);
   const [providerAvailable, setProviderAvailableAmt] = useState(0);
   const [providerTx, setProviderTx] = useState(getProviderTransactions());
@@ -231,14 +233,19 @@ export default function ProviderPage() {
     }
   }
   async function submitQuote() {
-    const amount = Number(quoteAmount);
-    if (!quoteJob || !Number.isFinite(amount) || amount <= 0) {
-      showToast("Enter a quote amount greater than KSh 0.");
+    const validItems = quoteItems.filter((item) => item.name.trim() && Number(item.amount) > 0);
+    const itemsTotal = validItems.reduce((sum, item) => sum + Math.round(Number(item.amount) || 0), 0);
+    const fee = Math.max(0, Math.round(Number(quoteServiceFee) || 0));
+    const amount = itemsTotal + fee;
+    const itemBreakdown = validItems.map((item) => `${item.name.trim()}: KSh ${Math.round(Number(item.amount)).toLocaleString()}`).join("\\n");
+    const fullMessage = [itemBreakdown, `Service fee: KSh ${fee.toLocaleString()}`, quoteMessage.trim()].filter(Boolean).join("\\n");
+    if (!quoteJob || validItems.length === 0 || !Number.isFinite(amount) || amount <= 0) {
+      showToast("Add at least one item with a name and price.");
       return;
     }
     setQuoteBusy(true);
     try {
-      const quote = await createQuote(quoteJob.id, amount, quoteMessage, new Date(Date.now() + 86400000).toISOString());
+      const quote = await createQuote(quoteJob.id, amount, fullMessage, new Date(Date.now() + 86400000).toISOString());
       if (!quote) throw new Error("SAVIS could not save the quote. Check that you're signed in as the provider assigned to this job.");
       await updateBookingStatus(quoteJob.id, "quote_pending", "Provider sent a SAVIS quote.");
       await syncProviderBookings();
@@ -246,6 +253,8 @@ export default function ProviderPage() {
       setQuoteJob(null);
       setQuoteAmount("");
       setQuoteMessage("");
+      setQuoteItems([{ name: "", amount: "" }]);
+      setQuoteServiceFee("");
       showToast(lang === "sw" ? "Nukuu imetumwa" : "Quote sent");
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Quote could not be sent. Please try again.");
@@ -376,7 +385,7 @@ export default function ProviderPage() {
                       ) : (
                         <>
                           {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
-                          {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
+                          {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteItems([{ name: "", amount: "" }]); setQuoteServiceFee(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
                           <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                           <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                         </>
@@ -528,8 +537,20 @@ export default function ProviderPage() {
               <p className="mt-2 text-xs text-slate-600">{quoteJob.location} · {quoteJob.scheduledFor ? new Date(quoteJob.scheduledFor).toLocaleString() : (URGENCY[quoteJob.urgency]?.[lang] || quoteJob.urgency)}</p>
               <button type="button" onClick={() => router.push(`/messages?job=${quoteJob.id}`)} className="mt-3 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold">Ask customer a question</button>
             </div>}
-            <label className="block mt-4"><span className="text-xs font-bold text-slate-500">Total quote amount (KSh) — required</span><input type="number" min={1} step={1} required aria-label="Total quote amount in Kenyan shillings" placeholder="e.g. 8350" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)} className={`w-full mt-1 rounded-2xl border ${!quoteAmount.trim() ? "border-amber-400" : "border-slate-200"} bg-slate-50 px-4 py-3`} />{!quoteAmount.trim() && <span className="mt-1 block text-xs font-semibold text-amber-700">Enter the total amount before sending this quote.</span>}</label>
-            <label className="block mt-3"><span className="text-xs font-bold text-slate-500">{lang === "sw" ? "Nini kimejumuishwa?" : "Quote details and itemised costs"}</span><textarea rows={3} value={quoteMessage} onChange={(e) => setQuoteMessage(e.target.value)} placeholder="e.g. Replacement socket: KSh 200; labour: KSh 500" className="w-full mt-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm placeholder:text-slate-400" /><span className="mt-1 block text-[0.7rem] text-slate-500">Explain what the total includes so the customer can review it before accepting.</span></label>
+            <section className="mt-4 rounded-2xl border border-slate-200 p-3">
+              <div className="mb-3 flex items-center justify-between gap-2"><h3 className="text-sm font-extrabold text-slate-800">Items needed</h3><button type="button" onClick={() => setQuoteItems((items) => [...items, { name: "", amount: "" }])} className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-bold">+ Add item</button></div>
+              <div className="space-y-3">
+                {quoteItems.map((item, index) => <div key={index} className="grid grid-cols-[1fr_110px_auto] items-center gap-2">
+                  <input aria-label={`Item ${index + 1} name`} value={item.name} onChange={(e) => setQuoteItems((items) => items.map((row, i) => i === index ? { ...row, name: e.target.value } : row))} placeholder={`Item ${index + 1} name`} className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm" />
+                  <input aria-label={`Item ${index + 1} price`} type="number" min="0" step="1" value={item.amount} onChange={(e) => setQuoteItems((items) => items.map((row, i) => i === index ? { ...row, amount: e.target.value } : row))} placeholder="KSh" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm" />
+                  <button type="button" aria-label={`Remove item ${index + 1}`} disabled={quoteItems.length === 1} onClick={() => setQuoteItems((items) => items.filter((_, i) => i !== index))} className="px-1 text-slate-500 disabled:opacity-30">×</button>
+                </div>)}
+              </div>
+              <label className="mt-4 block"><span className="text-xs font-bold text-slate-500">Service fee (KSh)</span><input type="number" min="0" step="1" value={quoteServiceFee} onChange={(e) => setQuoteServiceFee(e.target.value)} placeholder="0" className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm" /></label>
+              <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3"><span className="font-extrabold text-slate-800">Total quote</span><strong className="text-lg text-slate-900">KSh {(quoteItems.reduce((sum, item) => sum + (item.name.trim() ? Math.max(0, Math.round(Number(item.amount) || 0)) : 0), 0) + Math.max(0, Math.round(Number(quoteServiceFee) || 0))).toLocaleString()}</strong></div>
+              <p className="mt-1 text-[0.7rem] text-slate-500">The total is calculated from the named items and service fee.</p>
+            </section>
+            <label className="mt-3 block"><span className="text-xs font-bold text-slate-500">Extra notes (optional)</span><textarea rows={2} value={quoteMessage} onChange={(e) => setQuoteMessage(e.target.value)} placeholder="Any useful details for the customer" className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm placeholder:text-slate-400" /></label>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setQuoteJob(null)} className="rounded-full border border-slate-200 py-3 text-xs font-bold">{lang === "sw" ? "Ghairi" : "Cancel"}</button>
               <button type="button" disabled={quoteBusy} onClick={() => void submitQuote()} className="rounded-full bg-gradient-to-r from-[#E22227] to-[#C7080C] py-3 text-xs font-bold text-white">{quoteBusy ? "…" : (lang === "sw" ? "Tuma" : "Send")}</button>
