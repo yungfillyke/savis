@@ -328,12 +328,12 @@ export default function ProviderPage() {
 
   return (
     <main className="min-h-screen pb-28 bg-[#f4f6f8] text-slate-900">
-      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#101e2d]/95 text-white shadow-lg shadow-black/10 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <Logo size="sm" />
           <div className="flex items-center gap-2">
             <LangToggle lang={lang} onChange={switchLang} />
-            <Link href="/provider-profile" className="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 text-slate-600">{lang === "sw" ? "Wasifu" : "Profile"}</Link>
+            <Link href="/provider-profile" className="text-xs font-bold px-3 py-1.5 rounded-full border border-white/20 bg-white/[0.06] text-white/85 hover:bg-white/10">{lang === "sw" ? "Wasifu" : "Profile"}</Link>
           </div>
         </div>
       </header>
