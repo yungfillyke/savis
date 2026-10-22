@@ -175,7 +175,18 @@ export default function ProviderPage() {
     } catch { showToast("Saved on this device"); }
   }
 
-  async function acceptJob(id: string) { await updateBookingStatus(id, "accepted"); refreshJobs(); showToast(lang === "sw" ? "Kazi imekubaliwa" : "Job accepted"); }
+  async function acceptJob(id: string) {
+    try {
+      await updateBookingStatus(id, "accepted");
+      await syncProviderBookings();
+      refreshJobs();
+      showToast(lang === "sw" ? "Kazi imekubaliwa" : "Job accepted");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Could not accept this job. Please try again.");
+      await syncProviderBookings();
+      refreshJobs();
+    }
+  }
   async function declineJob(id: string) {
     const job = getBookings().find((b) => b.id === id);
     await updateBookingStatus(id, "declined");
