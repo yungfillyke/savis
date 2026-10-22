@@ -214,11 +214,14 @@ export default function ProviderPage() {
     }
   }
   async function startJob(id: string) {
+    const job = getBookings().find((item) => item.id === id);
+    if (!job) return;
+    const nextStatus = job.status === "accepted" ? "en_route" : "in_progress";
     try {
-      await updateBookingStatus(id, "en_route");
+      await updateBookingStatus(id, nextStatus);
       await syncProviderBookings();
       refreshJobs();
-      showToast(lang === "sw" ? "Unaelekea kwa mteja" : "Marked as en route");
+      showToast(nextStatus === "en_route" ? "Provider is en route." : "Work started.");
     } catch (error) {
       showToast(error instanceof Error ? error.message : "Could not update this job.");
       await syncProviderBookings();
@@ -371,10 +374,10 @@ export default function ProviderPage() {
                     <div className="flex justify-between gap-2"><strong className="text-sm">{j.description}</strong><span className="text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 capitalize">{j.status.replace("_", " ")}</span></div>
                     <p className="text-xs text-slate-600 mt-1">{jobId(j.id)} · {j.location} · KSh {j.rate.toLocaleString()}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {j.status === "accepted" && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Anza kazi" : "Start job"}</button>}
+                      {(j.status === "accepted" || j.status === "en_route") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark en route") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
                       <button type="button" onClick={() => setTab("messages")} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                       <a href={j.latitude != null && j.longitude != null ? `https://www.google.com/maps/dir/?api=1&destination=${j.latitude},${j.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.location)}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white text-center">{lang === "sw" ? "Maelekezo" : "Directions"}</a>
-                      <button type="button" onClick={() => completeJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kamilisha" : "Complete"}</button>
+                      {j.status === "in_progress" && <button type="button" onClick={() => completeJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kamilisha" : "Complete"}</button>}
                     </div>
                     <p className="text-[0.65rem] text-emerald-700 mt-2 font-semibold">{lang === "sw" ? `KSh ${j.rate.toLocaleString()} itatolewa ukikamilisha.` : `KSh ${j.rate.toLocaleString()} will be released to your wallet when you complete.`}</p>
                   </div>
