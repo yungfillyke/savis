@@ -15,7 +15,7 @@ import {
   type BookingStatus,
 } from "@/lib/bookings";
 import { getReviewForJob, addReview } from "@/lib/reviews";
-import { acceptQuote, listQuotesForJobs, type Quote } from "@/lib/quotes";
+import { acceptQuote, declineQuote, listQuotesForJobs, type Quote } from "@/lib/quotes";
 import LangToggle from "@/components/LangToggle";
 import { t, getLang, setLang, type Lang } from "@/lib/i18n";
 
@@ -166,6 +166,23 @@ export default function BookingsPage() {
     }
   }
 
+  async function handleDeclineQuote(quoteId: string) {
+    setQuoteBusy(quoteId);
+    try {
+      const result = await declineQuote(quoteId);
+      if (!result.ok) throw new Error(result.error || "Could not decline this quote.");
+      await syncConsumerBookings();
+      const list = getBookings();
+      setBookings(list);
+      setQuotes(await listQuotesForJobs(list.map((booking) => booking.id)));
+      setActionMessage("Quote declined. You can message the provider to discuss the price.");
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : "Could not decline this quote.");
+    } finally {
+      setQuoteBusy(null);
+    }
+  }
+
   async function handleCancelJob(jobId: string) {
     setQuoteBusy(jobId);
     try {
@@ -242,7 +259,17 @@ export default function BookingsPage() {
                     <span className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full border shrink-0 text-center max-w-[9.5rem] ${st.className}`}>{st.label}</span>
                   </div>
                   <div className="text-xs text-[#B9C3C9] mb-2">{b.skill} · {b.location} · {URGENCY_LABEL[b.urgency] || b.urgency}</div>
-                  <p className="text-sm text-[#B9C3C9] mb-2">{b.description}</p>
+                  <p className="text-sm text-[#B9C3C9] mb-2 whitespace-pre-wrap break-words">{b.description}</p>
+                  <details className="mb-3 rounded-xl border border-white/10 bg-black/10">
+                    <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-[#F5C451]">Full job details</summary>
+                    <div className="px-3 pb-3 space-y-1 text-xs text-[#B9C3C9]">
+                      <p><b>Job ID:</b> {b.id}</p>
+                      <p><b>Location:</b> {b.location}</p>
+                      <p><b>Requested:</b> {b.scheduledFor ? new Date(b.scheduledFor).toLocaleString() : (URGENCY_LABEL[b.urgency] || b.urgency)}</p>
+                      <p><b>Provider:</b> {b.providerName}</p>
+                      <button type="button" onClick={() => router.push(`/messages?job=${b.id}`)} className="mt-2 rounded-full border border-white/15 px-4 py-2 font-bold text-[#F5C451]">Message provider about this job</button>
+                    </div>
+                  </details>
                   <div className="text-sm font-bold text-[#F5C451] mb-2">{b.rate > 0 ? `Agreed amount: KSh ${b.rate.toLocaleString()}` : "Awaiting provider quote"}</div>
                   <p className="text-[0.7rem] text-[#55666E] mb-2">{st.hint}</p>
 
@@ -259,9 +286,15 @@ export default function BookingsPage() {
                         </div>
                         <span className="rounded-full bg-[#34D399]/10 px-2.5 py-1 text-[0.62rem] font-bold text-[#34D399]">Awaiting acceptance</span>
                       </div>
-                      <button type="button" disabled={quoteBusy === quote.id} onClick={() => handleAcceptQuote(quote.id)} className="mt-3 w-full rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-2.5 text-xs font-bold">
-                        {quoteBusy === quote.id ? "Locking job…" : "Accept & Lock Job"}
-                      </button>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button type="button" disabled={quoteBusy === quote.id} onClick={() => handleAcceptQuote(quote.id)} className="rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-2.5 text-xs font-bold disabled:opacity-50">
+                          {quoteBusy === quote.id ? "Saving…" : "Accept & Lock Job"}
+                        </button>
+                        <button type="button" disabled={quoteBusy === quote.id} onClick={() => handleDeclineQuote(quote.id)} className="rounded-full border border-red-300 py-2.5 text-xs font-bold text-red-300 disabled:opacity-50">
+                          {quoteBusy === quote.id ? "Saving…" : "Decline quote"}
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => router.push(`/messages?job=${b.id}`)} className="mt-2 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">Message provider about this quote</button>
                     </div>
                   ))}
 
