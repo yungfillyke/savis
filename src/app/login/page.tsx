@@ -60,8 +60,13 @@ function LoginForm() {
       .maybeSingle();
     // The saved database role is authoritative. Metadata is only a fallback for
     // older accounts that do not yet have a profile row.
-    const role = String(profile?.role || metadataRole || "consumer").toLowerCase();
     const providerRoles = ["provider", "professional", "producer", "agent", "wholesale_retail"];
+    const profileRole = String(profile?.role || "").toLowerCase();
+    // If either trusted account field identifies this as a provider, never route
+    // it into consumer UI because one stale profile field says "consumer".
+    const role = providerRoles.includes(metadataRole) || providerRoles.includes(profileRole)
+      ? (providerRoles.includes(profileRole) ? profileRole : metadataRole)
+      : (profileRole || metadataRole || "consumer");
     const isProvider = providerRoles.includes(role);
     setLoading(false);
     const destMap: Record<string, string> = {
