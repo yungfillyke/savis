@@ -179,7 +179,7 @@ export default function ProviderDetailPage() {
         <div className="flex gap-4 items-start mb-5">
           <div className="w-16 h-16 rounded-[20px] flex items-center justify-center text-3xl shrink-0 relative overflow-hidden bg-gradient-to-br from-[#6C0102] to-[#C7080C]">
             {provider.avatarUrl ? <img src={provider.avatarUrl} alt="" className="h-full w-full object-cover" /> : provider.icon}
-            {provider.verified !== false && <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#34D399] text-[#06281c] text-[10px] font-extrabold flex items-center justify-center border-2 border-[#222B31]">✓</span>}
+            {provider.verified === true && <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#34D399] text-[#06281c] text-[10px] font-extrabold flex items-center justify-center border-2 border-[#222B31]">✓</span>}
           </div>
           <div>
             <h1 className="text-xl font-extrabold">{provider.name}</h1>
