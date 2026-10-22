@@ -238,6 +238,32 @@ export default function ProviderPage() {
       refreshJobs();
     }
   }
+  async function openQuoteEditor(job: Booking) {
+    setQuoteJob(job);
+    const history = await listQuotesForJobs([job.id]);
+    setQuoteHistory((current) => [...current.filter((quote) => quote.jobId !== job.id), ...history]);
+    const previous = history.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    if (previous && previous.status !== "cancelled") {
+      const lines = (previous.message || "").split("\n");
+      const items = lines.filter((line) => line.length > 2 && line[0] >= "0" && line[0] <= "9" && line.includes(". ")).map((line) => {
+        const item = line.slice(line.indexOf(". ") + 2);
+        const match = item.match(/^(.*?)\s+[—-]\s+KSh\s*([\d,]+)/i);
+        return match ? { name: match[1].trim(), amount: match[2].replace(/,/g, "") } : null;
+      }).filter((item): item is { name: string; amount: string } => Boolean(item));
+      const feeLine = lines.find((line) => /^Service fee:/i.test(line));
+      const fee = feeLine ? feeLine.replace(/^Service fee:\s*/i, "").replace(/KSh\s*/i, "").replace(/,/g, "").trim() : "";
+      const noteLine = lines.find((line) => line.startsWith("Provider note:"));
+      setQuoteItems(items.length ? items : [{ name: "", amount: "" }]);
+      setQuoteServiceFee(fee);
+      setQuoteMessage(noteLine ? noteLine.replace("Provider note: ", "") : "");
+    } else {
+      setQuoteItems([{ name: "", amount: "" }]);
+      setQuoteServiceFee("");
+      setQuoteMessage("");
+    }
+    setQuoteAmount("");
+  }
+
   async function submitQuote() {
     const validItems = quoteItems.filter((item) => item.name.trim() && Number(item.amount) > 0);
     const itemsTotal = validItems.reduce((sum, item) => sum + Math.round(Number(item.amount) || 0), 0);
@@ -391,7 +417,7 @@ export default function ProviderPage() {
                       ) : (
                         <>
                           {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
-                          {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteItems([{ name: "", amount: "" }]); setQuoteServiceFee(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
+                          {j.requestType !== "booking" && <button type="button" onClick={() => void openQuoteEditor(j)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{quoteHistory.some((quote) => quote.jobId === j.id) ? (lang === "sw" ? "Tuma tena" : "Requote") : (lang === "sw" ? "Tuma nukuu" : "Send quote")}</button>}
                           <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                           <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                         </>
@@ -411,7 +437,7 @@ export default function ProviderPage() {
                     <div className="flex justify-between gap-2"><strong className="text-sm">{j.description}</strong><span className="text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 capitalize">{j.status.replace("_", " ")}</span></div>
                     <p className="text-xs text-slate-600 mt-1">{jobId(j.id)} · {j.location} · {j.rate > 0 ? "KSh " + j.rate.toLocaleString() : "Awaiting quote"}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {j.status === "accepted" && j.requestType === "booking" && j.rate === 0 && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
+                      {j.status === "accepted" && j.requestType === "booking" && j.rate === 0 && <button type="button" onClick={() => void openQuoteEditor(j)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
                       {(j.status === "accepted" || j.status === "en_route" || j.status === "arrived") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark on the way") : j.status === "en_route" ? (lang === "sw" ? "Nimefika" : "Mark arrived") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
                       <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                       <a href={j.latitude != null && j.longitude != null ? `https://www.google.com/maps/dir/?api=1&destination=${j.latitude},${j.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.location)}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white text-center">{lang === "sw" ? "Maelekezo" : "Directions"}</a>
@@ -546,10 +572,10 @@ export default function ProviderPage() {
       {quoteJob && (
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/50 px-4 pb-5">
           <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
-            <div className="flex justify-between gap-3"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{quoteHistory.some((quote) => quote.jobId === quoteJob.id) ? (lang === "sw" ? "Tuma nukuu tena" : "Send replacement quote") : (lang === "sw" ? "Tuma nukuu" : "Send quote")}</h2></div><button type="button" onClick={() => setQuoteJob(null)} aria-label="Close quote form">✕</button></div>
+            <div className="flex justify-between gap-3"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{quoteHistory.some((quote) => quote.jobId === quoteJob.id) ? (lang === "sw" ? "Tuma nukuu tena" : "Requote") : (lang === "sw" ? "Tuma nukuu" : "Send quote")}</h2></div><button type="button" onClick={() => setQuoteJob(null)} aria-label="Close quote form">✕</button></div>
             {quoteJob && <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-[0.65rem] font-bold uppercase tracking-wide text-slate-500">Full job description · {jobId(quoteJob.id)}</p>
-              {quoteHistory.some((quote) => quote.jobId === quoteJob.id) && <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Replacement quote · Previous quote history is retained. This is not the first quote for this job.</p>}
+              {quoteHistory.some((quote) => quote.jobId === quoteJob.id) && <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Requote · Previous prices and notes have been prefilled. Edit what changed, then resend.</p>}
               <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold text-slate-800">{quoteJob.description}</p>
               <p className="mt-2 text-xs text-slate-600">{quoteJob.location} · {quoteJob.scheduledFor ? new Date(quoteJob.scheduledFor).toLocaleString() : (URGENCY[quoteJob.urgency]?.[lang] || quoteJob.urgency)}</p>
               <button type="button" onClick={() => router.push(`/messages?job=${quoteJob.id}`)} className="mt-3 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold">Ask customer a question</button>
