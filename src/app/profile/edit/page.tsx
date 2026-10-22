@@ -15,6 +15,7 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
   const [role, setRole] = useState("consumer");
+  const [roleReady, setRoleReady] = useState(false);
   const [serviceCategory, setServiceCategory] = useState("");
   const [hourlyRate, setHourlyRate] = useState("0");
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -48,6 +49,7 @@ export default function EditProfilePage() {
       setBio(data?.bio || "");
       setLocation(data?.location_name || "");
       setRole(data?.role || user.user_metadata?.role || "consumer");
+      setRoleReady(true);
       setServiceCategory(data?.service_category || "");
       setHourlyRate(String(data?.hourly_rate ?? 0));
       if (data?.latitude != null && data?.longitude != null) setCoordinates({ latitude: Number(data.latitude), longitude: Number(data.longitude) });
@@ -68,8 +70,7 @@ export default function EditProfilePage() {
     try {
       const current = await requestCurrentLocation();
       setCoordinates({ latitude: current.latitude, longitude: current.longitude });
-      setLocation("Current location");
-      setMessage("Location captured. Save your profile to keep it.");
+      setMessage("Coordinates captured. Your service-area label has been kept unchanged. Save your profile to keep the coordinates.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not get your location. You can enter your service area manually.");
     } finally {
@@ -154,6 +155,10 @@ export default function EditProfilePage() {
   }
 
   const shown = preview || avatar;
+
+  if (!roleReady) {
+    return <main className="min-h-screen flex items-center justify-center bg-[#10243a] text-white"><p className="text-sm font-semibold text-white/70">Loading your profile…</p></main>;
+  }
 
   return (
     <main className={["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "min-h-screen pb-10 bg-[#10243a] text-[#f3f6fb]" : "savis-app-shell min-h-screen pb-28"}>
