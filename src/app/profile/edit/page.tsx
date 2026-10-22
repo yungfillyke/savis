@@ -156,14 +156,14 @@ export default function EditProfilePage() {
   const shown = preview || avatar;
 
   return (
-    <main className="savis-app-shell min-h-screen pb-28">
-      <div className="savis-app-content max-w-lg mx-auto px-4 py-6">
+    <main className={["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "min-h-screen pb-10 bg-[#e9eef3] text-[#17202a]" : "savis-app-shell min-h-screen pb-28"}>
+      <div className={["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "mx-auto max-w-lg px-4 py-6" : "savis-app-content max-w-lg mx-auto px-4 py-6"}>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-black">Edit profile</h1>
           <button
             type="button"
             onClick={() => router.replace(["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "/provider-profile" : "/profile")}
-            className="text-sm font-bold text-white/70"
+            className={["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "text-sm font-bold text-slate-600" : "text-sm font-bold text-white/70"}
           >
             ← Back
           </button>
@@ -293,7 +293,7 @@ export default function EditProfilePage() {
           </button>
         </div>
       </div>
-      <SavisBottomNav active="profile" />
+      {!["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) && <SavisBottomNav active="profile" />}
     </main>
   );
 }
