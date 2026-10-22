@@ -138,7 +138,7 @@ export default function ProviderDetailPage() {
         urgency: urgency === "custom" ? "custom" : urgency,
         rate: provider.rate,
         requestType,
-        scheduledFor: urgency === "custom" && scheduledDate ? new Date(scheduledDate + "T" + (scheduledTime || "09:00")).toISOString() : urgency === "today" ? new Date(new Date().toISOString().slice(0,10) + "T" + (scheduledTime || "09:00")).toISOString() : undefined,
+        scheduledFor: urgency === "custom" && scheduledDate ? new Date(scheduledDate + "T" + (scheduledTime || "09:00")).toISOString() : undefined,
         latitude: currentLocation?.latitude,
         longitude: currentLocation?.longitude,
         locationAccuracy: currentLocation?.accuracy,
