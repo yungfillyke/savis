@@ -98,6 +98,7 @@ function dayTone(key: string, bookings: Booking[]): "idle" | "planned" | "done" 
 export default function ProviderPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
   const [providerUserId, setProviderUserId] = useState("");
   const [loading, setLoading] = useState(true);
   const [available, setAvailable] = useState(true);
@@ -119,7 +120,14 @@ export default function ProviderPage() {
   const [providerAvailable, setProviderAvailableAmt] = useState(0);
   const [providerTx, setProviderTx] = useState(getProviderTransactions());
 
-  useEffect(() => setLangState(getLang()), []);
+  useEffect(() => {
+    setLangState(getLang());
+    const onTheme = () => { try { setDarkMode(Boolean(JSON.parse(localStorage.getItem("savis_settings") || "{}").darkMode)); } catch { setDarkMode(false); } };
+    onTheme();
+    window.addEventListener("storage", onTheme);
+    window.addEventListener("savis-theme-changed", onTheme);
+    return () => { window.removeEventListener("storage", onTheme); window.removeEventListener("savis-theme-changed", onTheme); };
+  }, []);
   useEffect(() => {
     let active = true;
     listQuotesForJobs(allJobs.map((job) => job.id)).then((items) => { if (active) setQuoteHistory(items); });
