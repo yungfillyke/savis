@@ -269,7 +269,14 @@ export default function BookingsPage() {
                         <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[#B9C3C9]">Quote receipt · Job #{b.id.slice(-4).toUpperCase()}</p>
                         <p className="mt-2 text-xs text-[#B9C3C9]">Provider's proposed total</p>
                         <b className="mt-1 block text-2xl text-white">KSh {quote.amount.toLocaleString()}</b>
-                        <p className="mt-2 text-sm text-[#B9C3C9] whitespace-pre-wrap">{quote.message || "Provider sent a quote for this job."}</p>
+                        <div className="mt-3 border-t border-white/10 pt-3">
+                          <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[#B9C3C9]">Items included</p>
+                          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-white">
+                            {(quote.message || "").split("\n").filter((line) => /^\d+\.\s/.test(line)).map((line, index) => <li key={index}>{line.replace(/^\d+\.\s*/, "")}</li>)}
+                          </ol>
+                          <p className="mt-3 text-xs text-[#B9C3C9]">{(quote.message || "").split("\n").find((line) => line.startsWith("Service fee:")) || ""}</p>
+                          {(() => { const note = (quote.message || "").split("\n").find((line) => line.startsWith("Provider note:")); return note ? <div className="mt-3 rounded-xl border border-[#F5C451]/25 bg-[#F5C451]/[0.08] p-3"><p className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">Provider note</p><p className="mt-1 text-sm text-white">{note.replace("Provider note: ", "")}</p></div> : null; })()}
+                        </div>
                         <p className="mt-3 text-[0.65rem] text-[#B9C3C9]">This becomes the agreed amount when you accept the quote.</p>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2">
