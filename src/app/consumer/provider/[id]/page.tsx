@@ -69,7 +69,8 @@ export default function ProviderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [requestType, setRequestType] = useState<"quote" | "booking">("quote");
-  const [desc, setDesc] = useState("");
+  const [problems, setProblems] = useState([""]);
+  const desc = problems.map((problem, index) => problem.trim() ? (index + 1) + ". " + problem.trim() : "").filter(Boolean).join("\n");
   const [location, setLocation] = useState("");
   const [urgency, setUrgency] = useState("today");
   const [scheduledDate, setScheduledDate] = useState("");
@@ -125,6 +126,16 @@ export default function ProviderDetailPage() {
     if (!location.trim()) {
       setError("Please add the job location.");
       return;
+    }
+    if (urgency === "custom") {
+      if (!scheduledDate || !scheduledTime) {
+        setError("Please choose both a date and time.");
+        return;
+      }
+      if (new Date(scheduledDate + "T" + scheduledTime).getTime() <= Date.now()) {
+        setError("Please choose a future date and time. A time that has already passed today cannot be selected.");
+        return;
+      }
     }
 
     try {
@@ -218,8 +229,18 @@ export default function ProviderDetailPage() {
             <p className="text-sm text-[#B9C3C9]">{requestType === "quote" ? `Ask ${provider.name} for a price. You will not be charged to request a quote.` : `Request a booking with ${provider.name}. They will confirm availability and send a price if needed.`}</p>
 
             <div>
-              <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">What is the problem?</label>
-              <textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} className="w-full px-4 py-3 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30 resize-none" placeholder="e.g. Kitchen sink is leaking under the pipe" />
+              <label className="block text-xs font-bold text-[#B9C3C9] mb-1.5">What needs fixing? Add each problem separately.</label>
+              <div className="space-y-2">
+                {problems.map((problem, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <span className="mt-3 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E22227]/15 text-xs font-extrabold text-[#F5C451]">{index + 1}</span>
+                    <textarea value={problem} onChange={(e) => setProblems((current) => current.map((item, i) => i === index ? e.target.value : item))} rows={2} aria-label={"Problem " + (index + 1)} className="min-w-0 flex-1 px-4 py-3 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30 resize-y" placeholder={index === 0 ? "e.g. Broken tap that keeps leaking" : index === 1 ? "e.g. Solar heating is not working" : "Describe another problem"} />
+                    {problems.length > 1 && <button type="button" aria-label={"Remove problem " + (index + 1)} onClick={() => setProblems((current) => current.filter((_, i) => i !== index))} className="mt-2 rounded-full px-2 py-1 text-sm text-[#ff8a8d]">✕</button>}
+                  </div>
+                ))}
+              </div>
+              <button type="button" onClick={() => setProblems((current) => [...current, ""])} className="mt-2 rounded-full border border-white/15 px-4 py-2 text-xs font-bold text-[#F5C451]">＋ Add another problem</button>
+              <p className="mt-1 text-[0.65rem] text-[#7F8C93]">Problems are numbered automatically and sent together as one job request.</p>
             </div>
 
             <div>
@@ -240,7 +261,7 @@ export default function ProviderDetailPage() {
                   <input required type="date" value={scheduledDate} min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,10)} onChange={(e) => setScheduledDate(e.target.value)} style={{ colorScheme: "light" }} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" />
                 </label>
                 <label className="block text-xs font-bold text-[#B9C3C9]">Time
-                  <input required type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} style={{ colorScheme: "light" }} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" />
+                  <input required type="time" min={scheduledDate === new Date().toLocaleDateString("en-CA") ? new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(11, 16) : undefined} value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} style={{ colorScheme: "light" }} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" />
                 </label>
               </div>}
               {urgency === "today" && <p className="mt-1 text-[0.65rem] text-[#7F8C93]">The provider can confirm a suitable time.</p>}
