@@ -44,7 +44,8 @@ export async function createQuote(jobId: string, amount: number, message: string
     expires_at: expiresAt || null,
     status: "pending",
   }).select("*").single();
-  if (error || !data) return null;
+  if (error) throw new Error(error.message || "Database rejected the quote.");
+  if (!data) throw new Error("SAVIS did not return the saved quote.");
   return rowToQuote(data);
 }
 
