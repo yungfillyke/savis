@@ -145,8 +145,13 @@ export default function ConsumerPage() {
         return;
       }
       const { data } = await supabase.from("profiles").select("full_name, role, email, avatar_url").eq("id", user.id).maybeSingle();
-      const savedRole = String(data?.role || user.user_metadata?.role || "consumer").toLowerCase();
-      if (["provider", "professional", "producer", "agent", "wholesale_retail"].includes(savedRole)) {
+      const providerRoles = ["provider", "professional", "producer", "agent", "wholesale_retail"];
+      const profileRole = String(data?.role || "").toLowerCase();
+      const metadataRole = String(user.user_metadata?.role || "").toLowerCase();
+      const savedRole = providerRoles.includes(profileRole) || providerRoles.includes(metadataRole)
+        ? (providerRoles.includes(profileRole) ? profileRole : metadataRole)
+        : (profileRole || metadataRole || "consumer");
+      if (providerRoles.includes(savedRole)) {
         router.replace("/provider");
         return;
       }
