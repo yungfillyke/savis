@@ -54,6 +54,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (!ready) return;
     document.documentElement.dataset.savisTheme = settings.darkMode ? "dark" : "light";
+    window.dispatchEvent(new Event("savis-theme-changed"));
     try { localStorage.setItem("savis_settings", JSON.stringify(settings)); } catch { /* storage may be unavailable */ }
   }, [settings, ready]);
 
