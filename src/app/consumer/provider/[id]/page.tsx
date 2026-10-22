@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
 import Button from "@/components/Button";
 import { addBooking } from "@/lib/bookings";
-import { getBalance } from "@/lib/wallet";
 import { getSavedLocation, distanceKm } from "@/lib/location";
 
 type Provider = {
@@ -75,14 +74,12 @@ export default function ProviderDetailPage() {
   const [scheduledFor, setScheduledFor] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const [balance, setBalance] = useState(0);
   const [services, setServices] = useState<Array<{id:string;name:string;description:string;starting_price:number;unit:string}>>([]);
 
   useEffect(() => {
     async function load() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) setBalance(getBalance());
 
       if (!SAMPLE[id]) {
         const { data } = await supabase.rpc("get_public_provider", { p_provider_id: id });
@@ -186,7 +183,7 @@ export default function ProviderDetailPage() {
           </div>
           <div>
             <h1 className="text-xl font-extrabold">{provider.name}</h1>
-            <p className="text-sm text-[#B9C3C9]">{provider.skill} · {provider.km.toFixed(1)} km · {provider.area}</p>
+            <p className="text-sm text-[#B9C3C9]">{provider.skill} · {provider.latitude != null && provider.longitude != null && getSavedLocation() ? `${provider.km.toFixed(1)} km away` : "Distance unavailable"} · {provider.area}</p>
             <p className="text-sm font-bold mt-1">{provider.rating ? `★ ${provider.rating.toFixed(1)}` : "New provider"} <span className="text-[#B9C3C9] font-normal">{provider.reviews ? `(${provider.reviews} reviews)` : ""}</span></p>
           </div>
         </div>
@@ -244,7 +241,7 @@ export default function ProviderDetailPage() {
 
             <div className="p-3 rounded-2xl border border-[rgba(245,196,81,0.35)] bg-[rgba(245,196,81,0.1)] text-sm">
               <p className="font-bold text-[#F5C451] mb-0.5">SAVIS Wallet · M-Pesa</p>
-              <p className="text-[#B9C3C9] text-xs">KSh {provider.rate.toLocaleString()} will be held in escrow until the job is done. Balance: KSh {balance.toLocaleString()}</p>
+              <p className="text-[#B9C3C9] text-xs">No payment is taken when you send an enquiry. Confirm the quote and payment method with the provider before work begins.</p>
             </div>
 
             {error && <p className="text-[#ff8a8d] text-sm font-semibold">{error}</p>}
