@@ -426,6 +426,16 @@ export default function ProviderPage() {
                     <div className="flex justify-between gap-2"><b className="text-sm">{j.description}</b><span className="text-xs font-bold capitalize text-slate-500">{j.status}</span></div>
                     <p className="text-xs text-slate-500 mt-1">{jobId(j.id)} · {j.location}</p>
                     <p className="text-xs font-semibold text-slate-600 mt-1">{j.rate > 0 ? "KSh " + j.rate.toLocaleString() : "No agreed price recorded"}</p>
+                    <details className="mt-3 rounded-xl border border-slate-200 bg-white">
+                      <summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-slate-700">View full job details</summary>
+                      <div className="space-y-2 px-3 pb-3 text-xs text-slate-600">
+                        <p className="whitespace-pre-wrap break-words">{j.description}</p>
+                        <p><b>Full job ID:</b> {j.id}</p><p><b>Customer:</b> {j.consumerName || "Customer"}</p>
+                        <p><b>Location:</b> {j.location}</p>
+                        <p><b>Scheduled:</b> {j.scheduledFor ? new Date(j.scheduledFor).toLocaleString() : (URGENCY[j.urgency]?.[lang] || j.urgency)}</p>
+                        <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="w-full rounded-full border border-slate-200 py-2.5 font-bold">Open this job’s conversation</button>
+                      </div>
+                    </details>
                   </div>
                 ))}</div>}
             </section>
