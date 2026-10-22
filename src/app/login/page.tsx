@@ -52,25 +52,35 @@ function LoginForm() {
       setLoading(false);
       return;
     }
-    let role = data.user?.user_metadata?.role || "consumer";
+    const metadataRole = String(data.user?.user_metadata?.role || "").toLowerCase();
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role,service_category")
       .eq("id", data.user!.id)
       .maybeSingle();
-    if (profile?.role) role = profile.role;
+    // The saved database role is authoritative. Metadata is only a fallback for
+    // older accounts that do not yet have a profile row.
+    const role = String(profile?.role || metadataRole || "consumer").toLowerCase();
+    const providerRoles = ["provider", "professional", "producer", "agent", "wholesale_retail"];
+    const isProvider = providerRoles.includes(role);
     setLoading(false);
     const destMap: Record<string, string> = {
       provider: "/provider",
-      professional: "/professional",
+      professional: "/provider",
+      producer: "/provider",
+      agent: "/provider",
+      wholesale_retail: "/provider",
       seller: "/seller",
-      agent: "/agent",
       consumer: "/consumer",
     };
     const next = searchParams.get("next");
     const safeNext =
       next && next.startsWith("/") && !next.startsWith("//") ? next : null;
-    router.push(safeNext || destMap[role] || "/consumer");
+    // Never honour a consumer destination for an account registered as a provider.
+    const safeDestination = isProvider
+      ? (safeNext && (safeNext.startsWith("/provider") || safeNext === "/messages" || safeNext.startsWith("/provider-profile") || safeNext.startsWith("/profile/edit")) ? safeNext : "/provider")
+      : safeNext;
+    router.push(safeDestination || destMap[role] || "/consumer");
     router.refresh();
   }
 
