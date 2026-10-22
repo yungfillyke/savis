@@ -261,7 +261,7 @@ export default function ProviderDetailPage() {
                   <input required type="date" value={scheduledDate} min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,10)} onChange={(e) => setScheduledDate(e.target.value)} style={{ colorScheme: "light" }} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" />
                 </label>
                 <label className="block text-xs font-bold text-[#B9C3C9]">Time
-                  <input required type="time" min={scheduledDate === new Date().toLocaleDateString("en-CA") ? new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(11, 16) : undefined} value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} style={{ colorScheme: "light" }} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" />
+                  <input required type="time" min={scheduledDate === new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) ? new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(11, 16) : undefined} value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} style={{ colorScheme: "light" }} className="block w-full mt-1 px-3 py-3 rounded-2xl bg-white border border-slate-300 text-slate-900 focus:border-[#E22227] focus:ring-2 focus:ring-[#E22227]/30" />
                 </label>
               </div>}
               {urgency === "today" && <p className="mt-1 text-[0.65rem] text-[#7F8C93]">The provider can confirm a suitable time.</p>}
