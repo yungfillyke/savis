@@ -374,7 +374,7 @@ export default function ProviderPage() {
                 <div className="space-y-3">{activeJobs.map((j) => (
                   <div key={j.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5">
                     <div className="flex justify-between gap-2"><strong className="text-sm">{j.description}</strong><span className="text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 capitalize">{j.status.replace("_", " ")}</span></div>
-                    <p className="text-xs text-slate-600 mt-1">{jobId(j.id)} · {j.location} · KSh {j.rate.toLocaleString()}</p>
+                    <p className="text-xs text-slate-600 mt-1">{jobId(j.id)} · {j.location} · {j.rate > 0 ? "KSh " + j.rate.toLocaleString() : "Awaiting quote"}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "accepted" && j.requestType === "booking" && j.rate === 0 && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
                       {(j.status === "accepted" || j.status === "en_route") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark en route") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
