@@ -286,8 +286,11 @@ export default function BookingsPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-3 mb-6">
-            {bookings.map((b) => {
+          <div className="space-y-6 mb-6">
+            {[{ title: "New · Current jobs", items: bookings.filter((b) => !["completed", "declined", "cancelled"].includes(b.status)) }, { title: "Older · Past jobs", items: bookings.filter((b) => ["completed", "declined", "cancelled"].includes(b.status)) }].filter((group) => group.items.length > 0).map((group) => (
+              <section key={group.title} className="space-y-3">
+                <h2 className="text-sm font-extrabold tracking-wide text-[#F5C451]">{group.title}</h2>
+                {group.items.map((b) => {
               const st = STATUS[b.status] || STATUS.requested;
               const hasReview = reviewed[b.id];
               return (
@@ -297,10 +300,10 @@ export default function BookingsPage() {
                     <span className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full border shrink-0 text-center max-w-[9.5rem] ${st.className}`}>{st.label}</span>
                   </div>
                   <p className="text-[0.7rem] text-[#B9C3C9] mb-2">{st.hint}</p>
-                  {quotes.filter((quote) => quote.jobId === b.id && quote.status === "pending").map((quote) => (
+                  {quotes.filter((quote) => quote.jobId === b.id && ["pending", "accepted"].includes(quote.status) && !["cancelled", "declined"].includes(b.status)).map((quote) => (
                     <div key={quote.id} className="mb-3 rounded-2xl border border-[#F5C451]/30 bg-[#F5C451]/[0.06] p-3">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">Provider quote</span>
+                        <span className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">{quote.status === "accepted" ? "Accepted quote · agreed receipt" : "Provider quote"}</span>
                         <span className="text-[0.62rem] text-[#B9C3C9]">Expires {quote.expiresAt ? new Date(quote.expiresAt).toLocaleString() : "soon"}</span>
                       </div>
                       <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4">
@@ -315,17 +318,16 @@ export default function BookingsPage() {
                           <p className="mt-3 text-xs text-[#B9C3C9]">{(quote.message || "").split("\n").find((line) => line.startsWith("Service fee:")) || ""}</p>
                           {(() => { const note = (quote.message || "").split("\n").find((line) => line.startsWith("Provider note:")); return note ? <div className="mt-3 rounded-xl border border-[#F5C451]/25 bg-[#F5C451]/[0.08] p-3"><p className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">Provider note</p><p className="mt-1 text-sm text-white">{note.replace("Provider note: ", "")}</p></div> : null; })()}
                         </div>
-                        <p className="mt-3 text-[0.65rem] text-[#B9C3C9]">This becomes the agreed amount when you accept the quote.</p>
+                        <p className="mt-3 text-[0.65rem] text-[#B9C3C9]">{quote.status === "accepted" ? "This is the agreed amount for this job." : "This becomes the agreed amount when you accept the quote."}</p>
                       </div>
-                      <div className="mt-3 grid grid-cols-2 gap-2">
+                      {quote.status === "pending" && <div className="mt-3 grid grid-cols-2 gap-2">
                         <button type="button" disabled={quoteBusy === quote.id} onClick={() => handleAcceptQuote(quote.id)} className="rounded-full bg-gradient-to-br from-[#E22227] to-[#C7080C] py-2.5 text-xs font-bold disabled:opacity-50">
                           {quoteBusy === quote.id ? "Saving…" : "Accept & Lock Job"}
                         </button>
                         <button type="button" disabled={quoteBusy === quote.id} onClick={() => handleDeclineQuote(quote.id)} className="rounded-full border border-red-300 py-2.5 text-xs font-bold text-red-300 disabled:opacity-50">
                           {quoteBusy === quote.id ? "Saving…" : "Decline quote"}
                         </button>
-                      </div>
-                      <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mt-2 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">Message provider about this quote</button>
+                      </div>}
                     </div>
                   ))}
 
@@ -334,7 +336,9 @@ export default function BookingsPage() {
                       {["accepted", "en_route", "arrived", "in_progress", "completed"].includes(b.status) ? "Agreed amount" : "Current amount"}: KSh {b.rate.toLocaleString()}
                     </div>
                   )}
-                  <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mb-3 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">{b.status === "completed" ? "View message history" : "Message provider"}</button>
+                  <button type="button" onClick={() => setDetailJobId(b.id)} className="mb-2 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-white">View Job Details</button>
+                  {(b.status !== "quote_pending") && <button type="button" onClick={() => router.push(`/messages/chat?job=${b.id}`)} className="mb-3 w-full rounded-full border border-white/15 py-2.5 text-xs font-bold text-[#F5C451]">{b.status === "completed" ? "View message history" : "Message provider"}</button>}
+                  {["requested", "quote_pending"].includes(b.status) && <button type="button" onClick={() => beginEdit(b)} className="mb-2 w-full rounded-full border border-[#F5C451]/40 py-2.5 text-xs font-bold text-[#F5C451]">Edit job request</button>
 
                   {["requested", "quote_pending", "accepted"].includes(b.status) && (
                     <button
@@ -364,7 +368,9 @@ export default function BookingsPage() {
                   )}
                 </div>
               );
-            })}
+                })}
+              </section>
+            ))}
           </div>
         )}
 
