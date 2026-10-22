@@ -201,12 +201,30 @@ export default function ProviderPage() {
   }
   async function completeJob(id: string) {
     const job = getBookings().find((b) => b.id === id);
-    await updateBookingStatus(id, "completed");
-    if (job) { releaseForJob(job.rate, id, `Paid: ${job.description.slice(0, 40)}`); showToast(lang === "sw" ? `Kamilifu · KSh ${job.rate.toLocaleString()}` : `Completed · KSh ${job.rate.toLocaleString()} released to your wallet`); }
-    else showToast("Job completed");
-    refreshJobs();
+    try {
+      await updateBookingStatus(id, "completed");
+      await syncProviderBookings();
+      refreshJobs();
+      if (job) showToast(lang === "sw" ? "Kazi imekamilika" : "Job marked completed");
+      else showToast("Job completed");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Could not complete this job.");
+      await syncProviderBookings();
+      refreshJobs();
+    }
   }
-  async function startJob(id: string) { await updateBookingStatus(id, "in_progress"); refreshJobs(); showToast(lang === "sw" ? "Kazi imeanza" : "Job in progress"); }
+  async function startJob(id: string) {
+    try {
+      await updateBookingStatus(id, "en_route");
+      await syncProviderBookings();
+      refreshJobs();
+      showToast(lang === "sw" ? "Unaelekea kwa mteja" : "Marked as en route");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Could not update this job.");
+      await syncProviderBookings();
+      refreshJobs();
+    }
+  }
   async function submitQuote() {
     const amount = Number(quoteAmount);
     if (!quoteJob || !Number.isFinite(amount) || amount <= 0) {
