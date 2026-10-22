@@ -392,3 +392,29 @@ textarea {
 .savis-map-overlay-head{position:absolute;left:14px;right:14px;top:14px;z-index:90;display:flex;align-items:center;justify-content:space-between}.savis-map-overlay-head button,.savis-map-overlay-foot{border:1px solid rgba(255,255,255,.16);background:rgba(10,13,16,.86);color:#fff;backdrop-filter:blur(16px);border-radius:999px}.savis-map-overlay-head button{padding:9px 13px;font-size:.7rem;font-weight:800}.savis-map-overlay-foot{position:absolute;left:14px;right:14px;bottom:20px;z-index:90;padding:10px 13px;display:flex;align-items:center;justify-content:space-between}.savis-map-overlay-foot button{border:0;border-radius:999px;padding:8px 12px;background:#f5c451;color:#14171a;font-size:.65rem;font-weight:900}
 @media (max-width:720px){.savis-app-header-inner{grid-template-columns:auto minmax(0,1fr) auto auto}.savis-app-search{height:42px}.savis-app-search input{font-size:.72rem}.savis-brand-tagline{font-size:.43rem}.savis-brand-mark{width:38px;height:38px}.savis-brand-name{font-size:1.28rem}.savis-hero-card{min-height:260px}.savis-hero-copy{width:100%;padding:24px 20px}.savis-hero-copy h1{font-size:1.7rem}.savis-hero-copy p{font-size:.78rem}.savis-category-strip{gap:5px}.savis-category-strip button>span{width:56px;height:56px;font-size:24px}.savis-category-strip b{font-size:.56rem}.savis-provider-grid{gap:9px}.savis-business-image{height:105px}.savis-provider-card-body{padding:9px}.savis-provider-title h3{font-size:.76rem}.savis-provider-description{font-size:.58rem;height:31px}.savis-person-avatar{width:27px;height:27px}.savis-provider-person b{font-size:.57rem}.savis-provider-person small{font-size:.48rem}.savis-view-button{padding:7px 10px;font-size:.56rem}}
 @media (max-width:390px){.savis-app-header-inner{gap:5px}.savis-app-search{padding:0 10px}.savis-icon-button{width:32px}.savis-avatar-button{width:36px;height:36px}.savis-brand-tagline{display:none}.savis-brand-name{font-size:1.2rem}.savis-hero-card{min-height:250px}.savis-hero-copy{width:100%;padding-left:16px}.savis-hero-copy h1{font-size:1.5rem}.savis-category-strip button>span{width:50px;height:50px;font-size:21px}.savis-category-strip b{font-size:.5rem}.savis-provider-title h3{font-size:.7rem}.savis-rating{font-size:.58rem}.savis-provider-description{font-size:.54rem}.savis-view-button{padding:6px 8px}}
+
+
+/* Provider dashboard theme: keep the existing light layout, use deep navy surfaces in dark mode. */
+.savis-provider-dashboard[data-provider-theme="dark"] .bg-white,
+.savis-provider-dashboard[data-provider-theme="dark"] .bg-slate-50,
+.savis-provider-dashboard[data-provider-theme="dark"] .bg-slate-100 {
+  background-color: #14263a !important;
+  color: #e8eef7 !important;
+}
+.savis-provider-dashboard[data-provider-theme="dark"] .text-slate-900,
+.savis-provider-dashboard[data-provider-theme="dark"] .text-slate-800,
+.savis-provider-dashboard[data-provider-theme="dark"] .text-slate-700 {
+  color: #e8eef7 !important;
+}
+.savis-provider-dashboard[data-provider-theme="dark"] .border-slate-100,
+.savis-provider-dashboard[data-provider-theme="dark"] .border-slate-200,
+.savis-provider-dashboard[data-provider-theme="dark"] .border-slate-300 {
+  border-color: rgba(255,255,255,.12) !important;
+}
+.savis-provider-dashboard[data-provider-theme="dark"] input,
+.savis-provider-dashboard[data-provider-theme="dark"] textarea,
+.savis-provider-dashboard[data-provider-theme="dark"] select {
+  background-color: #0c1b2b !important;
+  color: #f3f6fb !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
