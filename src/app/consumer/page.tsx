@@ -145,9 +145,14 @@ export default function ConsumerPage() {
         return;
       }
       const { data } = await supabase.from("profiles").select("full_name, role, email, avatar_url").eq("id", user.id).maybeSingle();
+      const savedRole = String(data?.role || user.user_metadata?.role || "consumer").toLowerCase();
+      if (["provider", "professional", "producer", "agent", "wholesale_retail"].includes(savedRole)) {
+        router.replace("/provider");
+        return;
+      }
       setProfile(data || {
         full_name: user.user_metadata?.full_name || "Friend",
-        role: user.user_metadata?.role || "consumer",
+        role: savedRole,
         email: user.email || null,
         avatar_url: user.user_metadata?.avatar_url || null,
       });
