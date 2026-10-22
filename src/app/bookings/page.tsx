@@ -390,11 +390,12 @@ export default function BookingsPage() {
       {detailJobId && (() => {
         const b = bookings.find((item) => item.id === detailJobId);
         if (!b) return null;
-        return <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 px-4 pb-6" role="dialog" aria-modal="true" aria-label="Job details">
+        return <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 px-4 pt-4 pb-28 sm:py-6" role="dialog" aria-modal="true" aria-label="Job details">
           <div className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 rounded-[24px] border border-white/15 bg-[#222B31] shadow-2xl">
             <div className="flex items-start justify-between gap-3"><div><h2 className="font-extrabold text-lg">Job details</h2><p className="text-xs text-[#B9C3C9] mt-1">Job #{b.id.slice(-4).toUpperCase()}</p></div><button type="button" onClick={() => setDetailJobId(null)} className="text-[#B9C3C9] text-sm">Close</button></div>
             <div className="mt-4 space-y-4 text-sm">
               <div><p className="text-xs text-[#B9C3C9] mb-1">Work requested</p><p className="whitespace-pre-wrap">{b.description || "No description supplied."}</p></div>
+              {(() => { const quote = quotes.filter((item) => item.jobId === b.id && ["pending", "accepted"].includes(item.status)).sort((a, z) => new Date(z.createdAt).getTime() - new Date(a.createdAt).getTime())[0]; if (!quote) return null; const lines = (quote.message || "").split("\\n"); const items = lines.filter((line) => /^\\d+\.\s/.test(line)); const fees = lines.filter((line) => /^(Service fee:|SAVIS fee:|Company fee:|Labour:|Labor:)/i.test(line)); const note = lines.find((line) => line.startsWith("Provider note:")); return <div className="rounded-2xl border border-[#F5C451]/30 bg-[#F5C451]/[0.06] p-3"><p className="text-xs font-extrabold uppercase tracking-wide text-[#F5C451] mb-2">{quote.status === "accepted" ? "Agreed quote breakdown" : "Current quote breakdown"}</p><p className="text-xs text-[#B9C3C9]">Total</p><p className="text-xl font-extrabold text-white mb-3">KSh {quote.amount.toLocaleString()}</p>{items.length > 0 ? <ol className="list-decimal pl-5 space-y-1">{items.map((line, i) => <li key={i}>{line.replace(/^\\d+\.\s*/, "")}</li>)}</ol> : <p className="text-xs text-[#B9C3C9]">No item breakdown was saved with this quote.</p>}{fees.map((line, i) => <p key={i} className="mt-2 text-xs text-[#B9C3C9]">{line}</p>)}{note && <p className="mt-3 text-sm text-white">{note.replace("Provider note: ", "")}</p>}</div>; })()}
               <div><p className="text-xs text-[#B9C3C9] mb-1">Location</p><p>{b.location || "Not specified"}</p></div>
               <div><p className="text-xs text-[#B9C3C9] mb-1">When</p><p>{URGENCY_LABEL[b.urgency] || b.urgency || "Not specified"}{b.scheduledFor ? " · " + new Date(b.scheduledFor).toLocaleString() : ""}</p></div>
               <div><p className="text-xs text-[#B9C3C9] mb-1">Provider</p><p>{b.providerName || "Selected provider"} · {b.skill || "Service"}</p></div>
@@ -434,7 +435,7 @@ export default function BookingsPage() {
             <p className="text-sm text-[#B9C3C9] mb-4">Your feedback helps the SAVIS community.</p>
             <div className="flex gap-2 justify-center mb-4">
               {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} type="button" onClick={() => setStars(n)} className={`text-3xl transition ${n <= stars ? "opacity-100" : "opacity-30"}`}>★</button>
+                <button key={n} type="button" aria-label={`${n} star${n === 1 ? "" : "s"}`} aria-pressed={n <= stars} onClick={() => setStars(n)} className={`text-3xl transition ${n <= stars ? "text-[#34D399] opacity-100 drop-shadow-[0_0_5px_rgba(52,211,153,0.45)]" : "text-white/25 opacity-100"}`}>★</button>
               ))}
             </div>
             <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={3} placeholder="Optional comment…" className="w-full px-4 py-3 rounded-2xl bg-black/35 border border-white/15 text-white outline-none focus:border-[#E22227] resize-none mb-4 text-sm" />
