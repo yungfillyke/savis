@@ -304,7 +304,7 @@ export default function BookingsPage() {
                     <div key={quote.id} className="mb-3 rounded-2xl border border-[#F5C451]/30 bg-[#F5C451]/[0.06] p-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[0.62rem] font-extrabold uppercase tracking-wider text-[#F5C451]">{quote.status === "accepted" ? "Accepted quote · agreed receipt" : "Provider quote"}</span>
-                        <span className="text-[0.62rem] text-[#B9C3C9]">Expires {quote.expiresAt ? new Date(quote.expiresAt).toLocaleString() : "soon"}</span>
+                        {quote.status === "pending" && <span className="text-[0.62rem] text-[#B9C3C9]">Expires {quote.expiresAt ? new Date(quote.expiresAt).toLocaleString() : "soon"}</span>}
                       </div>
                       <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-4">
                         <p className="text-[0.65rem] font-bold uppercase tracking-wider text-[#B9C3C9]">Quote receipt · Job #{b.id.slice(-4).toUpperCase()}</p>
@@ -332,7 +332,7 @@ export default function BookingsPage() {
                     </div>
                   ))}
 
-                  {b.status !== "quote_pending" && b.rate > 0 && (
+                  {b.status !== "quote_pending" && b.rate > 0 && !quotes.some((quote) => quote.jobId === b.id && quote.status === "accepted") && (
                     <div className="mb-2 text-sm font-bold text-[#F5C451]">
                       {["accepted", "en_route", "arrived", "in_progress", "completed"].includes(b.status) ? "Agreed amount" : "Current amount"}: KSh {b.rate.toLocaleString()}
                     </div>
