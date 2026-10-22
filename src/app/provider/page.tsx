@@ -39,9 +39,11 @@ type Profile = {
 type Tab = "jobs" | "earnings" | "schedule" | "messages" | "insights";
 
 const URGENCY: Record<string, { en: string; sw: string }> = {
-  now: { en: "Right now", sw: "Sasa hivi" },
+  now: { en: "As soon as possible", sw: "Haraka iwezekanavyo" },
+  asap: { en: "As soon as possible", sw: "Haraka iwezekanavyo" },
   today: { en: "Today", sw: "Leo" },
   week: { en: "This week", sw: "Wiki hii" },
+  custom: { en: "Custom date", sw: "Tarehe maalum" },
 };
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -348,7 +350,7 @@ export default function ProviderPage() {
           <div className="space-y-4">
             <section className="rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
               <h2 className="font-black">{lang === "sw" ? "Maombi mapya" : "New job requests"}</h2>
-              <p className="text-xs text-slate-500 mb-3">{lang === "sw" ? "Kubali, tuma nukuu, au kataa" : "Accept, send a quote, or decline"}</p>
+              <p className="text-xs text-slate-500 mb-3">{lang === "sw" ? "Maombi ya nukuu: tuma bei au kataa. Booking: kubali, tuma bei au kataa." : "Quote requests: send a price or decline. Bookings: accept, send a price, or decline."}</p>
               {openJobs.length === 0 ? <p className="text-sm text-slate-500 py-6 text-center">{lang === "sw" ? "Hakuna maombi mapya." : "No new requests. Stay online to receive work."}</p> : (
                 <div className="space-y-3">{openJobs.map((j) => (
                   <div key={j.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5">
@@ -356,7 +358,7 @@ export default function ProviderPage() {
                     <p className="text-xs text-slate-600 mt-1">{j.location} · {URGENCY[j.urgency]?.[lang] || j.urgency}{j.rate > 0 ? ` · KSh ${j.rate.toLocaleString()}` : ` · ${lang === "sw" ? "Nukuu inahitajika" : "Quote needed"}`}</p>
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{j.description}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
-                      <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali" : "Accept"}</button>
+                      {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
                       <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>
                       <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                     </div>
@@ -374,15 +376,29 @@ export default function ProviderPage() {
                     <div className="flex justify-between gap-2"><strong className="text-sm">{j.description}</strong><span className="text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 capitalize">{j.status.replace("_", " ")}</span></div>
                     <p className="text-xs text-slate-600 mt-1">{jobId(j.id)} · {j.location} · KSh {j.rate.toLocaleString()}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
+                      {j.status === "accepted" && j.requestType === "booking" && j.rate === 0 && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
                       {(j.status === "accepted" || j.status === "en_route") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark en route") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
                       <button type="button" onClick={() => setTab("messages")} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                       <a href={j.latitude != null && j.longitude != null ? `https://www.google.com/maps/dir/?api=1&destination=${j.latitude},${j.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.location)}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white text-center">{lang === "sw" ? "Maelekezo" : "Directions"}</a>
                       {j.status === "in_progress" && <button type="button" onClick={() => completeJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kamilisha" : "Complete"}</button>}
                     </div>
-                    <p className="text-[0.65rem] text-emerald-700 mt-2 font-semibold">{lang === "sw" ? `KSh ${j.rate.toLocaleString()} itatolewa ukikamilisha.` : `KSh ${j.rate.toLocaleString()} will be released to your wallet when you complete.`}</p>
+                    <p className="text-[0.65rem] text-slate-500 mt-2 font-semibold">{j.rate > 0 ? "Agreed amount: KSh " + j.rate.toLocaleString() + ". Confirm payment method before work begins." : "Price not agreed yet. Confirm the quote before work begins."}</p>
                   </div>
                 ))}</div>
               )}
+            </section>
+            <section className="rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
+              <h2 className="font-black mb-1">Job history</h2>
+              <p className="text-xs text-slate-500 mb-3">Completed, declined and cancelled jobs stay here.</p>
+              {allJobs.filter((j) => ["completed", "declined", "cancelled"].includes(j.status)).length === 0
+                ? <p className="text-sm text-slate-500 py-5 text-center">No past jobs yet.</p>
+                : <div className="space-y-2">{allJobs.filter((j) => ["completed", "declined", "cancelled"].includes(j.status)).map((j) => (
+                  <div key={j.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <div className="flex justify-between gap-2"><b className="text-sm">{j.description}</b><span className="text-xs font-bold capitalize text-slate-500">{j.status}</span></div>
+                    <p className="text-xs text-slate-500 mt-1">{jobId(j.id)} · {j.location}</p>
+                    <p className="text-xs font-semibold text-slate-600 mt-1">{j.rate > 0 ? "KSh " + j.rate.toLocaleString() : "No agreed price recorded"}</p>
+                  </div>
+                ))}</div>}
             </section>
           </div>
         )}
@@ -391,7 +407,7 @@ export default function ProviderPage() {
           <div className="space-y-4">
             <section className="rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
               <h2 className="font-black mb-1">{lang === "sw" ? "Pochi ya SAVIS" : "SAVIS Wallet"}</h2>
-              <p className="text-xs text-slate-500 mb-4">{lang === "sw" ? "Pesa inahifadhiwa salama hadi kazi ikamilike. Hii inakulinda wewe na mteja." : "Money is held safely until the job is completed. This protects both you and the customer."}</p>
+              <p className="text-xs text-slate-500 mb-4">{lang === "sw" ? "Pesa inahifadhiwa salama hadi kazi ikamilike. Hii inakulinda wewe na mteja." : "SAVIS is not processing payments yet. Confirm the payment method with the customer before work begins."}</p>
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-center"><b className="block text-base font-black text-emerald-800">KSh {providerAvailable.toLocaleString()}</b><span className="text-[0.62rem] font-semibold text-emerald-700">{lang === "sw" ? "Inapatikana" : "Available"}</span></div>
                 <div className="rounded-2xl bg-orange-50 border border-orange-100 p-3 text-center"><b className="block text-base font-black text-orange-800">KSh {pendingBalance.toLocaleString()}</b><span className="text-[0.62rem] font-semibold text-orange-700">{lang === "sw" ? "Inasubiri" : "Pending"}</span></div>
