@@ -91,7 +91,7 @@ function greeting(lang: Lang) {
 function dayTone(key: string, bookings: Booking[]): "idle" | "planned" | "done" {
   const onDay = bookings.filter((b) => (b.scheduledFor || b.createdAt).slice(0, 10) === key);
   if (onDay.some((b) => b.status === "completed")) return "done";
-  if (onDay.some((b) => ["accepted", "en_route", "in_progress", "quote_pending", "requested", "rescheduled"].includes(b.status))) return "planned";
+  if (onDay.some((b) => ["accepted", "en_route", "arrived", "in_progress", "quote_pending", "requested", "rescheduled"].includes(b.status))) return "planned";
   return "idle";
 }
 
@@ -360,10 +360,12 @@ export default function ProviderPage() {
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "quote_pending" ? (
                         <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-800">✓ Quote sent · Awaiting customer response</div>
+                        <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                       ) : (
                         <>
                           {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
                           {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
+                          <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                           <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                         </>
                       )}
@@ -384,7 +386,7 @@ export default function ProviderPage() {
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.status === "accepted" && j.requestType === "booking" && j.rate === 0 && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
                       {(j.status === "accepted" || j.status === "en_route" || j.status === "arrived") && <button type="button" onClick={() => startJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{j.status === "accepted" ? (lang === "sw" ? "Anza safari" : "Mark on the way") : j.status === "en_route" ? (lang === "sw" ? "Nimefika" : "Mark arrived") : (lang === "sw" ? "Anza kazi" : "Start work")}</button>}
-                      <button type="button" onClick={() => setTab("messages")} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
+                      <button type="button" onClick={() => router.push(`/messages?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
                       <a href={j.latitude != null && j.longitude != null ? `https://www.google.com/maps/dir/?api=1&destination=${j.latitude},${j.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(j.location)}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white text-center">{lang === "sw" ? "Maelekezo" : "Directions"}</a>
                       {j.status === "in_progress" && <button type="button" onClick={() => completeJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kamilisha" : "Complete"}</button>}
                     </div>
