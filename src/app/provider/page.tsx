@@ -359,7 +359,7 @@ export default function ProviderPage() {
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">{j.description}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
                       {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
-                      <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>
+                      {j.requestType !== "booking" && <button type="button" onClick={() => { setQuoteJob(j); setQuoteAmount(j.rate > 0 ? String(j.rate) : ""); setQuoteMessage(""); }} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{lang === "sw" ? "Tuma nukuu" : "Send quote"}</button>}
                       <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                     </div>
                   </div>
