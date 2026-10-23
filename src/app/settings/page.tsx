@@ -31,17 +31,21 @@ export default function SettingsPage() {
   const [notice, setNotice] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
   const [isProvider, setIsProvider] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(false);\n  const [roleChecked, setRoleChecked] = useState(false);
 
   useEffect(() => {
     setLangState(getLang());
     void (async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-        const role = String(data?.role || user.user_metadata?.role || "consumer").toLowerCase();
-        setIsProvider(providerRoles.includes(role));
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+          const role = String(data?.role || user.user_metadata?.role || "consumer").toLowerCase();
+          setIsProvider(providerRoles.includes(role));
+        }
+      } finally {
+        setRoleChecked(true);
       }
     })();
     try {
@@ -124,7 +128,7 @@ export default function SettingsPage() {
     router.refresh();
   }
 
-  const backHref = isProvider ? "/provider-profile" : "/profile";
+  if (!roleChecked || !ready) return <main className="min-h-screen flex items-center justify-center bg-[#eaf1fb] text-[#17283d]"><p className="text-sm font-semibold">Loading your settings…</p></main>;\n\n  const backHref = isProvider ? "/provider-profile" : "/profile";
   const pageTone = isProvider
     ? (settings.darkMode ? "bg-[#07111f] text-white" : "bg-[#e9eef3] text-[#17202a]")
     : "savis-app-shell text-white";
@@ -163,7 +167,7 @@ export default function SettingsPage() {
           <div className="flex gap-2">
             {(["en", "sw"] as Lang[]).map((code) => (
               <button key={code} type="button" onClick={() => changeLanguage(code)}
-                className={`flex-1 rounded-2xl border py-3 text-sm font-bold ${lang === code ? "border-[#E22227] bg-[#E22227]/15 text-[#E22227]" : isProvider && !settings.darkMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/5 text-white/70"}`}>
+                className={`flex-1 rounded-2xl border py-3 text-sm font-bold ${lang === code ? (isProvider ? "border-sky-500 bg-sky-500/10 text-sky-700" : "border-[#E22227] bg-[#E22227]/15 text-[#E22227]") : isProvider && !settings.darkMode ? "border-slate-200 bg-white text-slate-700" : "border-white/10 bg-white/5 text-white/70"}`}>
                 {code === "en" ? "English" : "Kiswahili"}
               </button>
             ))}
@@ -187,7 +191,7 @@ export default function SettingsPage() {
                 </div>
                 <button type="button" role="switch" aria-checked={settings[key]} aria-label={label}
                   onClick={() => void update(key, !settings[key])}
-                  className={`h-7 w-12 shrink-0 rounded-full p-1 transition ${settings[key] ? "bg-[#E22227]" : "bg-slate-400/50"}`}>
+                  className={`h-7 w-12 shrink-0 rounded-full p-1 transition ${settings[key] ? (isProvider ? "bg-sky-600" : "bg-[#E22227]") : "bg-slate-400/50"}`}>
                   <span className={`block h-5 w-5 rounded-full bg-white transition ${settings[key] ? "translate-x-5" : ""}`} />
                 </button>
               </div>
@@ -204,7 +208,7 @@ export default function SettingsPage() {
         </section>
 
         <button type="button" onClick={() => void handleLogout()} disabled={loggingOut}
-          className="mb-8 w-full rounded-full border border-[#ff8a8d]/40 py-3.5 text-sm font-black text-[#ff8a8d] disabled:opacity-50">
+          className={`mb-8 w-full rounded-full border py-3.5 text-sm font-black disabled:opacity-50 ${isProvider ? "border-slate-300 text-slate-600" : "border-[#ff8a8d]/40 text-[#ff8a8d]"}`}>
           {loggingOut ? "Signing out…" : "Log out"}
         </button>
         <p className="pb-4 text-center text-[0.65rem] opacity-50">SAVIS · Preferences save on this device</p>
