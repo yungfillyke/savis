@@ -175,7 +175,7 @@ export default function EditProfilePage() {
         </div>
 
         <div className="mb-5 flex items-center gap-4">
-          <div className="h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-gradient-to-br from-[#6C0102] to-[#C7080C] flex items-center justify-center text-2xl font-black">
+          <div className="h-20 w-20 overflow-hidden rounded-full border border-sky-200/20 bg-gradient-to-br from-[#173c5c] to-[#10243a] flex items-center justify-center text-2xl font-black">
             {shown ? (
               <img src={shown} alt="" className="h-full w-full object-cover" />
             ) : (
@@ -247,7 +247,7 @@ export default function EditProfilePage() {
                 <select
                   value={serviceCategory}
                   onChange={(e) => setServiceCategory(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-[#171717] border border-white/15 text-white outline-none"
+                  className="w-full px-4 py-3 rounded-2xl bg-[#10243a] border border-white/15 text-white outline-none"
                 >
                   <option value="">Choose your service</option>
                   {["Plumbing", "Electrical", "Masonry", "Carpentry", "Cleaning", "Painting", "Mechanics", "Tailoring", "Photography", "Architecture", "Engineering", "Legal", "Other"].map((category) => (
