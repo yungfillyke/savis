@@ -31,7 +31,8 @@ export default function SettingsPage() {
   const [notice, setNotice] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
   const [isProvider, setIsProvider] = useState(false);
-  const [ready, setReady] = useState(false);\n  const [roleChecked, setRoleChecked] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [roleChecked, setRoleChecked] = useState(false);
 
   useEffect(() => {
     setLangState(getLang());
@@ -128,7 +129,9 @@ export default function SettingsPage() {
     router.refresh();
   }
 
-  if (!roleChecked || !ready) return <main className="min-h-screen flex items-center justify-center bg-[#eaf1fb] text-[#17283d]"><p className="text-sm font-semibold">Loading your settings…</p></main>;\n\n  const backHref = isProvider ? "/provider-profile" : "/profile";
+  if (!roleChecked || !ready) return <main className="min-h-screen flex items-center justify-center bg-[#eaf1fb] text-[#17283d]"><p className="text-sm font-semibold">Loading your settings…</p></main>;
+
+  const backHref = isProvider ? "/provider-profile" : "/profile";
   const pageTone = isProvider
     ? (settings.darkMode ? "bg-[#07111f] text-white" : "bg-[#e9eef3] text-[#17202a]")
     : "savis-app-shell text-white";
