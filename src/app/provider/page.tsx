@@ -350,7 +350,7 @@ export default function ProviderPage() {
       <div className="max-w-3xl mx-auto px-4 pt-5 space-y-4">
         <section className="rounded-3xl bg-white border border-slate-200/80 p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#E22227] to-[#C7080C] flex items-center justify-center text-xl font-black text-white shrink-0">
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#173c5c] to-[#10243a] flex items-center justify-center text-xl font-black text-white shrink-0">
               {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : firstName[0]?.toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
@@ -428,7 +428,7 @@ export default function ProviderPage() {
                           {j.requestType === "booking" && <button type="button" onClick={() => acceptJob(j.id)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black bg-emerald-600 text-white">{lang === "sw" ? "Kubali booking" : "Accept booking"}</button>}
                           {j.requestType !== "booking" && <button type="button" onClick={() => void openQuoteEditor(j)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border-2 border-slate-300 bg-white">{quoteHistory.some((quote) => quote.jobId === j.id) ? (lang === "sw" ? "Tuma tena" : "Requote") : (lang === "sw" ? "Tuma nukuu" : "Send quote")}</button>}
                           <button type="button" onClick={() => router.push(`/messages/chat?job=${j.id}`)} className="flex-1 min-w-[90px] py-2.5 rounded-full text-xs font-black border border-slate-200 bg-white">{lang === "sw" ? "Ujumbe" : "Message"}</button>
-                          <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-red-200 text-red-600 bg-red-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
+                          <button type="button" onClick={() => declineJob(j.id)} className="px-4 py-2.5 rounded-full text-xs font-black border border-slate-300 text-slate-600 bg-slate-50">{lang === "sw" ? "Kataa" : "Decline"}</button>
                         </>
                       )}
                     </div>
@@ -493,7 +493,7 @@ export default function ProviderPage() {
                 <div className="rounded-2xl bg-orange-50 border border-orange-100 p-3 text-center"><b className="block text-base font-black text-orange-800">KSh {pendingBalance.toLocaleString()}</b><span className="text-[0.62rem] font-semibold text-orange-700">{lang === "sw" ? "Inasubiri" : "Pending"}</span></div>
                 <div className="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-center"><b className="block text-base font-black">KSh {earnedThisMonth.toLocaleString()}</b><span className="text-[0.62rem] font-semibold text-slate-500">{lang === "sw" ? "Mwezi huu" : "This month"}</span></div>
               </div>
-              <button type="button" disabled={providerAvailable <= 0} onClick={handleWithdraw} className="mt-4 w-full py-3.5 rounded-full font-black text-white bg-gradient-to-r from-[#E22227] to-[#C7080C] disabled:opacity-40">{lang === "sw" ? "Toa kwenda M-Pesa" : "Withdraw to M-Pesa"}</button>
+              <button type="button" disabled={providerAvailable <= 0} onClick={handleWithdraw} className="mt-4 w-full py-3.5 rounded-full font-black text-white bg-gradient-to-r from-[#1d5b8f] to-[#123b60] disabled:opacity-40">{lang === "sw" ? "Toa kwenda M-Pesa" : "Withdraw to M-Pesa"}</button>
             </section>
             <section className="rounded-3xl bg-white border border-slate-200 p-4 shadow-sm">
               <h2 className="font-black mb-3">{lang === "sw" ? "Miamala" : "Recent transactions"}</h2>
@@ -501,7 +501,7 @@ export default function ProviderPage() {
                 <div className="space-y-2">{providerTx.slice(0, 12).map((tx) => (
                   <div key={tx.id} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
                     <div><p className="text-sm font-semibold">{tx.label}</p><p className="text-[0.65rem] text-slate-400">{new Date(tx.createdAt).toLocaleString("en-KE")}</p></div>
-                    <span className={`text-sm font-black ${tx.type === "withdraw" ? "text-red-600" : "text-emerald-600"}`}>{tx.type === "withdraw" ? "−" : "+"}KSh {tx.amount.toLocaleString()}</span>
+                    <span className={`text-sm font-black ${tx.type === "withdraw" ? "text-slate-600" : "text-emerald-600"}`}>{tx.type === "withdraw" ? "−" : "+"}KSh {tx.amount.toLocaleString()}</span>
                   </div>
                 ))}</div>
               )}
@@ -581,7 +581,7 @@ export default function ProviderPage() {
       {quoteJob && (
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-black/50 px-4 pb-5">
           <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
-            <div className="flex justify-between gap-3"><div><p className="text-[0.65rem] font-bold uppercase text-[#E22227]">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{quoteHistory.some((quote) => quote.jobId === quoteJob.id) ? (lang === "sw" ? "Tuma nukuu tena" : "Requote") : (lang === "sw" ? "Tuma nukuu" : "Send quote")}</h2></div><button type="button" onClick={() => setQuoteJob(null)} aria-label="Close quote form">✕</button></div>
+            <div className="flex justify-between gap-3"><div><p className="text-[0.65rem] font-bold uppercase text-sky-700">{lang === "sw" ? "Nukuu" : "Quote"}</p><h2 className="font-black">{quoteHistory.some((quote) => quote.jobId === quoteJob.id) ? (lang === "sw" ? "Tuma nukuu tena" : "Requote") : (lang === "sw" ? "Tuma nukuu" : "Send quote")}</h2></div><button type="button" onClick={() => setQuoteJob(null)} aria-label="Close quote form">✕</button></div>
             {quoteJob && <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-[0.65rem] font-bold uppercase tracking-wide text-slate-500">Full job description · {jobId(quoteJob.id)}</p>
               {quoteHistory.some((quote) => quote.jobId === quoteJob.id) && <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">Requote · Previous prices and notes have been prefilled. Edit what changed, then resend.</p>}
@@ -605,7 +605,7 @@ export default function ProviderPage() {
             <label className="mt-3 block"><span className="text-xs font-bold text-slate-500">Extra notes (optional)</span><textarea rows={2} value={quoteMessage} onChange={(e) => setQuoteMessage(e.target.value)} placeholder="Any useful details for the customer" className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm placeholder:text-slate-400" /></label>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setQuoteJob(null)} className="rounded-full border border-slate-200 py-3 text-xs font-bold">{lang === "sw" ? "Ghairi" : "Cancel"}</button>
-              <button type="button" disabled={quoteBusy} onClick={() => void submitQuote()} className="rounded-full bg-gradient-to-r from-[#E22227] to-[#C7080C] py-3 text-xs font-bold text-white">{quoteBusy ? "…" : (lang === "sw" ? "Tuma" : "Send")}</button>
+              <button type="button" disabled={quoteBusy} onClick={() => void submitQuote()} className="rounded-full bg-gradient-to-r from-[#1d5b8f] to-[#123b60] py-3 text-xs font-bold text-white">{quoteBusy ? "…" : (lang === "sw" ? "Tuma" : "Send")}</button>
             </div>
           </div>
         </div>
