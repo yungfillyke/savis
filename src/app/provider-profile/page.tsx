@@ -21,7 +21,7 @@ type ProviderProfile = {
 const providerRoles = ["provider", "professional", "producer", "agent", "wholesale_retail"];
 
 function MenuRow({ icon, title, description, href, accent = "gold" }: {
-  icon: string; title: string; description: string; href: string; accent?: "gold" | "green" | "blue" | "red";
+  icon: string; title: string; description: string; href: string; accent?: "gold" | "green" | "blue";
 }) {
   const tones = {
     gold: "border-amber-300/20 bg-amber-300/[0.06] text-amber-200",
@@ -126,10 +126,10 @@ export default function ProviderProfilePage() {
         <MenuRow icon="⚙️" title="Settings & appearance" description="Theme, language, notifications and account preferences" href="/settings" accent="gold" />
         <MenuRow icon="👤" title="Edit personal details" description="Name, profile photo, bio and service area" href="/profile/edit" accent="blue" />
         <MenuRow icon="📋" title="Bookings & job history" description="Review job records, quotes and receipts" href="/bookings" accent="green" />
-        <button type="button" onClick={() => void signOut()} className="flex w-full items-center gap-3 rounded-2xl border border-rose-300/20 bg-rose-300/[0.05] p-3.5 text-left transition hover:bg-rose-300/[0.09]">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-300/20 bg-rose-300/[0.06]">↪</span><span className="flex-1"><b className="block text-sm text-white">Sign out</b><span className="mt-0.5 block text-xs text-white/55">Securely end this session on this device</span></span><span className="text-white/35">→</span>
+        <button type="button" onClick={() => void signOut()} className="flex w-full items-center gap-3 rounded-2xl border border-sky-300/20 bg-sky-300/[0.05] p-3.5 text-left transition hover:bg-sky-300/[0.09]">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-sky-300/20 bg-sky-300/[0.06]">↪</span><span className="flex-1"><b className="block text-sm text-white">Sign out</b><span className="mt-0.5 block text-xs text-white/55">Securely end this session on this device</span></span><span className="text-white/35">→</span>
         </button>
-        {message && <p role="status" className="rounded-xl border border-rose-300/20 bg-rose-300/[0.06] p-3 text-sm text-rose-200">{message}</p>}
+        {message && <p role="status" className="rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm text-amber-200">{message}</p>}
       </section>
 
       <section className="space-y-2">
