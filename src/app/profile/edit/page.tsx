@@ -292,7 +292,7 @@ export default function EditProfilePage() {
             type="button"
             onClick={() => void save()}
             disabled={saving}
-            className="w-full py-3.5 rounded-full font-black bg-gradient-to-r from-[#E22227] to-[#C7080C] disabled:opacity-50"
+            className={`w-full py-3.5 rounded-full font-black disabled:opacity-50 ${["provider","professional","producer","agent","wholesale_retail"].includes(role.toLowerCase()) ? "bg-gradient-to-r from-[#1d5b8f] to-[#123b60] text-white" : "bg-gradient-to-r from-[#E22227] to-[#C7080C] text-white"}`}
           >
             {saving ? "Saving…" : "Save profile"}
           </button>
