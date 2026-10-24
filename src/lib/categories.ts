@@ -138,9 +138,10 @@ export function allSubCategories(): (SubCategory & { pillarId: string; pillarLab
 export function searchCategories(query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return allSubCategories();
-  return allSubCategories().filter((category) =>
-    [category.label, category.pillarLabel, ...category.tags].some((value) =>
-      value.toLowerCase().includes(q) || q.includes(value.toLowerCase())
-    )
-  );
+  const words = q.split(/[^a-z0-9]+/).filter((word) => word.length >= 3);
+  return allSubCategories().filter((category) => {
+    const terms = [category.label, category.pillarLabel, ...category.tags].map((value) => value.toLowerCase());
+    return terms.some((value) => value.includes(q) || q.includes(value)) ||
+      words.some((word) => terms.some((value) => value.split(/[^a-z0-9]+/).some((term) => term === word || (word.length >= 5 && term.length >= 5 && (term.includes(word) || word.includes(term)))));
+  });
 }
