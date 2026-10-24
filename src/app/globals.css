@@ -441,3 +441,14 @@ textarea {
 .savis-cat-drawer-grid button:hover .savis-cat-photo img {
   transform: scale(1.08);
 }
+
+
+/* SAVIS consumer refresh: quiet white canvas, scoped only to the consumer app. */
+.savis-consumer-light {
+  color: #202832 !important;
+  background: #ffffff !important;
+  background-image: none !important;
+}
+.savis-consumer-light .savis-app-content {
+  background: #ffffff !important;
+}
