@@ -122,7 +122,7 @@ export default function CategoryStrip({ onSelectSub, activeSubId }: Props) {
             onClick={() => onSelectSub?.(sub)}
           >
             <span className="savis-cat-circle savis-cat-photo">
-              <img src={categoryPhoto(sub.id)} alt="" loading="lazy" />
+              <img src={categoryPhoto(sub.id)} alt="" loading="lazy" onError={(event) => { const image = event.currentTarget; if (image.dataset.fallbackApplied !== "true") { image.dataset.fallbackApplied = "true"; image.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=480&h=480&q=80"; } }} />
             </span>
             <b>{sub.label}</b>
           </button>
@@ -179,7 +179,7 @@ export default function CategoryStrip({ onSelectSub, activeSubId }: Props) {
                           }}
                         >
                           <span className="savis-cat-circle savis-cat-photo">
-                            <img src={categoryPhoto(sub.id)} alt="" loading="lazy" />
+                            <img src={categoryPhoto(sub.id)} alt="" loading="lazy" onError={(event) => { const image = event.currentTarget; if (image.dataset.fallbackApplied !== "true") { image.dataset.fallbackApplied = "true"; image.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=480&h=480&q=80"; } }} />
                           </span>
                           <b>{sub.label}</b>
                         </button>
