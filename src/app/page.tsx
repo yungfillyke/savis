@@ -93,7 +93,7 @@ export default function HomePage() {
   }, [items]);
 
   return (
-    <main className="savis-app-shell min-h-screen pb-24">
+    <main className="savis-app-shell savis-public-light min-h-screen pb-24">
       <header className="savis-app-header">
         <div
           className="savis-app-header-inner"
