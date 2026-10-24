@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/image";
 import { requestCurrentLocation } from "@/lib/location";
 import SavisBottomNav from "@/components/SavisBottomNav";
+import { CATEGORY_PILLARS } from "@/lib/categories";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -250,8 +251,15 @@ export default function EditProfilePage() {
                   className="w-full px-4 py-3 rounded-2xl bg-[#10243a] border border-white/15 text-white outline-none"
                 >
                   <option value="">Choose your service</option>
-                  {["Plumbing", "Electrical", "Masonry", "Carpentry", "Cleaning", "Painting", "Mechanics", "Tailoring", "Photography", "Architecture", "Engineering", "Legal", "Other"].map((category) => (
-                    <option key={category} value={category}>{category}</option>
+                  {serviceCategory && !CATEGORY_PILLARS.some((pillar) => pillar.subs.some((sub) => sub.tags[0] === serviceCategory || sub.label === serviceCategory)) && (
+                    <option value={serviceCategory}>{serviceCategory} (current category)</option>
+                  )}
+                  {CATEGORY_PILLARS.map((pillar) => (
+                    <optgroup key={pillar.id} label={pillar.label}>
+                      {pillar.subs.map((sub) => (
+                        <option key={sub.id} value={sub.tags[0] || sub.id}>{sub.label}</option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
