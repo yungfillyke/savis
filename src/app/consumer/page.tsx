@@ -13,7 +13,6 @@ import { syncConsumerBookings, type Booking } from "@/lib/bookings";
 import SavisMap, { type SavisMapProvider } from "@/components/SavisMap";
 import { getOrCreateConversation, listConversations, sendMessage, subscribeToConversations, type Conversation } from "@/lib/messaging";
 import SavisOnboarding from "@/components/SavisOnboarding";
-import CategoryStrip from "@/components/CategoryStrip";
 import { searchCategories } from "@/lib/categories";
 import ForYouOnboarding from "@/components/ForYouOnboarding";
 import { FEATURE_FLAGS } from "@/lib/featureFlags";
@@ -307,7 +306,7 @@ export default function ConsumerPage() {
   const progress = (status: string) => ({ requested: 18, quote_pending: 30, accepted: 48, en_route: 68, in_progress: 84, completed: 100, declined: 0, cancelled: 0, rescheduled: 32 }[status] ?? 18);
 
   return (
-    <main className="savis-app-shell min-h-screen pb-28">
+    <main className="savis-app-shell savis-consumer-light min-h-screen pb-28">
       <header className="savis-app-header"><div className="savis-app-header-inner">
         <button type="button" onClick={() => setTab("profile")} className="savis-logo-button" aria-label="Open SAVIS profile"><Logo size="sm" /></button>
         <div className="savis-app-search" style={{ position: "relative" }}><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} onFocus={() => setSearchFocused(true)} onBlur={() => setTimeout(() => setSearchFocused(false), 150)} onKeyDown={(e) => { if (e.key === "Enter") { if (searchSuggestions[0]) chooseSearchSuggestion(searchSuggestions[0].label); else { setActiveTab("home"); setSearchFocused(false); setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 50); } } if (e.key === "Escape") setSearchFocused(false); }} placeholder="Search services, products..." aria-label="Search services and products" aria-autocomplete="list" aria-expanded={searchFocused && searchSuggestions.length > 0} />{searchFocused && searchSuggestions.length > 0 && <div role="listbox" aria-label="Search suggestions" style={{ position: "absolute", top: "calc(100% + 10px)", left: 0, right: 0, zIndex: 80, maxHeight: 320, overflowY: "auto", background: "#fff", color: "#18212b", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.22)", padding: 6 }}>{searchSuggestions.map((suggestion) => <button key={suggestion.id} type="button" role="option" aria-selected="false" onMouseDown={(e) => e.preventDefault()} onClick={() => chooseSearchSuggestion(suggestion.label)} style={{ display: "flex", width: "100%", alignItems: "center", gap: 10, textAlign: "left", padding: "10px 12px", borderRadius: 10, border: 0, background: "transparent", color: "inherit", cursor: "pointer" }}><span style={{ fontSize: 18 }}>⌕</span><span style={{ display: "flex", flexDirection: "column", gap: 2 }}><strong style={{ fontSize: 13 }}>{suggestion.label}</strong><small style={{ fontSize: 11, opacity: .65 }}>{suggestion.pillarLabel} · service category</small></span></button>)}</div>}</div>
@@ -329,7 +328,6 @@ export default function ConsumerPage() {
 
       {activeTab === "home" && <div className="savis-app-content">
         <section className="savis-hero-card"><div className="savis-hero-copy"><span className="savis-red-pill">SAVIS</span><h1>Discover Local<br /><strong>Services & Products</strong></h1><p>Find trusted professionals, quality products and everything you need — all in one place.</p><button type="button" onClick={() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" })} className="savis-primary-button">SHOP NOW <span>→</span></button></div><div className="savis-hero-art" aria-hidden="true"><div className="savis-hero-art-photo" style={{ backgroundImage: "url(/images/savis-services-hero.jpg)" }} /></div></section>
-        <CategoryStrip activeSubId={activeCategory !== "all" ? activeCategory.toLowerCase().replace(/\s+/g, "-") : undefined} onSelectSub={(sub) => { const primary = sub.tags[0] || sub.label; setActiveCategory(primary); setSearch(""); setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 80); }} />
         <section id="nearby-results" className="savis-provider-section">
           <div className="savis-section-heading"><div><span>DISCOVER</span><h2>{search || activeCategory !== "all" ? "Results (" + filtered.length + ")" : "People near you"}</h2><p>{providerMessage || "Trusted local providers"}</p></div>
             <Link href="/consumer/nearby" style={{ fontSize: ".75rem", fontWeight: 900, color: "#fff", textDecoration: "none" }}>View All</Link></div>
