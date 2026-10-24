@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import CategoryIcon from "@/components/CategoryIcon";
 import {
   CATEGORY_PILLARS,
   allSubCategories,
