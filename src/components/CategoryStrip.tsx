@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   CATEGORY_PILLARS,
   allSubCategories,
+  searchCategories,
   type CategoryPillar,
   type SubCategory,
 } from "@/lib/categories";
@@ -26,14 +27,7 @@ export default function CategoryStrip({ onSelectSub, activeSubId }: Props) {
 
   const drawerItems = useMemo(() => {
     const q = drawerQuery.trim().toLowerCase();
-    const all = allSubCategories();
-    if (!q) return all;
-    return all.filter(
-      (s) =>
-        s.label.toLowerCase().includes(q) ||
-        s.pillarLabel.toLowerCase().includes(q) ||
-        s.tags.some((t) => t.toLowerCase().includes(q))
-    );
+    return q ? searchCategories(q) : allSubCategories();
   }, [drawerQuery]);
 
   return (
