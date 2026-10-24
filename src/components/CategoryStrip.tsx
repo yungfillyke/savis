@@ -55,9 +55,20 @@ const CATEGORY_PHOTOS: Record<string, string> = {
   "supplies": "photo-1602143407151-7111542de6e8"
 };
 
+const LOCAL_CATEGORY_PHOTOS: Record<string, string> = {
+  // Pexels photo for a warm beauty-service interaction.
+  beauty: "https://images.pexels.com/photos/6953622/pexels-photo-6953622.jpeg?auto=compress&cs=tinysrgb&w=480&h=480&fit=crop",
+  // Examples from Kenyan service businesses make key categories feel locally familiar.
+  hair: "https://fnsbeautyspa.co.ke/wp-content/uploads/2024/07/DSC_0610-scaled.jpg",
+  cleaning: "https://saimahcleaning.com/assets/hero-cleaning-sKn8SL4R.jpg",
+  electrical: "https://fundis.co.ke/ingabiz/igi-4.jpg",
+  plumbing: "https://assets.cdn.filesafe.space/SzUouzK1Mk2U9nw6pnDE/media/67a788d39769a7647e5df7cb.jpeg",
+};
+
 function categoryPhoto(id: string) {
+  if (LOCAL_CATEGORY_PHOTOS[id]) return LOCAL_CATEGORY_PHOTOS[id];
   const photo = CATEGORY_PHOTOS[id] || "photo-1600585154340-be6161a56a0c";
-  return "https://images.unsplash.com/" + photo + "?auto=format&fit=crop&w=240&h=240&q=80";
+  return "https://images.unsplash.com/" + photo + "?auto=format&fit=crop&w=480&h=480&q=80";
 }
 
 
