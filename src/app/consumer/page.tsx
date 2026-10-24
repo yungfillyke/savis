@@ -105,6 +105,7 @@ export default function ConsumerPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const [lang, setLangState] = useState<Lang>("en");
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -246,17 +247,33 @@ export default function ConsumerPage() {
     const cat = activeCategory.trim().toLowerCase();
     const queryCategories = q ? searchCategories(q) : [];
     return providers.filter((p) => {
-      const skill = (p.skill || "").toLowerCase();
-      const tags = (p.tags || []).map((t) => t.toLowerCase());
-      const categoryMatch = cat === "all" || skill === cat || skill.includes(cat) || cat.includes(skill) || tags.some((t) => t === cat || t.includes(cat) || cat.includes(t));
-      const directSearchMatch = !q || [p.name, p.skill, p.area, p.bio || "", ...(p.tags || [])].some((value) => String(value).toLowerCase().includes(q));
+      const skill = (p.skill || "").trim().toLowerCase();
+      const tags = (p.tags || []).map((t) => t.trim().toLowerCase()).filter(Boolean);
+      const categoryMatch = cat === "all" || Boolean(skill && (skill === cat || skill.includes(cat) || cat.includes(skill))) || tags.some((t) => t === cat || t.includes(cat) || cat.includes(t));
+      const searchable = [p.name, p.skill, p.area, p.bio || "", ...tags].map((value) => String(value).toLowerCase());
+      const directSearchMatch = !q || searchable.some((value) => value.includes(q));
       const aliasSearchMatch = Boolean(q) && queryCategories.some((category) => {
-        const categoryTerms = [category.label, ...category.tags].map((value) => value.toLowerCase());
-        return categoryTerms.some((term) => skill.includes(term) || term.includes(skill) || tags.some((tag) => tag.includes(term) || term.includes(tag)));
+        const categoryTerms = [category.label, ...category.tags].map((value) => value.trim().toLowerCase()).filter(Boolean);
+        return Boolean(skill) && categoryTerms.some((term) => term === skill || term.includes(skill) || skill.includes(term)) ||
+          tags.some((tag) => categoryTerms.some((term) => tag === term || tag.includes(term) || term.includes(tag)));
       });
       return categoryMatch && (directSearchMatch || aliasSearchMatch);
     }).sort((a, b) => a.km - b.km || a.name.localeCompare(b.name));
   }, [providers, search, activeCategory]);
+
+  const searchSuggestions = useMemo(() => {
+    const query = search.trim();
+    if (query.length < 2) return [];
+    return searchCategories(query).slice(0, 7);
+  }, [search]);
+
+  function chooseSearchSuggestion(label: string) {
+    setSearch(label);
+    setSearchFocused(false);
+    setActiveCategory("all");
+    setActiveTab("home");
+    setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 50);
+  }
 
   const mapCenter = userLocation || { latitude: -1.2864, longitude: 36.8172 };
 
@@ -293,7 +310,7 @@ export default function ConsumerPage() {
     <main className="savis-app-shell min-h-screen pb-28">
       <header className="savis-app-header"><div className="savis-app-header-inner">
         <button type="button" onClick={() => setTab("profile")} className="savis-logo-button" aria-label="Open SAVIS profile"><Logo size="sm" /></button>
-        <div className="savis-app-search"><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { setActiveTab("home"); setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 50); } }} placeholder="Search services, products..." aria-label="Search services and products" /></div>
+        <div className="savis-app-search" style={{ position: "relative" }}><span>⌕</span><input value={search} onChange={(e) => setSearch(e.target.value)} onFocus={() => setSearchFocused(true)} onBlur={() => setTimeout(() => setSearchFocused(false), 150)} onKeyDown={(e) => { if (e.key === "Enter") { if (searchSuggestions[0]) chooseSearchSuggestion(searchSuggestions[0].label); else { setActiveTab("home"); setSearchFocused(false); setTimeout(() => document.getElementById("nearby-results")?.scrollIntoView({ behavior: "smooth" }), 50); } } if (e.key === "Escape") setSearchFocused(false); }} placeholder="Search services, products..." aria-label="Search services and products" aria-autocomplete="list" aria-expanded={searchFocused && searchSuggestions.length > 0} />{searchFocused && searchSuggestions.length > 0 && <div role="listbox" aria-label="Search suggestions" style={{ position: "absolute", top: "calc(100% + 10px)", left: 0, right: 0, zIndex: 80, maxHeight: 320, overflowY: "auto", background: "#fff", color: "#18212b", borderRadius: 16, boxShadow: "0 16px 40px rgba(0,0,0,.22)", padding: 6 }}>{searchSuggestions.map((suggestion) => <button key={suggestion.id} type="button" role="option" aria-selected="false" onMouseDown={(e) => e.preventDefault()} onClick={() => chooseSearchSuggestion(suggestion.label)} style={{ display: "flex", width: "100%", alignItems: "center", gap: 10, textAlign: "left", padding: "10px 12px", borderRadius: 10, border: 0, background: "transparent", color: "inherit", cursor: "pointer" }}><span style={{ fontSize: 18 }}>⌕</span><span style={{ display: "flex", flexDirection: "column", gap: 2 }}><strong style={{ fontSize: 13 }}>{suggestion.label}</strong><small style={{ fontSize: 11, opacity: .65 }}>{suggestion.pillarLabel} · service category</small></span></button>)}</div>}</div>
         <Link href="/consumer/payments" className="savis-wallet-icon" aria-label="Wallet and payments">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M3 7.5h15a2.5 2.5 0 0 1 0 5H5.5A2.5 2.5 0 0 0 3 15v2.5A2.5 2.5 0 0 0 5.5 20H19a2 2 0 0 0 2-2v-5.5" />
