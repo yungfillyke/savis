@@ -14,6 +14,7 @@ import SavisMap, { type SavisMapProvider } from "@/components/SavisMap";
 import { getOrCreateConversation, listConversations, sendMessage, subscribeToConversations, type Conversation } from "@/lib/messaging";
 import SavisOnboarding from "@/components/SavisOnboarding";
 import CategoryStrip from "@/components/CategoryStrip";
+import { searchCategories } from "@/lib/categories";
 import ForYouOnboarding from "@/components/ForYouOnboarding";
 import { FEATURE_FLAGS } from "@/lib/featureFlags";
 import {
@@ -243,12 +244,17 @@ export default function ConsumerPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const cat = activeCategory.trim().toLowerCase();
+    const queryCategories = q ? searchCategories(q) : [];
     return providers.filter((p) => {
       const skill = (p.skill || "").toLowerCase();
       const tags = (p.tags || []).map((t) => t.toLowerCase());
       const categoryMatch = cat === "all" || skill === cat || skill.includes(cat) || cat.includes(skill) || tags.some((t) => t === cat || t.includes(cat) || cat.includes(t));
-      const searchMatch = !q || [p.name, p.skill, p.area, p.bio || "", ...(p.tags || [])].some((value) => String(value).toLowerCase().includes(q));
-      return categoryMatch && searchMatch;
+      const directSearchMatch = !q || [p.name, p.skill, p.area, p.bio || "", ...(p.tags || [])].some((value) => String(value).toLowerCase().includes(q));
+      const aliasSearchMatch = Boolean(q) && queryCategories.some((category) => {
+        const categoryTerms = [category.label, ...category.tags].map((value) => value.toLowerCase());
+        return categoryTerms.some((term) => skill.includes(term) || term.includes(skill) || tags.some((tag) => tag.includes(term) || term.includes(tag)));
+      });
+      return categoryMatch && (directSearchMatch || aliasSearchMatch);
     }).sort((a, b) => a.km - b.km || a.name.localeCompare(b.name));
   }, [providers, search, activeCategory]);
 
