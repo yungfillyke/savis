@@ -23,7 +23,7 @@ const CATEGORY_PHOTOS: Record<string, string> = {
   "pest-control": "photo-1632923057155-6d6a1f2d3d12",
   "gardening": "photo-1416879595882-3373a0480b5b",
   "mechanic": "photo-1486262715619-67b85e0b08d3",
-  "emergency-auto": "photo-1486262715619-67b85e0b08d3",
+  "emergency-auto": "photo-1549317661-bd32c8ce0db2",
   "car-care": "photo-1607860108855-64acea3a2e8c",
   "transport": "photo-1449965408869-eaa3f722e40d",
   "delivery": "photo-1607082349566-187342175e2f",
@@ -42,7 +42,7 @@ const CATEGORY_PHOTOS: Record<string, string> = {
   "design": "photo-1460925895917-afdab827c52f",
   "tutoring": "photo-1503676260728-1c00da094a0b",
   "lessons": "photo-1434030216411-0b793f4b4173",
-  "home-care": "photo-1581578731548-c64695cc6952",
+  "home-care": "photo-1573496359142-b8d87734a5a2",
   "health": "photo-1576091160399-112ba8d25d1d",
   "tailoring": "photo-1590736969955-71cc94901144",
   "shoe-leather": "photo-1542291026-7eec264c27ff",
@@ -51,7 +51,7 @@ const CATEGORY_PHOTOS: Record<string, string> = {
   "government-docs": "photo-1450101499163-c8848c66ca85",
   "realestate": "photo-1560518883-ce09059eeffa",
   "insurance": "photo-1450101499163-c8848c66ca85",
-  "materials": "photo-1504307651254-35680f356dfd",
+  "materials": "photo-1518709268805-4e9042af9f23",
   "supplies": "photo-1602143407151-7111542de6e8"
 };
 
@@ -67,7 +67,8 @@ const LOCAL_CATEGORY_PHOTOS: Record<string, string> = {
 
 function categoryPhoto(id: string) {
   if (LOCAL_CATEGORY_PHOTOS[id]) return LOCAL_CATEGORY_PHOTOS[id];
-  const photo = CATEGORY_PHOTOS[id] || "photo-1600585154340-be6161a56a0c";
+  const photo = CATEGORY_PHOTOS[id];
+  if (!photo) return "";
   return "https://images.unsplash.com/" + photo + "?auto=format&fit=crop&w=480&h=480&q=80";
 }
 
@@ -122,7 +123,7 @@ export default function CategoryStrip({ onSelectSub, activeSubId }: Props) {
             onClick={() => onSelectSub?.(sub)}
           >
             <span className="savis-cat-circle savis-cat-photo">
-              <img src={categoryPhoto(sub.id)} alt="" loading="lazy" onError={(event) => { const image = event.currentTarget; if (image.dataset.fallbackApplied !== "true") { image.dataset.fallbackApplied = "true"; image.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=480&h=480&q=80"; } }} />
+              <img src={categoryPhoto(sub.id)} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} />
             </span>
             <b>{sub.label}</b>
           </button>
