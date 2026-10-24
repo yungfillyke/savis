@@ -22,93 +22,6 @@ type Provider = {
   available?: string;
 };
 
-const DEMO: Provider[] = [
-  {
-    id: "1",
-    name: "James Otieno",
-    skill: "Plumbing",
-    area: "Westlands",
-    km: 1.2,
-    rating: 4.9,
-    reviews: 87,
-    rate: 1500,
-    verified: true,
-    avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
-    available: "Available today",
-    bio: "Leaks, installations and tank work.",
-  },
-  {
-    id: "2",
-    name: "Grace Wanjiku",
-    skill: "Tailoring",
-    area: "Parklands",
-    km: 0.8,
-    rating: 5,
-    reviews: 63,
-    rate: 800,
-    verified: true,
-    avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    available: "Available now",
-    bio: "Custom dresses, alterations and uniforms.",
-  },
-  {
-    id: "3",
-    name: "Brian Mutua",
-    skill: "Electrical",
-    area: "Ruaka",
-    km: 3.1,
-    rating: 4.8,
-    reviews: 54,
-    rate: 1800,
-    verified: true,
-    avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg",
-    available: "Available today",
-    bio: "Safe wiring and fault finding.",
-  },
-  {
-    id: "4",
-    name: "Amina Hassan",
-    skill: "Cleaning",
-    area: "Eastleigh",
-    km: 1.9,
-    rating: 4.6,
-    reviews: 31,
-    rate: 1200,
-    verified: true,
-    avatarUrl: "https://randomuser.me/api/portraits/women/32.jpg",
-    available: "Available now",
-    bio: "Deep cleaning and regular home cleaning.",
-  },
-  {
-    id: "5",
-    name: "Peter Kamau",
-    skill: "Masonry",
-    area: "Kilimani",
-    km: 2.4,
-    rating: 4.7,
-    reviews: 42,
-    rate: 2000,
-    verified: true,
-    avatarUrl: "https://randomuser.me/api/portraits/men/41.jpg",
-    available: "This week",
-    bio: "Walls, floors and small builds.",
-  },
-  {
-    id: "6",
-    name: "Samuel Kiptoo",
-    skill: "Carpentry",
-    area: "Kasarani",
-    km: 4.2,
-    rating: 4.5,
-    reviews: 28,
-    rate: 2500,
-    verified: true,
-    avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg",
-    available: "This week",
-    bio: "Furniture repairs and custom woodwork.",
-  },
-];
-
 function mapRow(r: Record<string, unknown>): Provider {
   return {
     id: String(r.id),
@@ -131,7 +44,7 @@ export default function HomePage() {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
-  const [items, setItems] = useState<Provider[]>(DEMO);
+  const [items, setItems] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [live, setLive] = useState(false);
   const coords = { latitude: -1.286389, longitude: 36.817223 };
@@ -161,17 +74,8 @@ export default function HomePage() {
         setItems((data as Record<string, unknown>[]).map(mapRow));
         setLive(true);
       } else {
-        const x = q.toLowerCase();
-        setItems(
-          DEMO.filter(
-            (p) =>
-              (!cat || p.skill.toLowerCase().includes(cat.toLowerCase())) &&
-              (!x ||
-                `${p.name} ${p.skill} ${p.area} ${p.bio || ""}`
-                  .toLowerCase()
-                  .includes(x))
-          )
-        );
+        // Never show fictional providers on the public landing page.
+        setItems([]);
         setLive(false);
       }
       setLoading(false);
@@ -294,7 +198,7 @@ export default function HomePage() {
               <p>
                 {live
                   ? "Live provider listings from SAVIS"
-                  : "Preview listings — join free to message & book"}
+                  : "Real provider listings will appear here as providers join SAVIS."}
               </p>
             </div>
             {(q || cat) && (
