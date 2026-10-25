@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import {
   listConversations,
   listMessages,
   sendMessage,
+  uploadMessageAttachment,
   subscribeToConversation,
   type Conversation,
   type Message,
@@ -28,6 +29,10 @@ export default function MessagesPage() {
   const [peerProfile, setPeerProfile] = useState<{name:string; avatarUrl:string|null; role:string|null} | null>(null);
   const [jobContext, setJobContext] = useState<{description:string; location:string; scheduledFor:string|null} | null>(null);
   const [homeHref, setHomeHref] = useState("/consumer");
+  const [recording, setRecording] = useState(false);
+  const [mediaBusy, setMediaBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
 
   const loadMessages = useCallback(async (conversationId: string) => {
     setMessages(await listMessages(conversationId));
@@ -131,10 +136,8 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!selected?.id) return;
-    return subscribeToConversation(selected.id, (message) => {
-      setMessages((current) => current.some((item) => item.id === message.id) ? current : [...current, message]);
-    });
-  }, [selected?.id]);
+    return subscribeToConversation(selected.id, () => { void loadMessages(selected.id); });
+  }, [selected?.id, loadMessages]);
 
   async function openConversation(conversation: Conversation) {
     setSelected(conversation);
@@ -195,6 +198,50 @@ export default function MessagesPage() {
     }
   }
 
+  async function uploadPickedFile(file?: File) {
+    if (!file || !selected || mediaBusy) return;
+    if (!file.type.startsWith("image/")) { setNotice("Please choose an image file."); return; }
+    if (file.size > 8 * 1024 * 1024) { setNotice("Choose a photo under 8 MB."); return; }
+    setMediaBusy(true); setNotice("");
+    try {
+      const saved = await uploadMessageAttachment(selected.id, file, "image");
+      if (!saved) throw new Error("Photo could not be attached to this conversation.");
+      await loadMessages(selected.id); await loadConversations();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Photo upload failed. Please try again."); }
+    finally { setMediaBusy(false); if (fileInputRef.current) fileInputRef.current.value = ""; }
+  }
+
+  async function toggleVoiceRecording() {
+    if (recording) { recorderRef.current?.stop(); setRecording(false); return; }
+    if (!selected || mediaBusy) return;
+    if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) { setNotice("Voice recording is not supported by this browser. Try a current browser over HTTPS."); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const preferred = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = preferred ? new MediaRecorder(stream, { mimeType: preferred }) : new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+      recorder.onerror = () => { stream.getTracks().forEach((track) => track.stop()); setRecording(false); setMediaBusy(false); setNotice("Voice recording failed. Please try again."); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop()); setRecording(false);
+        const mime = recorder.mimeType || "audio/webm";
+        const ext = mime.includes("mp4") ? "m4a" : mime.includes("ogg") ? "ogg" : "webm";
+        const blob = new Blob(chunks, { type: mime });
+        if (!blob.size) return;
+        if (blob.size > 12 * 1024 * 1024) { setNotice("Voice note is over 12 MB. Please record a shorter note."); return; }
+        setMediaBusy(true); setNotice("");
+        try {
+          const file = new File([blob], "voice-note-" + Date.now() + "." + ext, { type: mime });
+          const saved = await uploadMessageAttachment(selected.id, file, "audio");
+          if (!saved) throw new Error("Voice note could not be saved.");
+          await loadMessages(selected.id); await loadConversations();
+        } catch (error) { setNotice(error instanceof Error ? error.message : "Voice note upload failed."); }
+        finally { setMediaBusy(false); }
+      };
+      recorderRef.current = recorder; recorder.start(); setRecording(true); setNotice("Recording… tap Stop when you are finished.");
+    } catch { setNotice("Microphone access was not granted. Allow microphone access in your browser and try again."); }
+  }
+
   return (
     <main className="savis-internal min-h-screen pb-24">
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[rgba(34,43,49,0.86)] px-4 py-3 backdrop-blur-md">
@@ -221,18 +268,28 @@ export default function MessagesPage() {
               messages.length === 0 ? <p className="py-8 text-center text-sm text-[#B9C3C9]">No messages yet. Send the first message below.</p> :
               messages.map((message) => (
                 <div key={message.id} className={`flex ${message.senderId === userId ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-3 py-2 ${message.senderId === userId ? "bg-[#C7080C] text-white" : "bg-white/10 text-white"}`}>
-                    <p className="whitespace-pre-wrap break-words text-sm">{message.body}</p>
+                  <div className={`max-w-[85%] min-w-[120px] rounded-2xl px-3 py-2 ${message.senderId === userId ? "bg-[#C7080C] text-white" : "bg-white/10 text-white"}`}>
+                    {message.attachmentType === "image" && message.attachmentUrl && <a href={message.attachmentUrl} target="_blank" rel="noreferrer" aria-label="Open attached photo"><img src={message.attachmentUrl} alt="Photo attachment" className="mb-2 max-h-72 w-full rounded-xl object-contain" loading="lazy" /></a>}
+                    {message.attachmentType === "audio" && message.attachmentUrl && <div className="mb-2 min-w-[220px]"><p className="mb-1 text-xs font-bold">🎙 Voice note</p><audio controls preload="none" src={message.attachmentUrl} className="w-full" /></div>}
+                    {message.body && <p className="whitespace-pre-wrap break-words text-sm">{message.body}</p>}
                     <p className="mt-1 text-right text-[0.62rem] opacity-70">{new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
                   </div>
                 </div>
               ))}
           </div>
           {notice && <p role="status" className="mb-3 rounded-xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">{notice}</p>}
-          <form onSubmit={submitMessage} className="flex gap-2 border-t border-white/10 pt-3">
-            <input value={draft} onChange={(e) => setDraft(e.target.value)} disabled={!selected || sending} placeholder={selected ? "Write a message…" : "Select a conversation"} className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/20 px-3 py-3 text-sm text-white outline-none focus:border-[#E22227] disabled:opacity-50" />
-            <button type="submit" disabled={!selected || !draft.trim() || sending} className="rounded-xl bg-gradient-to-r from-[#E22227] to-[#C7080C] px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{sending ? "Sending…" : "Send"}</button>
-          </form>
+          <div className="border-t border-white/10 pt-3">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => void uploadPickedFile(e.target.files?.[0])} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={!selected || sending || mediaBusy || recording} className="rounded-full border border-white/15 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">📷 Photo</button>
+              <button type="button" onClick={() => void toggleVoiceRecording()} disabled={!selected || sending || mediaBusy} className={`rounded-full border px-3 py-2 text-xs font-bold disabled:opacity-50 ${recording ? "border-red-400 bg-red-500/15 text-red-100" : "border-white/15 text-white"}`}>{recording ? "■ Stop recording" : "🎙 Voice note"}</button>
+              {mediaBusy && <span className="text-xs text-white/60">Uploading…</span>}
+            </div>
+            <form onSubmit={submitMessage} className="flex gap-2">
+              <input value={draft} onChange={(e) => setDraft(e.target.value)} disabled={!selected || sending || mediaBusy || recording} placeholder={selected ? "Write a message…" : "Select a conversation"} className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/20 px-3 py-3 text-sm text-white outline-none focus:border-[#E22227] disabled:opacity-50" />
+              <button type="submit" disabled={!selected || !draft.trim() || sending || mediaBusy || recording} className="rounded-xl bg-gradient-to-r from-[#E22227] to-[#C7080C] px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{sending ? "Sending…" : "Send"}</button>
+            </form>
+          </div>
         </section>
       </div>
     </main>
