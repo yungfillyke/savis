@@ -4,39 +4,109 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-type Mode = "safe" | "operational" | "nuclear";
-type State = { maintenance_mode:boolean; read_only_mode:boolean; signup_enabled:boolean; payments_enabled:boolean; session_epoch:number };
-const business = [["Providers","/dev-console-9f3k/business"],["Shops & Sellers","/dev-console-9f3k/business"],["Professionals","/dev-console-9f3k/business"],["Agents","/dev-console-9f3k/agents"]];
-const operational = [["Business Control Center","/dev-console-9f3k/business"],["Assisted Sessions","/dev-console-9f3k/business"],["Agent Management","/dev-console-9f3k/agents"],["Marketplace","/dev-console-9f3k/operations"],["Bookings & Payments","/dev-console-9f3k/operations"],["Messaging","/dev-console-9f3k/operations"]];
+const routes = [
+  { label: "Provider review / KYC", href: "/admin/provider-review", status: "pending", note: "Review interface exists; live workflow needs verification." },
+  { label: "Business control centre", href: "/dev-console-9f3k/business", status: "implemented", note: "Provider, professional and seller administration." },
+  { label: "Agent management", href: "/dev-console-9f3k/agents", status: "implemented", note: "Agent administration route." },
+  { label: "Marketplace operations", href: "/dev-console-9f3k/operations", status: "implemented", note: "Jobs, payments, conversations and operational summaries." },
+  { label: "Developer feature flags", href: "#feature-flags", status: "implemented", note: "Feature flag controls and audit trail." },
+  { label: "System health & audit", href: "#system-health", status: "implemented", note: "Health snapshot, security state and recent audit events." },
+  { label: "Analytics dashboard", href: "/dev-console-9f3k/operations", status: "pending", note: "Detailed analytics view not confirmed as a separate screen." },
+  { label: "Search & location diagnostics", href: "/dev-console-9f3k/operations", status: "pending", note: "Dedicated diagnostics screen not confirmed." },
+  { label: "Assisted sessions / impersonation", href: "/dev-console-9f3k/business", status: "pending", note: "Not exposed as a standalone navigation destination." },
+  { label: "Payments provider configuration", href: "/dev-console-9f3k/operations", status: "pending", note: "Operational records exist; live gateway configuration is not confirmed." },
+];
 
-export default function DeveloperConsole(){
- const db=useMemo(()=>createClient(),[]);
- const [allowed,setAllowed]=useState<boolean|null>(null),[email,setEmail]=useState("Developer"),[mode,setMode]=useState<Mode>("safe");
- const [flags,setFlags]=useState<any[]>([]),[key,setKey]=useState(""),[desc,setDesc]=useState(""),[state,setState]=useState<State|null>(null),[health,setHealth]=useState<any>(null),[audit,setAudit]=useState<any[]>([]);
- const [busy,setBusy]=useState(false),[bootstrap,setBootstrap]=useState(false),[nuclear,setNuclear]=useState(false),[code,setCode]=useState(""),[confirm,setConfirm]=useState(""),[action,setAction]=useState(""),[message,setMessage]=useState("");
+const navGroups = [
+  { title: "Overview", items: [{ label: "System health", href: "#system-health" }, { label: "Architecture map", href: "#architecture" }] },
+  { title: "People & businesses", items: [{ label: "Provider review / KYC", href: "/admin/provider-review" }, { label: "Business control centre", href: "/dev-console-9f3k/business" }, { label: "Agent management", href: "/dev-console-9f3k/agents" }] },
+  { title: "Marketplace", items: [{ label: "Jobs, bookings & payments", href: "/dev-console-9f3k/operations" }, { label: "Messaging & orders", href: "/dev-console-9f3k/operations" }] },
+  { title: "Platform", items: [{ label: "Feature flags", href: "#feature-flags" }, { label: "Audit trail", href: "#audit-trail" }] },
+];
 
- async function loadSafe(){const [{data:f},{data:s},{data:h},{data:a}]=await Promise.all([db.rpc("list_developer_feature_flags"),db.rpc("developer_security_snapshot"),db.rpc("developer_health_snapshot"),db.rpc("list_developer_audit",{p_limit:40})]);setFlags(f||[]);setState(s||null);setHealth(h||null);setAudit(a||[]);}
- useEffect(()=>{void(async()=>{const {data:{user}}=await db.auth.getUser();if(!user){location.href="/dev-login?next=/dev-console-9f3k";return}setEmail(user.email||"Developer");const {data}=await db.rpc("is_developer_admin");setAllowed(Boolean(data));if(data){await db.rpc("write_developer_audit",{p_action:"developer.console.open",p_metadata:{path:"/dev-console-9f3k"}});await loadSafe();}})()},[db]);
- async function bootstrapDeveloper(){setBootstrap(true);setMessage("");const r=await fetch("/api/developer/bootstrap",{method:"POST"});const j=await r.json();setBootstrap(false);setMessage(j.error||"Developer access provisioned. Refreshing…");if(r.ok)setTimeout(()=>location.reload(),500);}
- async function flag(k:string,on:boolean,d?:string){setBusy(true);const {data,error}=await db.rpc("set_developer_feature_flag",{p_key:k,p_enabled:on,p_description:d||null});setBusy(false);if(error){setMessage(error.message);return}setFlags(x=>[...x.filter(f=>f.key!==k),data].sort((a,b)=>a.key.localeCompare(b.key)));}
- async function security(){setBusy(true);setMessage("");const r=await fetch("/api/developer/security",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({code,action,confirmation:confirm})});const j=await r.json();setBusy(false);if(!r.ok){setMessage(j.error||"Control failed.");return}setState(j.state);setMessage("Emergency control applied and audited.");setCode("");setConfirm("");setAction("");}
+export default function DeveloperConsole() {
+  const db = useMemo(() => createClient(), []);
+  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [email, setEmail] = useState("Developer");
+  const [flags, setFlags] = useState<any[]>([]);
+  const [key, setKey] = useState("");
+  const [desc, setDesc] = useState("");
+  const [state, setState] = useState<any>(null);
+  const [health, setHealth] = useState<any>(null);
+  const [audit, setAudit] = useState<any[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
 
- if(allowed===null)return <main className="min-h-screen grid place-items-center bg-[#07050d] text-white">Checking developer access…</main>;
- if(!allowed)return <main className="min-h-screen grid place-items-center bg-[#07050d] text-white"><div className="max-w-lg rounded-3xl border border-amber-400/20 bg-white/[.04] p-8 text-center"><p className="text-[11px] font-black uppercase tracking-[.25em] text-[#F5C451]">SAVIS Developer Control Plane</p><h1 className="mt-2 text-2xl font-black">Developer access is not provisioned</h1><p className="mt-3 text-sm leading-6 text-white/60">The console is deliberately allowlist protected. If this is the owner account, set the server-only SAVIS_DEVELOPER_EMAIL to this login email and keep the Supabase service-role key server-only, then use the one-time bootstrap below.</p><button disabled={bootstrap} onClick={()=>void bootstrapDeveloper()} className="mt-5 rounded-full bg-[#F5C451] px-5 py-3 text-sm font-black text-black">{bootstrap?"Provisioning…":"Provision this developer account"}</button>{message&&<p className="mt-3 text-xs text-white/50">{message}</p>}<Link href="/consumer" className="mt-4 block text-xs text-white/40">Exit</Link></div></main>;
+  async function load() {
+    const [{ data: f }, { data: s }, { data: h }, { data: a }] = await Promise.all([
+      db.rpc("list_developer_feature_flags"),
+      db.rpc("developer_security_snapshot"),
+      db.rpc("developer_health_snapshot"),
+      db.rpc("list_developer_audit", { p_limit: 40 }),
+    ]);
+    setFlags(f || []);
+    setState(s || null);
+    setHealth(h || null);
+    setAudit(a || []);
+  }
 
- const cards=mode==="safe"?[["Overview","Health snapshot, environment state and current developer session."],["Analytics","Platform counts and operational visibility."],["Provider Review","Human KYC review remains reviewer-gated."],["Search & Location","Radius, category and simulated-city diagnostics."],["Feature Flags","Server-side switches with audit trail."],["Logs & Health","Recent developer audit events and health checks."]]:mode==="operational"?operational:[["Maintenance","Emergency marketplace controls require second authentication."],["Signup & Payments","Emergency entry-point switches require second authentication."],["Force Re-login","Session invalidation is isolated for the final auth integration."],["Data Operations","Irreversible database actions are intentionally not exposed from ordinary developer access."]];
+  useEffect(() => {
+    void (async () => {
+      const { data: { user } } = await db.auth.getUser();
+      if (!user) { location.href = "/dev-login?next=/dev-console-9f3k"; return; }
+      setEmail(user.email || "Developer");
+      const { data } = await db.rpc("is_developer_admin");
+      setAllowed(Boolean(data));
+      if (data) {
+        await db.rpc("write_developer_audit", { p_action: "developer.console.open", p_metadata: { path: "/dev-console-9f3k" } });
+        await load();
+      }
+    })();
+  }, [db]);
 
- return <main className="min-h-screen bg-[#07050d] text-white">
- <header className="sticky top-0 z-30 border-b border-violet-400/15 bg-[#0b0714]/95 backdrop-blur"><div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4"><div><p className="text-[11px] font-black uppercase tracking-[.25em] text-[#F5C451]">SAVIS Internal • Control Plane</p><h1 className="text-2xl font-black">Developer Console</h1></div><div className="flex items-center gap-2"><span className="hidden rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-2 text-xs text-violet-200 sm:inline">{email}</span><Link href="/consumer" className="rounded-full border border-white/15 px-4 py-2 text-xs font-black">Exit Developer Mode</Link></div></div></header>
- <div className="mx-auto grid max-w-7xl gap-5 px-4 py-6 lg:grid-cols-[230px_1fr]">
- <aside className="h-fit rounded-3xl border border-violet-400/15 bg-white/[.035] p-3"><p className="px-3 pb-2 text-[10px] font-black uppercase tracking-[.2em] text-white/40">Control levels</p>{(["safe","operational","nuclear"] as Mode[]).map(x=><button key={x} onClick={()=>setMode(x)} className={"mb-2 w-full rounded-2xl px-3 py-3 text-left text-sm font-black "+(mode===x?(x==="safe"?"bg-emerald-400/15 text-emerald-300":x==="operational"?"bg-amber-400/15 text-amber-300":"bg-red-500/15 text-red-300"):"text-white/60 hover:bg-white/5")}>{x==="safe"?"🟢":x==="operational"?"🟠":"🔴"} {x}</button>)}<div className="my-4 border-t border-white/10"/><p className="px-3 text-[10px] font-black uppercase tracking-[.2em] text-white/40">Business</p>{business.map(([t,h])=><Link key={t} href={h} className="mt-1 block rounded-xl px-3 py-2 text-sm text-white/65 hover:bg-white/5">{t}</Link>)}</aside>
- <section>
- <div className={"rounded-3xl border p-5 "+(mode==="safe"?"border-emerald-400/20 bg-emerald-400/[.035]":mode==="operational"?"border-amber-400/20 bg-amber-400/[.035]":"border-red-500/25 bg-red-500/[.035]")}><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.18em] opacity-60">{mode} control level</p><h2 className="mt-1 text-xl font-black">{mode==="safe"?"Observe & configure":mode==="operational"?"Operate with guardrails":"Second-authenticated emergency controls"}</h2></div>{mode==="nuclear"&&<button onClick={()=>setNuclear(!nuclear)} className="rounded-full bg-red-500 px-4 py-2 text-xs font-black">{nuclear?"Lock controls":"Authenticate controls"}</button>}</div><p className="mt-2 text-sm text-white/60">Developer actions never require business-owner passwords. Consumers are excluded from Business Control Center management.</p></div>
- <div className="mt-5 grid gap-4 md:grid-cols-2">{cards.map(([t,d])=>{const href=t==="Provider Review"?"/admin/provider-review":t==="Feature Flags"?"#feature-flags":t==="Logs & Health"?"#audit-trail":t==="Overview"?"#system-health":t==="Business Control Center"||t==="Assisted Sessions"||t==="Providers"||t==="Shops & Sellers"||t==="Professionals"?"/dev-console-9f3k/business":t==="Agents"||t==="Agent Management"?"/dev-console-9f3k/agents":"/dev-console-9f3k/operations";return <article key={t} className="rounded-3xl border border-white/10 bg-white/[.035] p-5 transition hover:border-violet-300/30 hover:bg-white/[.06]"><div className="flex justify-between gap-3"><h3 className="font-black">{t}</h3><span className="rounded-full border border-white/10 px-2 py-1 text-[10px] text-white/40">{mode}</span></div><p className="mt-2 text-sm leading-6 text-white/55">{d}</p><Link href={href} className="mt-4 inline-flex rounded-full border border-violet-300/20 bg-violet-300/10 px-4 py-2 text-xs font-black text-violet-200 hover:bg-violet-300/20">Open {t} →</Link></article>})}</div>
- {mode==="safe"&&<div className="mt-5 grid gap-5 lg:grid-cols-2">
- <section id="system-health" className="rounded-3xl border border-white/10 bg-white/[.035] p-5"><h2 className="font-black">System health</h2><div className="mt-3 grid grid-cols-2 gap-2">{health&&Object.entries(health).map(([k,v])=><div key={k} className="rounded-2xl border border-white/8 bg-black/15 p-3"><p className="text-[10px] uppercase text-white/35">{k}</p><p className="mt-1 text-lg font-black">{String(v)}</p></div>)}</div><div className="mt-3 text-xs text-white/45">Maintenance: {state?.maintenance_mode?"ON":"OFF"} · Signup: {state?.signup_enabled?"ON":"OFF"} · Payments: {state?.payments_enabled?"ON":"OFF"} · Epoch: {state?.session_epoch??"—"}</div></section>
- <section id="feature-flags" className="rounded-3xl border border-white/10 bg-white/[.035] p-5"><h2 className="font-black">Feature flags</h2><div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><input value={key} onChange={e=>setKey(e.target.value)} placeholder="flag_key" className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm"/><input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="description" className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm"/><button disabled={busy||!key.trim()} onClick={()=>{void flag(key.trim(),false,desc.trim());setKey("");setDesc("")}} className="rounded-xl bg-[#F5C451] px-4 py-2 text-sm font-black text-black">Add</button></div><div className="mt-3 space-y-2">{flags.map(f=><div key={f.key} className="flex items-center justify-between rounded-2xl border border-white/8 p-3"><div><p className="text-sm font-bold">{f.key}</p><p className="text-xs text-white/40">{f.description||"No description"}</p></div><button onClick={()=>void flag(f.key,!f.enabled,f.description)} className={"rounded-full px-3 py-1.5 text-xs font-black "+(f.enabled?"bg-emerald-400/15 text-emerald-300":"bg-white/10 text-white/50")}>{f.enabled?"ON":"OFF"}</button></div>)}</div></section>
- <section id="audit-trail" className="rounded-3xl border border-white/10 bg-white/[.035] p-5 lg:col-span-2"><h2 className="font-black">Audit trail</h2><div className="mt-3 max-h-72 space-y-2 overflow-auto">{audit.map(x=><div key={x.id} className="flex justify-between gap-4 rounded-xl border border-white/8 p-3 text-xs"><span className="font-bold">{x.action}</span><span className="text-white/35">{new Date(x.created_at).toLocaleString()}</span></div>)}</div></section></div>}
- {mode==="nuclear"&&nuclear&&<section className="mt-5 rounded-3xl border border-red-500/25 bg-red-500/[.05] p-5"><h2 className="font-black text-red-200">Second authentication</h2><p className="mt-2 text-sm text-white/55">Use the owner/developer-controlled 12-digit credential stored only as a server environment variable. Never paste it into chat or commit it.</p><div className="mt-4 grid gap-3 md:grid-cols-3"><input value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,12))} placeholder="12-digit credential" inputMode="numeric" className="rounded-xl border border-red-400/20 bg-black/30 px-3 py-3"/><select value={action} onChange={e=>setAction(e.target.value)} className="rounded-xl border border-red-400/20 bg-black/30 px-3 py-3"><option value="">Choose control</option><option value="maintenance_on">Enable maintenance</option><option value="maintenance_off">Disable maintenance</option><option value="signup_off">Disable signup</option><option value="signup_on">Enable signup</option><option value="payments_off">Disable payments</option><option value="payments_on">Enable payments</option></select><input value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder={action?"Type "+action.toUpperCase():"Typed confirmation"} className="rounded-xl border border-red-400/20 bg-black/30 px-3 py-3"/></div><button disabled={busy||!code||!action||!confirm} onClick={()=>void security()} className="mt-3 rounded-xl bg-red-500 px-5 py-3 text-sm font-black disabled:opacity-30">Apply emergency control</button>{message&&<p className="mt-3 text-xs text-white/60">{message}</p>}<p className="mt-4 text-[11px] leading-5 text-red-100/50">Irreversible data destruction is deliberately not exposed from this web console. Any future destructive workflow must remain separately authenticated, audited and explicitly enabled by the application owner.</p></section>}
- </section></div></main>
+  async function flag(k: string, on: boolean, d?: string) {
+    setBusy(true);
+    const { data, error } = await db.rpc("set_developer_feature_flag", { p_key: k, p_enabled: on, p_description: d || null });
+    setBusy(false);
+    if (error) { setMessage(error.message); return; }
+    setFlags(x => [...x.filter(f => f.key !== k), data].sort((a, b) => a.key.localeCompare(b.key)));
+    setMessage("Feature flag saved.");
+  }
+
+  if (allowed === null) return <main className="min-h-screen grid place-items-center bg-[#07050d] text-white">Checking developer access…</main>;
+  if (!allowed) return <main className="min-h-screen grid place-items-center bg-[#07050d] text-white"><div className="max-w-lg rounded-3xl border border-amber-400/20 bg-white/[.04] p-8 text-center"><p className="text-[11px] font-black uppercase tracking-[.25em] text-[#F5C451]">SAVIS Developer Control Plane</p><h1 className="mt-2 text-2xl font-black">Developer access is not provisioned</h1><p className="mt-3 text-sm leading-6 text-white/60">This console is allowlist protected. Set the server-only SAVIS_DEVELOPER_EMAIL to the owner login and keep the Supabase service-role key server-side.</p><Link href="/consumer" className="mt-4 block text-xs text-white/40">Exit</Link></div></main>;
+
+  return <main className="min-h-screen bg-[#07050d] pb-28 text-white">
+    <header className="sticky top-0 z-30 border-b border-violet-400/15 bg-[#0b0714]/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4"><div><p className="text-[11px] font-black uppercase tracking-[.25em] text-[#F5C451]">SAVIS Internal • Control Plane</p><h1 className="text-2xl font-black">Developer Console</h1></div><div className="flex items-center gap-2"><span className="hidden rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-2 text-xs text-violet-200 sm:inline">{email}</span><Link href="/consumer" className="rounded-full border border-white/15 px-4 py-2 text-xs font-black">Exit</Link></div></div>
+    </header>
+    <div className="mx-auto grid max-w-7xl gap-5 px-4 py-6 lg:grid-cols-[250px_1fr]">
+      <aside className="h-fit rounded-3xl border border-violet-400/15 bg-white/[.035] p-3">
+        <p className="px-3 pb-2 text-[10px] font-black uppercase tracking-[.2em] text-white/40">Navigation</p>
+        {navGroups.map(group => <div key={group.title} className="mb-4"><p className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-violet-200/65">{group.title}</p>{group.items.map(item => <Link key={item.label} href={item.href} className="block rounded-xl px-3 py-2 text-sm text-white/70 hover:bg-white/[.07] hover:text-white">{item.label}</Link>)}</div>)}
+      </aside>
+      <div className="min-w-0 space-y-5">
+        <section className="rounded-3xl border border-violet-400/20 bg-violet-400/[.04] p-5"><p className="text-xs font-black uppercase tracking-widest text-violet-200/70">Control centre</p><h2 className="mt-1 text-xl font-black">SAVIS at a glance</h2><p className="mt-2 text-sm text-white/55">Use the navigation to reach existing tools. The architecture map below separates confirmed screens from functions that still need implementation or verification.</p><div className="mt-4 flex flex-wrap gap-2"><span className="rounded-full bg-[#202a32] px-3 py-1.5 text-xs text-white">● Implemented / route exists</span><span className="rounded-full bg-[#8b929a]/15 px-3 py-1.5 text-xs text-[#aeb4bb]">● Pending / verify</span></div></section>
+        <section id="system-health" className="scroll-mt-24 rounded-3xl border border-white/10 bg-white/[.035] p-5"><h2 className="font-black">System health</h2><div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{health && Object.entries(health).map(([k,v]) => <div key={k} className="rounded-2xl border border-white/8 bg-black/20 p-3"><p className="text-[10px] uppercase text-white/35">{k.replaceAll("_"," ")}</p><p className="mt-1 text-lg font-black">{String(v)}</p></div>)}</div><div className="mt-4 text-xs text-white/45">Maintenance: {state?.maintenance_mode ? "ON" : "OFF"} · Signup: {state?.signup_enabled ? "ON" : "OFF"} · Payments: {state?.payments_enabled ? "ON" : "OFF"} · Session epoch: {state?.session_epoch ?? "—"}</div></section>
+        <section id="architecture" className="scroll-mt-24 rounded-3xl border border-white/10 bg-white/[.035] p-5"><div className="flex flex-wrap items-end justify-between gap-2"><div><h2 className="text-lg font-black">SAVIS architecture tree</h2><p className="mt-1 text-sm text-white/50">A route/function map of what is present versus what needs work.</p></div><span className="text-xs text-white/40">{routes.filter(x=>x.status==="implemented").length} present · {routes.filter(x=>x.status==="pending").length} pending / verify</span></div>
+          <div className="mt-5 overflow-x-auto pb-2"><div className="min-w-[540px]">
+            <div className="mx-auto w-fit rounded-2xl border border-violet-300/30 bg-[#20202b] px-5 py-3 text-center"><p className="text-xs font-black uppercase tracking-widest text-violet-200">SAVIS platform</p><p className="mt-1 text-sm font-bold">Developer control plane</p></div>
+            <div className="mx-auto h-7 w-px bg-violet-300/35"/>
+            <div className="grid grid-cols-4 gap-3">{[
+              {title:"People & trust",items:routes.slice(0,3)},
+              {title:"Marketplace",items:[routes[3],routes[6],routes[9]]},
+              {title:"Platform tools",items:[routes[4],routes[5],routes[7]]},
+              {title:"Access & support",items:[routes[8]]},
+            ].map(group=><div key={group.title} className="relative border-t border-violet-300/25 pt-3"><div className="mb-2 text-center text-[11px] font-black text-white/65">{group.title}</div><div className="space-y-2">{group.items.map(item=><Link key={item.label} href={item.href} className={"block rounded-xl border p-3 transition hover:brightness-125 "+(item.status==="implemented"?"border-[#35434d] bg-[#202a32] text-white":"border-[#777e86]/20 bg-[#8b929a]/10 text-[#aeb4bb]")}><div className="flex items-start gap-2"><span className={"mt-0.5 text-[10px] "+(item.status==="implemented"?"text-[#c5d0d8]":"text-[#969da5]")}>{item.status==="implemented"?"●":"○"}</span><span className="text-xs font-bold">{item.label}</span></div><p className="mt-1 pl-4 text-[10px] leading-4 opacity-60">{item.note}</p></Link>)}</div></div>)}</div>
+            <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-white/40"><span className="h-px w-8 bg-violet-300/30"/>Connections indicate navigation / functional grouping, not proof that every data integration has been end-to-end tested.<span className="h-px w-8 bg-violet-300/30"/></div>
+          </div></div>
+        </section>
+        <section id="feature-flags" className="scroll-mt-24 rounded-3xl border border-white/10 bg-white/[.035] p-5"><h2 className="font-black">Feature flags</h2><div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><input value={key} onChange={e=>setKey(e.target.value)} placeholder="flag_key" className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm"/><input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="description" className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm"/><button disabled={busy||!key.trim()} onClick={()=>{const k=key.trim(),d=desc.trim();setKey("");setDesc("");void flag(k,false,d)}} className="rounded-xl bg-[#F5C451] px-4 py-2 text-sm font-black text-black disabled:opacity-40">Add</button></div><div className="mt-3 space-y-2">{flags.map(f=><div key={f.key} className="flex items-center justify-between gap-3 rounded-2xl border border-white/8 p-3"><div><p className="text-sm font-bold">{f.key}</p><p className="text-xs text-white/40">{f.description||"No description"}</p></div><button disabled={busy} onClick={()=>void flag(f.key,!f.enabled,f.description)} className={"rounded-full px-3 py-1.5 text-xs font-black "+(f.enabled?"bg-[#202a32] text-white":"bg-white/10 text-white/50")}>{f.enabled?"ON":"OFF"}</button></div>)}</div></section>
+        <section id="audit-trail" className="scroll-mt-24 rounded-3xl border border-white/10 bg-white/[.035] p-5"><h2 className="font-black">Audit trail</h2><div className="mt-3 max-h-72 space-y-2 overflow-auto">{audit.length===0?<p className="text-sm text-white/40">No audit entries returned.</p>:audit.map(x=><div key={x.id} className="flex flex-wrap justify-between gap-3 rounded-xl border border-white/8 p-3 text-xs"><span className="font-bold">{x.action}</span><span className="text-white/35">{new Date(x.created_at).toLocaleString()}</span></div>)}</div></section>
+        <section className="rounded-3xl border border-white/10 bg-white/[.025] p-5"><h2 className="font-black">Quick links</h2><div className="mt-3 flex flex-wrap gap-2">{[{label:"Business control",href:"/dev-console-9f3k/business"},{label:"Agent management",href:"/dev-console-9f3k/agents"},{label:"Marketplace operations",href:"/dev-console-9f3k/operations"},{label:"Provider review / KYC",href:"/admin/provider-review"}].map(x=><Link key={x.label} href={x.href} className="rounded-full border border-white/15 bg-[#202a32] px-4 py-2 text-xs font-bold text-white/85">{x.label} ↗</Link>)}</div></section>
+      </div>
+    </div>
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0b0714]/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur"><div className="mx-auto flex max-w-3xl justify-around gap-1">{[{label:"Overview",href:"#system-health"},{label:"Tree",href:"#architecture"},{label:"People",href:"/dev-console-9f3k/business"},{label:"Marketplace",href:"/dev-console-9f3k/operations"},{label:"Flags",href:"#feature-flags"},{label:"Audit",href:"#audit-trail"}].map(x=><Link key={x.label} href={x.href} className="rounded-xl px-2 py-2 text-center text-[10px] font-black text-white/65 hover:bg-white/10 hover:text-white sm:px-4 sm:text-xs">{x.label}</Link>)}</div></nav>
+    {message && <div className="fixed right-4 top-20 z-50 max-w-sm rounded-xl border border-white/10 bg-[#202a32] px-4 py-3 text-sm shadow-xl">{message}</div>}
+  </main>;
 }
