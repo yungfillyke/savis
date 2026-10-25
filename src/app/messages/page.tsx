@@ -77,7 +77,7 @@ export default function MessagesInboxPage() {
   }, [router]);
 
   return (
-    <main className="savis-internal min-h-screen pb-24">
+    <main className="savis-internal savis-inbox-screen min-h-screen pb-24">
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[rgba(34,43,49,0.92)] px-4 py-3 backdrop-blur-md">
         <Link href={homeHref} className="text-sm font-bold text-[#B9C3C9]">← Home</Link>
         <h1 className="font-extrabold">Messages</h1>
@@ -89,7 +89,7 @@ export default function MessagesInboxPage() {
         {loading ? <p className="py-8 text-center text-sm text-[#B9C3C9]">Loading conversations…</p> :
           rows.length === 0 ? <div className="rounded-2xl border border-dashed border-white/15 p-8 text-center"><p className="font-bold">No conversations yet</p><p className="mt-2 text-sm text-[#B9C3C9]">Open a job and choose Message to start a conversation.</p></div> :
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-[rgba(34,43,49,0.72)]">
-            {rows.map((row) => <Link key={row.conversation.id} href={row.conversation.jobId ? `/messages/chat?job=${encodeURIComponent(row.conversation.jobId)}` : `/messages/chat?conversation=${encodeURIComponent(row.conversation.id)}`} className="flex items-center gap-3 border-b border-white/10 p-4 last:border-b-0 hover:bg-white/5">
+            {rows.map((row) => <Link key={row.conversation.id} href={row.conversation.jobId ? `/messages/chat?job=${encodeURIComponent(row.conversation.jobId)}` : `/messages/chat?conversation=${encodeURIComponent(row.conversation.id)}`} className="savis-inbox-row flex items-center gap-3 border-b border-white/10 p-4 last:border-b-0 hover:bg-white/5">
               {row.avatarUrl ? <img src={row.avatarUrl} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" /> : <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10 font-black">{row.personName.charAt(0).toUpperCase()}</div>}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-xs font-bold text-[#F5C451]">{row.jobIdLabel}</span><span className="text-sm font-extrabold">{homeHref === "/provider" ? "Customer" : "Provider"} · {row.personName}</span></div>
