@@ -76,7 +76,9 @@ Quote acceptance atomically moves the job to Accepted, closes competing pending 
 
 ## Messaging
 
-Conversations and messages have participant-scoped access and Supabase Realtime subscriptions.
+Conversations and messages have participant-scoped access and Supabase Realtime subscriptions. Job chats support photo attachments and recorded voice notes using private Supabase Storage with participant-scoped policies and expiring signed URLs.
+
+For an existing database, apply `supabase/chat-media.sql` once. It creates the private `job-message-media` bucket, adds the attachment type field and restricts media access to participants in the related conversation. Voice recording requires HTTPS and browser microphone permission; photos are limited to 8 MB and voice notes to 12 MB.
 
 The app includes safe onboarding and quick-start guidance.
 
@@ -190,6 +192,7 @@ Run from Supabase SQL Editor → New query in this order when setting up a new d
 12. `supabase/developer-agents.sql`
 13. `supabase/operational-control.sql`
 14. `supabase/assisted-session.sql`
+15. `supabase/chat-media.sql`
 
 The migrations are written to be re-runnable where practical. Some earlier migrations may have already been applied in the Alpha database.
 
