@@ -243,15 +243,15 @@ export default function MessagesPage() {
   }
 
   return (
-    <main className="savis-internal min-h-screen pb-24">
+    <main className="savis-internal savis-chat-shell min-h-screen pb-24">
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[rgba(34,43,49,0.86)] px-4 py-3 backdrop-blur-md">
         <Link href={homeHref} className="text-sm font-bold text-[#B9C3C9]">← Home</Link>
         <h1 className="font-extrabold">Messages</h1>
         <span className="w-12" />
       </header>
       <div className="mx-auto grid max-w-2xl gap-4 px-4 pt-6 grid-cols-1">
-        <section className="flex min-h-[75vh] flex-col rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4">
-          <div className="border-b border-white/10 pb-3">
+        <section className="savis-chat-panel flex min-h-[75vh] flex-col rounded-[20px] border border-white/10 bg-[rgba(34,43,49,0.72)] p-4">
+          <div className="savis-chat-head border-b border-white/10 pb-3">
             <div className="flex items-center gap-3">
               {peerProfile?.avatarUrl ? <img src={peerProfile.avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover border border-white/15" /> : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-lg font-black">{(peerProfile?.name || "S").charAt(0).toUpperCase()}</div>}
               <div className="min-w-0 flex-1">
@@ -263,12 +263,12 @@ export default function MessagesPage() {
             </div>
             {jobContext?.description && <details className="mt-3 rounded-xl bg-white/5 px-3 py-2"><summary className="cursor-pointer text-xs font-bold text-[#B9C3C9]">View work description</summary><p className="whitespace-pre-wrap break-words pt-2 text-sm text-white">{jobContext.description}</p></details>}
           </div>
-          <div className="flex-1 space-y-3 overflow-y-auto py-4">
+          <div className="savis-chat-messages flex-1 space-y-3 overflow-y-auto py-4">
             {!selected ? <p className="py-8 text-center text-sm text-[#B9C3C9]">Open a conversation from a job to get started.</p> :
               messages.length === 0 ? <p className="py-8 text-center text-sm text-[#B9C3C9]">No messages yet. Send the first message below.</p> :
               messages.map((message) => (
                 <div key={message.id} className={`flex ${message.senderId === userId ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] min-w-[120px] rounded-2xl px-3 py-2 ${message.senderId === userId ? "bg-[#C7080C] text-white" : "bg-white/10 text-white"}`}>
+                  <div className={`savis-chat-bubble ${message.senderId === userId ? "is-mine" : "is-theirs"}`}>
                     {message.attachmentType === "image" && message.attachmentUrl && <a href={message.attachmentUrl} target="_blank" rel="noreferrer" aria-label="Open attached photo"><img src={message.attachmentUrl} alt="Photo attachment" className="mb-2 max-h-72 w-full rounded-xl object-contain" loading="lazy" /></a>}
                     {message.attachmentType === "audio" && message.attachmentUrl && <div className="mb-2 min-w-[220px]"><p className="mb-1 text-xs font-bold">🎙 Voice note</p><audio controls preload="none" src={message.attachmentUrl} className="w-full" /></div>}
                     {message.body && <p className="whitespace-pre-wrap break-words text-sm">{message.body}</p>}
@@ -277,17 +277,17 @@ export default function MessagesPage() {
                 </div>
               ))}
           </div>
-          {notice && <p role="status" className="mb-3 rounded-xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">{notice}</p>}
-          <div className="border-t border-white/10 pt-3">
+          {notice && <p role="status" className="savis-chat-notice mb-3 rounded-xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">{notice}</p>}
+          <div className="savis-chat-composer border-t border-white/10 pt-3">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" className="hidden" onChange={(e) => void uploadPickedFile(e.target.files?.[0])} />
-              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={!selected || sending || mediaBusy || recording} className="rounded-full border border-white/15 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">📷 Photo</button>
-              <button type="button" onClick={() => void toggleVoiceRecording()} disabled={!selected || sending || mediaBusy} className={`rounded-full border px-3 py-2 text-xs font-bold disabled:opacity-50 ${recording ? "border-red-400 bg-red-500/15 text-red-100" : "border-white/15 text-white"}`}>{recording ? "■ Stop recording" : "🎙 Voice note"}</button>
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={!selected || sending || mediaBusy || recording} className="savis-chat-action rounded-full border border-white/15 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">＋</button>
+              <button type="button" onClick={() => void toggleVoiceRecording()} disabled={!selected || sending || mediaBusy} className={`savis-chat-action rounded-full border px-3 py-2 text-xs font-bold disabled:opacity-50 ${recording ? "border-red-400 bg-red-500/15 text-red-100" : "border-white/15 text-white"}`}>{recording ? "■ Stop" : "🎙"}</button>
               {mediaBusy && <span className="text-xs text-white/60">Uploading…</span>}
             </div>
-            <form onSubmit={submitMessage} className="flex gap-2">
+            <form onSubmit={submitMessage} className="flex items-center gap-2">
               <input value={draft} onChange={(e) => setDraft(e.target.value)} disabled={!selected || sending || mediaBusy || recording} placeholder={selected ? "Write a message…" : "Select a conversation"} className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/20 px-3 py-3 text-sm text-white outline-none focus:border-[#E22227] disabled:opacity-50" />
-              <button type="submit" disabled={!selected || !draft.trim() || sending || mediaBusy || recording} className="rounded-xl bg-gradient-to-r from-[#E22227] to-[#C7080C] px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{sending ? "Sending…" : "Send"}</button>
+              <button type="submit" disabled={!selected || !draft.trim() || sending || mediaBusy || recording} className="savis-chat-send rounded-full bg-gradient-to-r from-[#E22227] to-[#C7080C] px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{sending ? "Sending…" : "Send"}</button>
             </form>
           </div>
         </section>
