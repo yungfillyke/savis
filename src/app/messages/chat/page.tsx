@@ -280,7 +280,7 @@ export default function MessagesPage() {
           {notice && <p role="status" className="mb-3 rounded-xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">{notice}</p>}
           <div className="border-t border-white/10 pt-3">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => void uploadPickedFile(e.target.files?.[0])} />
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" className="hidden" onChange={(e) => void uploadPickedFile(e.target.files?.[0])} />
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={!selected || sending || mediaBusy || recording} className="rounded-full border border-white/15 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">📷 Photo</button>
               <button type="button" onClick={() => void toggleVoiceRecording()} disabled={!selected || sending || mediaBusy} className={`rounded-full border px-3 py-2 text-xs font-bold disabled:opacity-50 ${recording ? "border-red-400 bg-red-500/15 text-red-100" : "border-white/15 text-white"}`}>{recording ? "■ Stop recording" : "🎙 Voice note"}</button>
               {mediaBusy && <span className="text-xs text-white/60">Uploading…</span>}
