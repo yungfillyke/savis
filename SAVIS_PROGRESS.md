@@ -162,3 +162,12 @@ Consumer Jobs → Messages & Payments → Profile polish → Provider Hub cards/
 - Badge silhouette follows the Instagram-style verification visual language while retaining SAVIS blue, gold, and black trust tiers.
 - Badge labels remain accessible through title/aria-label text.
 - Vercel Mapbox environment variable verified on 5 Oct 2026 for production, preview, and development; production redeploy triggered after environment configuration.
+
+
+## Job chat media — 25 October 2026
+- Added photo attachments to the job-specific message composer.
+- Added in-browser voice-note recording and playback, with microphone permission prompts and size limits.
+- Chat media is stored in a private Supabase Storage bucket; database messages store object paths, and the client requests short-lived signed URLs for display.
+- Added participant-scoped Storage policies and attachment_type schema migration in supabase/chat-media.sql.
+- Applied the matching schema and Storage policies to the connected Supabase project.
+- Remaining verification: wait for Vercel production deployment, test photo upload and voice recording on an authenticated consumer/provider pair, and inspect deployment build status. Browser microphone access requires HTTPS.
