@@ -544,3 +544,152 @@ body:has(.savis-consumer-light) {
   background: #f8f9fb !important;
   border-color: #e7eaef !important;
 }
+
+
+
+/* SAVIS conversation polish — compact, familiar messaging layout */
+.savis-chat-shell {
+  min-height: 100dvh;
+  height: 100dvh;
+  padding-bottom: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #efeae2 !important;
+  color: #17202a !important;
+}
+.savis-chat-shell > header {
+  position: relative !important;
+  flex: 0 0 auto;
+  background: #f8f9fa !important;
+  border-bottom: 1px solid #e4e7eb !important;
+  box-shadow: 0 1px 3px rgba(20,30,40,.05);
+}
+.savis-chat-shell .savis-chat-panel {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: #efeae2 !important;
+  background-image: radial-gradient(rgba(80,70,55,.045) .7px, transparent .7px) !important;
+  background-size: 14px 14px !important;
+  box-shadow: none !important;
+}
+.savis-chat-shell .savis-chat-head {
+  flex: 0 0 auto;
+  padding: 10px 16px !important;
+  background: #f8f9fa !important;
+  border-bottom: 1px solid #e3e6e8 !important;
+}
+.savis-chat-shell .savis-chat-messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px clamp(12px, 3vw, 30px) !important;
+  scroll-behavior: smooth;
+}
+.savis-chat-shell .savis-chat-bubble {
+  min-width: 100px;
+  max-width: min(78%, 520px);
+  padding: 7px 9px 5px !important;
+  border: 1px solid rgba(30,40,50,.06);
+  border-radius: 12px !important;
+  box-shadow: 0 1px 1px rgba(30,40,50,.07);
+  overflow-wrap: anywhere;
+}
+.savis-chat-shell .savis-chat-bubble.is-mine {
+  background: #d9fdd3 !important;
+  color: #17202a !important;
+  border-top-right-radius: 4px !important;
+}
+.savis-chat-shell .savis-chat-bubble.is-theirs {
+  background: #ffffff !important;
+  color: #17202a !important;
+  border-top-left-radius: 4px !important;
+}
+.savis-chat-shell .savis-chat-bubble img {
+  display: block;
+  max-height: min(42vh, 360px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(20,30,40,.04);
+}
+.savis-chat-shell .savis-chat-bubble audio {
+  display: block;
+  width: min(300px, 65vw);
+  min-width: 220px;
+  max-width: 100%;
+  height: 40px;
+}
+.savis-chat-shell .savis-chat-composer {
+  flex: 0 0 auto;
+  padding: 10px clamp(10px, 2vw, 20px) max(10px, env(safe-area-inset-bottom)) !important;
+  background: #f8f9fa !important;
+  border-top: 1px solid #e3e6e8 !important;
+}
+.savis-chat-shell .savis-chat-composer input[type="text"],
+.savis-chat-shell .savis-chat-composer input:not([type]) {
+  min-height: 46px;
+  border-radius: 24px !important;
+  border-color: #e2e6ea !important;
+  background: #ffffff !important;
+  color: #17202a !important;
+  padding-inline: 17px !important;
+}
+.savis-chat-shell .savis-chat-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  min-width: 42px;
+  border-radius: 999px !important;
+  border-color: #e1e5e9 !important;
+  background: #ffffff !important;
+  color: #3f4b55 !important;
+  transition: background .16s ease, transform .16s ease;
+}
+.savis-chat-shell .savis-chat-action:hover {
+  background: #edf2f4 !important;
+  transform: translateY(-1px);
+}
+.savis-chat-shell .savis-chat-send {
+  min-width: 46px;
+  min-height: 46px;
+  border-radius: 999px !important;
+}
+.savis-chat-shell .savis-chat-notice {
+  margin: 0 12px 8px;
+  color: #7c3e00 !important;
+  background: #fff4d6 !important;
+  border-color: #f1dba2 !important;
+}
+.savis-inbox-screen {
+  min-height: 100dvh;
+  background: #ffffff !important;
+  color: #17202a !important;
+}
+.savis-inbox-screen .savis-inbox-row {
+  background: #ffffff !important;
+  color: #17202a !important;
+  border-color: #edf0f2 !important;
+  transition: background .15s ease;
+}
+.savis-inbox-screen .savis-inbox-row:hover { background: #f7f9fa !important; }
+@media (max-width: 640px) {
+  .savis-chat-shell .savis-chat-panel { max-width: none; }
+  .savis-chat-shell .savis-chat-bubble { max-width: 88%; }
+  .savis-chat-shell .savis-chat-messages { padding: 12px 10px !important; }
+  .savis-chat-shell .savis-chat-composer { padding-inline: 8px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .savis-chat-shell * { scroll-behavior: auto !important; transition: none !important; }
+}
