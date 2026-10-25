@@ -32,6 +32,8 @@ export default function MessagesPage() {
   const [recording, setRecording] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
 
   const loadMessages = useCallback(async (conversationId: string) => {
@@ -280,9 +282,13 @@ export default function MessagesPage() {
           {notice && <p role="status" className="savis-chat-notice mb-3 rounded-xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">{notice}</p>}
           <div className="savis-chat-composer border-t border-white/10 pt-3">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" className="hidden" onChange={(e) => void uploadPickedFile(e.target.files?.[0])} />
-              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={!selected || sending || mediaBusy || recording} className="savis-chat-action rounded-full border border-white/15 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">＋</button>
-              <button type="button" onClick={() => void toggleVoiceRecording()} disabled={!selected || sending || mediaBusy} className={`savis-chat-action rounded-full border px-3 py-2 text-xs font-bold disabled:opacity-50 ${recording ? "border-red-400 bg-red-500/15 text-red-100" : "border-white/15 text-white"}`}>{recording ? "■ Stop" : "🎙"}</button>
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="hidden" onChange={(e) => void uploadPickedFile(e.target.files?.[0])} />
+              <input ref={cameraInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" className="hidden" onChange={(e) => void uploadPickedFile(e.target.files?.[0])} />
+              <div className="relative">
+                <button type="button" aria-label="Attach photo" aria-expanded={attachmentMenuOpen} onClick={() => setAttachmentMenuOpen((open) => !open)} disabled={!selected || sending || mediaBusy || recording} className="savis-chat-action rounded-full border border-white/15 px-3 py-2 text-lg font-bold disabled:opacity-50">＋</button>
+                {attachmentMenuOpen && <div className="absolute bottom-12 left-0 z-30 min-w-40 rounded-2xl border border-slate-200 bg-white p-2 text-sm text-slate-800 shadow-xl"><button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-slate-100" onClick={() => { setAttachmentMenuOpen(false); fileInputRef.current?.click(); }}>▧ Choose photo</button><button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-slate-100" onClick={() => { setAttachmentMenuOpen(false); cameraInputRef.current?.click(); }}>▣ Take photo</button></div>}
+              </div>
+              <button type="button" aria-label={recording ? "Stop voice note recording" : "Record voice note"} onClick={() => void toggleVoiceRecording()} disabled={!selected || sending || mediaBusy} className={`savis-chat-action rounded-full border px-3 py-2 text-sm font-bold disabled:opacity-50 ${recording ? "border-red-400 bg-red-500/15 text-red-100" : "border-white/15 text-white"}`}>{recording ? "■ Stop" : "🎙"}</button>
               {mediaBusy && <span className="text-xs text-white/60">Uploading…</span>}
             </div>
             <form onSubmit={submitMessage} className="flex items-center gap-2">
