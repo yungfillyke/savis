@@ -64,7 +64,7 @@ export default function MessagesInboxPage() {
         const messages = await listMessages(conversation.id);
         if (messages.length) {
           const latest = messages[messages.length - 1];
-          preview = latest.attachmentUrl ? (latest.body ? `📷 ${latest.body}` : "Photo attachment") : latest.body;
+          preview = latest.attachmentType === "audio" ? "🎙 Voice note" : latest.attachmentUrl ? (latest.body ? `📷 ${latest.body}` : "Photo attachment") : latest.body;
           lastMessageAt = latest.createdAt;
           unread = messages.filter((m) => m.senderId !== user.id && !m.readAt).length;
         }
